@@ -3,86 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Profile & Stories</title>
+    <title>Chatter Box | Full Social Suite</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* SIDEBAR */
         .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
         .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
-        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; }
+        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 5px; font-weight: 500; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background: #fafafa; color: #FF8C42; }
 
         /* MAIN VIEW */
         .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
-        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; }
+        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
 
         /* STORIES */
-        .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; min-height: 115px; background: white; }
+        .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
         .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
         .stories-bar::-webkit-scrollbar { display: none; }
-        .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; text-align: center; }
+        .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; text-align: center; flex-shrink: 0; }
         .story-ring { width: 66px; height: 66px; border-radius: 50%; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        .story-inner { width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; }
-        .add-story-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 16px; border: 2px solid white; display: flex; align-items: center; justify-content: center; }
+        .story-inner { width: 60px; height: 60px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
+        .add-story-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 16px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .story span { font-size: 11px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* PROFILE SECTION */
         .profile-header { padding: 40px 20px; display: flex; align-items: center; gap: 30px; border-bottom: 1px solid #efefef; }
-        .profile-pfp { width: 100px; height: 100px; border-radius: 50%; background-size: cover; border: 1px solid #dbdbdb; }
-        .profile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; padding: 10px; }
-        .grid-item { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; cursor: pointer; background-color: #eee; }
+        .profile-pfp { width: 100px; height: 100px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #dbdbdb; background-color: #eee; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; padding: 3px; }
+        .grid-item { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; cursor: pointer; background-color: #efefef; transition: opacity 0.2s; }
+        .grid-item:hover { opacity: 0.8; }
 
         /* FEED */
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; position: relative; }
-        .post-img { width: 100%; display: block; }
-        .admin-del-btn { position: absolute; top: 12px; right: 12px; background: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+        .post-img { width: 100%; display: block; max-height: 600px; object-fit: cover; }
+        .post-info { padding: 12px; font-size: 14px; line-height: 1.5; }
+        .admin-del-btn { position: absolute; top: 12px; right: 12px; background: rgba(255, 77, 77, 0.9); color: white; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 10px; }
 
+        /* STORY VIEWER OVERLAY */
+        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; justify-content: center; align-items: center; flex-direction: column; }
+        #storyImg { max-width: 90%; max-height: 80vh; border-radius: 10px; }
+        #storyClose { position: absolute; top: 20px; right: 20px; color: white; font-size: 30px; cursor: pointer; }
+
+        /* AUTH & MODALS */
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .auth-box { width: 350px; padding: 30px; background: white; border: 1px solid #dbdbdb; text-align: center; }
-        input, button { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #dbdbdb; }
-        button { background: #FF8C42; color: white; font-weight: bold; cursor: pointer; border: none; }
+        .auth-box { width: 350px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 3px; border: 1px solid #dbdbdb; background: #fafafa; }
+        .btn-main { width: 100%; background: #FF8C42; color: white; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; }
         .page { display: none; width: 100%; }
     </style>
 </head>
 <body>
 
+    <div id="storyOverlay">
+        <span id="storyClose" onclick="closeStory()">&times;</span>
+        <img id="storyImg" src="">
+        <h3 id="storyUser" style="color:white; margin-top:15px;"></h3>
+    </div>
+
     <div id="authPage">
         <div class="auth-box">
             <h1 class="logo">Chatter Box</h1>
             <div id="regFields" style="display:none;"><input type="text" id="rName" placeholder="Full Name"></div>
-            <input type="email" id="lEmail" placeholder="Email"><input type="password" id="lPass" placeholder="Password">
-            <button id="authBtn">Log In</button>
-            <p id="toggleAuth" style="font-size: 12px; cursor: pointer;">Sign up</p>
+            <input type="email" id="lEmail" placeholder="Email">
+            <input type="password" id="lPass" placeholder="Password">
+            <button class="btn-main" id="authBtn">Log In</button>
+            <p id="toggleAuth" style="font-size: 12px; cursor: pointer; margin-top: 15px; color: #0095f6;">Don't have an account? Sign up</p>
         </div>
     </div>
 
     <div id="sideBar" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
-        <div class="nav-item" onclick="showPage('homePage')">🏠 Home</div>
-        <div class="nav-item" onclick="showPage('friendsPage')">👥 Search</div>
-        <div class="nav-item" onclick="showPage('profilePage')">👤 Profile</div>
-        <div class="nav-item" onclick="showPage('setPage')">⚙️ Settings</div>
-        <div id="adminPanel" class="nav-item" style="display:none; color:red;" onclick="clearEntireFeed()">🔥 Admin: Reset</div>
-        <div id="logoutBtn" class="nav-item" style="margin-top:auto;">Logout</div>
+        <div class="nav-item" onclick="showPage('homePage')">🏠 <span>Home</span></div>
+        <div class="nav-item" onclick="showPage('friendsPage')">🔍 <span>Search</span></div>
+        <div class="nav-item" onclick="showPage('profilePage')">👤 <span>Profile</span></div>
+        <div class="nav-item" onclick="showPage('setPage')">⚙️ <span>Settings</span></div>
+        <div id="adminPanel" class="nav-item" style="display:none; color:red;" onclick="clearEntireFeed()">🔥 <span>Admin Reset</span></div>
+        <div id="logoutBtn" class="nav-item" style="margin-top:auto; color:#8e8e8e;">🚪 <span>Logout</span></div>
     </div>
 
     <div class="main-view">
         <div class="center-container">
             
             <div id="homePage" class="page">
-                <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
+                <div class="stories-wrapper">
+                    <div id="storyList" class="stories-bar"></div>
+                </div>
                 <input type="file" id="storyInput" accept="image/*" style="display:none;">
+                
                 <div class="feed-content">
-                    <div style="border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="What's on your mind?"></textarea>
-                        <div id="imgPreviewArea" style="display:none; margin-top:10px;"><img id="imgPreview" src="" style="width:100%;"></div>
-                        <div style="display:flex; justify-content:space-between; margin-top:10px;">
-                            <label for="postImg" style="cursor:pointer; color:#FF8C42; font-weight:bold;">🖼️ Photo</label>
+                    <div style="border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px; background:white;">
+                        <textarea id="postText" placeholder="What's on your mind?" style="width:100%; border:none; outline:none; resize:none;"></textarea>
+                        <div id="imgPreviewArea" style="display:none; margin-top:10px;"><img id="imgPreview" src="" style="width:100%; border-radius:5px;"></div>
+                        <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
+                            <label for="postImg" style="cursor:pointer; color:#FF8C42; font-weight:bold; font-size:14px;">🖼️ Add Photo</label>
                             <input type="file" id="postImg" accept="image/*" style="display:none;">
-                            <button id="sendPost" style="width:auto; padding:5px 20px;">Share</button>
+                            <button id="sendPost" class="btn-main" style="width:auto; padding:5px 20px;">Share</button>
                         </div>
                     </div>
                     <div id="postFeed"></div>
@@ -92,17 +111,25 @@
             <div id="profilePage" class="page">
                 <div class="profile-header">
                     <div id="profPfp" class="profile-pfp"></div>
-                    <div><h2 id="profName">User</h2><p id="profEmail" style="color:#8e8e8e; font-size:14px;"></p></div>
+                    <div>
+                        <h2 id="profName" style="margin:0;">User</h2>
+                        <p id="profEmail" style="color:#8e8e8e; font-size:14px; margin:5px 0;"></p>
+                    </div>
                 </div>
                 <div class="profile-grid" id="myPostsGrid"></div>
             </div>
 
-            <div id="friendsPage" class="page" style="padding:20px;"><h3>Search</h3><input type="text" placeholder="Find people..."></div>
+            <div id="friendsPage" class="page" style="padding:20px;">
+                <h3>Search Users</h3>
+                <input type="text" placeholder="Start typing a name...">
+            </div>
+
             <div id="setPage" class="page" style="padding:40px; text-align:center;">
-                <h3>Settings</h3>
-                <input type="file" id="setPfp" accept="image/*"><br><br>
-                <input type="text" id="setName" placeholder="Update Name"><br><br>
-                <button id="saveSet">Update Profile</button>
+                <h3>Edit Profile</h3>
+                <div id="setPreview" style="width:120px; height:120px; border-radius:50%; margin:0 auto 20px; background-size:cover; border:2px solid #FF8C42; background-color:#eee;"></div>
+                <input type="file" id="setPfp" accept="image/*">
+                <input type="text" id="setName" placeholder="Display Name">
+                <button id="saveSet" class="btn-main">Save Changes</button>
             </div>
 
         </div>
@@ -119,17 +146,45 @@
         const ADMIN_EMAIL = "eaton.garrett@icloud.com";
         let isAdmin = false, myData = { name: "User", pfp: "", email: "" }, pendingPostImg = "";
 
-        window.showPage = (id) => { document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); document.getElementById(id).style.display = 'block'; };
-        document.getElementById('toggleAuth').onclick = () => { document.getElementById('regFields').style.display = document.getElementById('regFields').style.display === 'block' ? 'none' : 'block'; };
+        // Navigation
+        window.showPage = (id) => { 
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
+            document.getElementById(id).style.display = 'block'; 
+        };
+
+        // Story Viewer Logic
+        window.openStory = (img, name) => {
+            document.getElementById('storyImg').src = img;
+            document.getElementById('storyUser').innerText = name + "'s Story";
+            document.getElementById('storyOverlay').style.display = 'flex';
+        };
+        window.closeStory = () => { document.getElementById('storyOverlay').style.display = 'none'; };
+
+        // Auth Logic
+        document.getElementById('toggleAuth').onclick = () => {
+            const isReg = document.getElementById('regFields').style.display === 'block';
+            document.getElementById('regFields').style.display = isReg ? 'none' : 'block';
+            document.getElementById('authBtn').innerText = isReg ? 'Log In' : 'Sign Up';
+        };
+
         document.getElementById('authBtn').onclick = () => {
             const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rName').value;
-            if(document.getElementById('regFields').style.display === 'block') createUserWithEmailAndPassword(auth, e, p).then(r => set(ref(db, 'users/'+r.user.uid), {name: n, pfp: "", email: e.toLowerCase()}));
-            else signInWithEmailAndPassword(auth, e, p);
+            if(document.getElementById('regFields').style.display === 'block') {
+                createUserWithEmailAndPassword(auth, e, p).then(r => set(ref(db, 'users/'+r.user.uid), {name: n, pfp: "", email: e.toLowerCase()}));
+            } else { signInWithEmailAndPassword(auth, e, p); }
         };
+
         document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
 
-        onAuthStateChanged(auth, (u) => { if(u) { if(u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){ isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; }
-            document.getElementById('authPage').style.display = 'none'; document.getElementById('sideBar').style.display = 'flex'; showPage('homePage'); init(u); } });
+        onAuthStateChanged(auth, (u) => { 
+            if(u) { 
+                if(u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()){ isAdmin = true; document.getElementById('adminPanel').style.display = 'block'; }
+                document.getElementById('authPage').style.display = 'none'; 
+                document.getElementById('sideBar').style.display = 'flex'; 
+                showPage('homePage'); 
+                init(u); 
+            } 
+        });
 
         function compress(file, quality, width, cb) {
             const reader = new FileReader(); reader.readAsDataURL(file);
@@ -140,45 +195,85 @@
         }
 
         function init(u) {
-            onValue(ref(db, 'users/'+u.uid), (s) => { if(s.exists()){ myData = s.val(); document.getElementById('profName').innerText = myData.name; document.getElementById('profEmail').innerText = myData.email; if(myData.pfp){ document.getElementById('profPfp').style.backgroundImage = `url(${myData.pfp})`; } } });
-
-            // STORIES LOGIC
-            onValue(ref(db, 'users'), (snap) => {
-                const list = document.getElementById('storyList'); list.innerHTML = "";
-                // Add "Your Story" circle
-                list.innerHTML += `<div class="story" onclick="document.getElementById('storyInput').click()">
-                    <div class="story-ring"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-story-plus">+</div></div></div>
-                    <span>Your Story</span></div>`;
-                snap.forEach(c => { const usr = c.val(); if(usr.pfp && c.key !== u.uid) list.innerHTML += `<div class="story"><div class="story-ring"><div class="story-inner" style="background-image:url(${usr.pfp})"></div></div><span>${usr.name.split(' ')[0]}</span></div>`; });
+            // Live Profile Sync
+            onValue(ref(db, 'users/'+u.uid), (s) => { 
+                if(s.exists()){ 
+                    myData = s.val(); 
+                    document.getElementById('profName').innerText = myData.name; 
+                    document.getElementById('profEmail').innerText = myData.email; 
+                    if(myData.pfp){ 
+                        document.getElementById('profPfp').style.backgroundImage = `url(${myData.pfp})`; 
+                        document.getElementById('setPreview').style.backgroundImage = `url(${myData.pfp})`; 
+                    } 
+                } 
             });
 
+            // Live Stories Loader
+            onValue(ref(db, 'stories'), (storySnap) => {
+                const stories = storySnap.exists() ? storySnap.val() : {};
+                onValue(ref(db, 'users'), (userSnap) => {
+                    const list = document.getElementById('storyList'); list.innerHTML = "";
+                    // My Story Circle
+                    list.innerHTML += `<div class="story" onclick="document.getElementById('storyInput').click()">
+                        <div class="story-ring"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-story-plus">+</div></div></div>
+                        <span>Your Story</span></div>`;
+                    
+                    userSnap.forEach(c => { 
+                        const usr = c.val(); 
+                        if(usr.pfp && c.key !== u.uid) {
+                            // Check if this user has a story
+                            const userStory = Object.values(stories).find(s => s.uid === c.key);
+                            const clickAction = userStory ? `onclick="openStory('${userStory.img}', '${usr.name}')"` : '';
+                            list.innerHTML += `<div class="story" ${clickAction}>
+                                <div class="story-ring"><div class="story-inner" style="background-image:url(${usr.pfp})"></div></div>
+                                <span>${usr.name.split(' ')[0]}</span></div>`;
+                        }
+                    });
+                });
+            });
+
+            // Story Uploader
             document.getElementById('storyInput').onchange = (e) => {
-                compress(e.target.files[0], 0.5, 600, (b64) => { alert("Story Posted!"); /* Story view logic would go here */ });
+                compress(e.target.files[0], 0.5, 800, (b64) => {
+                    push(ref(db, 'stories'), { uid: u.uid, img: b64, ts: Date.now() });
+                    alert("Story Shared!");
+                });
             };
 
-            // FEED & PROFILE GRID
-            document.getElementById('postImg').onchange = (e) => compress(e.target.files[0], 0.5, 800, (b64) => { pendingPostImg = b64; document.getElementById('imgPreviewArea').style.display = 'block'; document.getElementById('imgPreview').src = b64; });
+            // Post Logic
+            document.getElementById('postImg').onchange = (e) => compress(e.target.files[0], 0.5, 800, (b64) => { 
+                pendingPostImg = b64; 
+                document.getElementById('imgPreviewArea').style.display = 'block'; 
+                document.getElementById('imgPreview').src = b64; 
+            });
+
             document.getElementById('sendPost').onclick = () => {
                 const txt = document.getElementById('postText').value;
-                if(txt || pendingPostImg){ push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: txt, img: pendingPostImg, ts: Date.now() });
-                document.getElementById('postText').value = ""; document.getElementById('imgPreviewArea').style.display = 'none'; pendingPostImg = ""; }
+                if(txt || pendingPostImg){ 
+                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: txt, img: pendingPostImg, ts: Date.now() });
+                    document.getElementById('postText').value = ""; document.getElementById('imgPreviewArea').style.display = 'none'; pendingPostImg = ""; 
+                }
             };
+
+            // Feed & Profile Grid Sync
+            document.getElementById('myPostsGrid').innerHTML = "";
+            document.getElementById('postFeed').innerHTML = "";
 
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val(); const id = snap.key;
-                // Add to Feed
                 const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `${isAdmin ? `<button class="admin-del-btn" onclick="remove(ref(db,'posts/${id}'))">🗑️</button>` : ''}
-                    <div class="post-header"><div class="pill-pfp" style="background-image:url(${p.pfp})"></div><span>${p.sender}</span></div>
+                card.innerHTML = `${isAdmin ? `<button class="admin-del-btn" onclick="remove(ref(db,'posts/${id}'))">🗑️ Delete</button>` : ''}
+                    <div class="post-header"><div class="pill-pfp" style="background-image:url(${p.pfp || ''}); width:32px; height:32px; border-radius:50%; background-size:cover;"></div><span>${p.sender}</span></div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ""}<div class="post-info"><b>${p.sender}</b> ${p.text}</div>`;
                 document.getElementById('postFeed').prepend(card);
-                // Add to Profile Grid if it's yours
+
                 if(p.uid === u.uid && p.img) {
                     const gridItem = document.createElement('div'); gridItem.className = 'grid-item'; gridItem.style.backgroundImage = `url(${p.img})`;
                     document.getElementById('myPostsGrid').prepend(gridItem);
                 }
             });
 
+            // Settings Save
             document.getElementById('saveSet').onclick = () => {
                 const n = document.getElementById('setName').value || myData.name;
                 const f = document.getElementById('setPfp').files[0];
@@ -186,6 +281,8 @@
                 else update(ref(db, 'users/'+u.uid), {name: n}).then(()=>location.reload());
             };
         }
+
+        window.clearEntireFeed = () => { if(confirm("Erase all posts?")) remove(ref(db, 'posts')).then(()=>location.reload()); };
     </script>
 </body>
 </html>
