@@ -26,7 +26,23 @@
 </head>
 <body>
 
-    <div class="container">
+    <div id="chatPage" class="page">
+    <h3 style="margin:0; text-align: center; color: #2575fc;">Home Feed</h3>
+    
+    <div style="padding: 10px 0;">
+        <textarea id="postIn" placeholder="What's on your mind?" 
+            style="width:100%; height: 60px; border-radius:10px; padding:10px; border:none; resize:none;"></textarea>
+        <button id="postBtn" style="margin-top:5px;">Share Post</button>
+    </div>
+
+    <div id="feedWin" class="scroll-area"></div>
+
+    <div class="nav-bar">
+        <div class="nav-item" onclick="go('friendsPage')">Friends</div>
+        <div class="nav-item active">Home</div>
+        <div class="nav-item" onclick="go('setPage')">Settings</div>
+    </div>
+</div>
         <div id="authPage" class="page">
             <h2 style="text-align:center;">Chatter Box</h2>
             <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Nickname"></div>
