@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box Pro</title>
+    <title>Chatter Box</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .container { width: 90%; max-width: 420px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
-        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 10px; font-weight: bold; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
+        body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .container { width: 90%; max-width: 420px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 10px; font-weight: bold; }
         #chatSection, #settingsSection { display: none; text-align: left; }
-        #chatWindow { height: 320px; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 15px 0; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .msg { padding: 10px 14px; background: rgba(255,255,255,0.08); border-radius: 12px; font-size: 0.95rem; width: fit-content; max-width: 85%; }
-        .time { font-size: 0.65rem; opacity: 0.4; margin-left: 8px; }
-        .small-btn { width: auto; padding: 6px 12px; font-size: 0.75rem; margin-left: 5px; background: rgba(255,255,255,0.15); }
+        #chatWindow { height: 320px; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 15px 0; padding: 15px; border-radius: 15px; }
+        .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; position: relative; }
+        .time { font-size: 0.65rem; opacity: 0.5; display: block; margin-top: 5px; text-align: right; }
+        .small-btn { width: auto; padding: 6px 12px; font-size: 0.75rem; margin-left: 5px; }
         .danger { background: #ff4b2b; }
-        .sender { font-size: 0.75rem; font-weight: bold; color: #2575fc; display: block; margin-bottom: 2px; }
+        .sender-tag { font-size: 0.75rem; font-weight: bold; color: #2575fc; display: block; margin-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -28,30 +27,28 @@
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Password">
             <button id="authBtn">Continue</button>
-            <p id="toggle" style="cursor:pointer; font-size: 0.85rem; text-align:center; margin-top:20px; text-decoration: underline; color: #2575fc;">New here? Create Account</p>
+            <p id="toggle" style="cursor:pointer; font-size: 0.85rem; text-align:center; margin-top:20px; color: #2575fc;">New? Register</p>
         </div>
 
         <div id="chatSection">
-            <div style="float:right;">
+            <div style="float:right; display: flex; gap: 5px;">
                 <button class="small-btn" id="toSet">Settings</button>
-                <button class="small-btn danger" id="out">Out</button>
+                <button class="small-btn danger" id="outBtn">Sign Out</button>
             </div>
             <h3 style="margin: 0;">Live Chat</h3>
             <div id="chatWindow"></div>
             <div style="display:flex; gap:8px;">
-                <input type="text" id="mIn" placeholder="Type a message..." style="margin:0;">
-                <button id="sBtn" style="width:auto; margin:0; padding: 0 20px;">Send</button>
+                <input type="text" id="mIn" placeholder="Type a message...">
+                <button id="sBtn" style="width:auto; padding: 0 20px;">Send</button>
             </div>
         </div>
 
         <div id="settingsSection">
-            <h3 style="margin-top:0;">Settings</h3>
-            <label style="font-size: 0.8rem; opacity: 0.7;">Change Display Name:</label>
+            <h3>Settings</h3>
             <input type="text" id="newNick" placeholder="New Nickname">
-            <button id="saveNick">Save Profile</button>
-            <hr style="margin: 20px 0; opacity: 0.1;">
-            <button id="clearChat" class="danger" style="margin-bottom:10px;">Clear Global Chat History</button>
-            <button id="back" class="small-btn" style="width:100%; margin:0;">Back to Chat</button>
+            <button id="saveNick">Save Changes</button>
+            <button id="clearChat" class="danger" style="margin-top:20px;">ADMIN: Clear All Messages</button>
+            <button id="back" class="small-btn" style="width:100%; margin-top:10px;">Back to Chat</button>
         </div>
     </div>
 
@@ -75,23 +72,20 @@
         const db = getDatabase(app);
         let mode = "login";
 
-        const view = (id) => {
-            ["authSection", "chatSection", "settingsSection"].forEach(s => document.getElementById(s).style.display = "none");
+        const showView = (id) => {
+            document.getElementById("authSection").style.display = "none";
+            document.getElementById("chatSection").style.display = "none";
+            document.getElementById("settingsSection").style.display = "none";
             document.getElementById(id).style.display = "block";
         };
 
-        // Navigation & UI
+        // --- AUTH LOGIC ---
         document.getElementById('toggle').onclick = () => {
             mode = (mode === "login") ? "reg" : "login";
             document.getElementById('authTitle').innerText = mode === "login" ? "Sign In" : "Register";
             document.getElementById('nickWrap').style.display = mode === "login" ? "none" : "block";
-            document.getElementById('toggle').innerText = mode === "login" ? "New? Register" : "Have an account? Login";
         };
 
-        document.getElementById('toSet').onclick = () => view("settingsSection");
-        document.getElementById('back').onclick = () => view("chatSection");
-
-        // Auth Actions
         document.getElementById('authBtn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('pass').value, n = document.getElementById('nick').value;
             if(mode === "reg") {
@@ -101,50 +95,65 @@
             }
         };
 
-        document.getElementById('out').onclick = () => signOut(auth).then(() => location.reload());
+        document.getElementById('outBtn').onclick = () => signOut(auth).then(() => location.reload());
+
+        // --- SETTINGS LOGIC ---
+        document.getElementById('toSet').onclick = () => showView("settingsSection");
+        document.getElementById('back').onclick = () => showView("chatSection");
         
         document.getElementById('saveNick').onclick = () => {
             const n = document.getElementById('newNick').value;
-            if(n) updateProfile(auth.currentUser, {displayName: n}).then(() => { alert("Updated!"); view("chatSection"); });
+            if(n) updateProfile(auth.currentUser, {displayName: n}).then(() => { alert("Nickname Updated!"); showView("chatSection"); });
         };
 
-        // Clear Chat Logic
         document.getElementById('clearChat').onclick = () => {
-            if(confirm("Delete ALL messages forever?")) {
+            if(confirm("Permanently delete ALL messages?")) {
                 remove(ref(db, 'messages')).then(() => {
                     document.getElementById('chatWindow').innerHTML = "";
+                    alert("Chat Cleared");
                 });
             }
         };
 
+        // --- CORE CHAT LOGIC ---
         onAuthStateChanged(auth, (u) => {
-            if(u) { view("chatSection"); setupChat(u); } else { view("authSection"); }
+            if(u) { showView("chatSection"); runChat(u); } else { showView("authSection"); }
         });
 
-        function setupChat(u) {
-            const r = ref(db, 'messages');
+        function runChat(u) {
+            const mRef = ref(db, 'messages');
             
-            const send = () => {
-                const t = document.getElementById('mIn').value;
-                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                if(t.trim()) {
-                    push(r, { sender: auth.currentUser.displayName || u.email.split('@')[0], content: t, time: time });
+            const doSend = () => {
+                const text = document.getElementById('mIn').value;
+                const now = new Date();
+                const timeString = now.getHours() + ":" + now.getMinutes().toString().padStart(2, '0');
+                
+                if(text.trim()) {
+                    push(mRef, { 
+                        sender: auth.currentUser.displayName || u.email.split('@')[0], 
+                        content: text,
+                        time: timeString
+                    });
                     document.getElementById('mIn').value = "";
                 }
             };
 
-            document.getElementById('sBtn').onclick = send;
-            
-            // --- NEW: ENTER KEY LISTENER ---
-            document.getElementById('mIn').onkeydown = (e) => { if(e.key === "Enter") send(); };
+            document.getElementById('sBtn').onclick = doSend;
+
+            // FIX: ENTER KEY LISTENER
+            document.getElementById('mIn').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    doSend();
+                }
+            });
 
             document.getElementById('chatWindow').innerHTML = "";
-            onChildAdded(r, (s) => {
-                const d = s.val();
-                const v = document.createElement('div');
-                v.className = "msg";
-                v.innerHTML = `<span class="sender">${d.sender}</span>${d.content}<span class="time">${d.time || ''}</span>`;
-                document.getElementById('chatWindow').appendChild(v);
+            onChildAdded(mRef, (snap) => {
+                const d = snap.val();
+                const div = document.createElement('div');
+                div.className = "msg";
+                div.innerHTML = `<span class="sender-tag">${d.sender}</span>${d.content}<span class="time">${d.time || ''}</span>`;
+                document.getElementById('chatWindow').appendChild(div);
                 document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
             });
         }
