@@ -3,59 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Sidebar Fix</title>
+    <title>Chatter Box | Seen vs Unseen Stories</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR - Fixed and Stable */
-        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; height: 100%; }
+        /* SIDEBAR */
+        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
         .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
-        
-        .nav-item { 
-            cursor: pointer; 
-            padding: 12px 15px; 
-            border-radius: 8px; 
-            margin-bottom: 8px; 
-            font-weight: 500; 
-            display: flex; 
-            align-items: center; 
-            gap: 12px; 
-            color: #262626;
-            text-decoration: none;
-            transition: 0.2s;
-        }
+        .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
         .nav-item:hover { background: #f2f2f2; }
-        .nav-item.active { background: #FFF5EE; color: #FF8C42; font-weight: bold; }
+        .nav-item.active { background: #FFF5EE; color: #FF8C42; }
 
-        /* MAIN AREA */
-        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; position: relative; }
+        /* MAIN */
+        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
         .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
 
-        /* STORIES */
+        /* STORIES LOGIC */
         .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
         .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
         .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; background: #dbdbdb; }
-        .has-story { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
+        
+        /* The Ring Logic */
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; background: transparent; }
+        .unseen { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
+        .seen { background: #dbdbdb; } /* Simple grey ring for seen stories */
+        
         .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
-        .add-story-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* FEED */
+        /* POSTS & GRID */
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
         .post-img { width: 100%; display: block; }
 
-        /* MODALS */
-        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; justify-content: center; align-items: center; }
+        /* OVERLAYS */
+        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; justify-content: center; align-items: center; }
         #storyImg { max-width: 90%; max-height: 85vh; border-radius: 10px; }
 
-        /* PAGE VISIBILITY */
-        .page { display: none; width: 100%; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
+        .page { display: none; width: 100%; }
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        input { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; font-size: 14px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
         button { background: #FF8C42; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
     </style>
 </head>
@@ -64,7 +52,7 @@
     <div id="storyOverlay" onclick="this.style.display='none'"><img id="storyImg" src=""></div>
 
     <div id="authPage">
-        <div style="width: 350px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; border-radius: 8px;">
+        <div style="width: 320px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center;">
             <h1 class="logo">Chatter Box</h1>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
@@ -74,67 +62,41 @@
 
     <div id="sideBar" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
-        <div class="nav-item active" onclick="showPage('homePage', this)">🏠 <span>Home</span></div>
-        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 <span>Notifications</span></div>
-        <div class="nav-item" onclick="showPage('searchPage', this)">🔍 <span>Search</span></div>
-        <div class="nav-item" onclick="showPage('profilePage', this)">👤 <span>Profile</span></div>
-        <div class="nav-item" onclick="showPage('setPage', this)">⚙️ <span>Settings</span></div>
-        
-        <div id="adminPanel" class="nav-item" style="display:none; color:red; margin-top: 20px;" onclick="clearFeed()">🔥 <span>Clear All Posts</span></div>
-        
-        <div onclick="location.reload()" class="nav-item" style="margin-top:auto; color: #8e8e8e;">🚪 <span>Logout</span></div>
+        <div class="nav-item active" onclick="showPage('homePage', this)">🏠 Home</div>
+        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
+        <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
+        <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
+        <div class="nav-item" onclick="showPage('setPage', this)">⚙️ Settings</div>
+        <div id="adminPanel" class="nav-item" style="display:none; color:red;" onclick="clearFeed()">🔥 Admin Reset</div>
+        <div onclick="location.reload()" class="nav-item" style="margin-top:auto;">Logout</div>
     </div>
 
     <div class="main-view">
         <div class="center-container">
-            
             <div id="homePage" class="page">
                 <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
                 <input type="file" id="storyInput" accept="image/*" style="display:none;">
-                
                 <div class="feed-content">
                     <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="What's happening?" style="width:100%; border:none; outline:none; font-size:16px; resize:none;"></textarea>
-                        <input type="file" id="postImg" accept="image/*" style="margin: 10px 0;">
-                        <button id="sendPost">Post to Feed</button>
+                        <textarea id="postText" placeholder="What's on your mind?"></textarea>
+                        <input type="file" id="postImg" accept="image/*">
+                        <button id="sendPost" style="margin-top:10px;">Post</button>
                     </div>
                     <div id="postFeed"></div>
                 </div>
             </div>
 
             <div id="profilePage" class="page">
-                <div style="padding:40px; display:flex; align-items:center; gap:25px; border-bottom:1px solid #efefef;">
-                    <div id="profPfp" style="width:100px; height:100px; border-radius:50%; background-size:cover; background-position:center; background-color:#eee; border:1px solid #ddd;"></div>
-                    <div>
-                        <h2 id="profName" style="margin:0;">User</h2>
-                        <p id="profEmail" style="color:#8e8e8e; margin:5px 0;"></p>
-                    </div>
+                <div style="padding:40px; border-bottom:1px solid #dbdbdb;">
+                    <div id="profPfp" style="width:90px; height:90px; border-radius:50%; background-size:cover; border:1px solid #ddd; background-color:#eee;"></div>
+                    <h2 id="profName">User</h2>
                 </div>
-                <div class="profile-grid" id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:3px;"></div>
+                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px;"></div>
             </div>
 
-            <div id="searchPage" class="page" style="padding:20px;">
-                <h3>Find Friends</h3>
-                <input type="text" placeholder="Search by name...">
-                <div id="userResults"></div>
-            </div>
-
-            <div id="notifPage" class="page" style="padding:20px;">
-                <h3>Notifications</h3>
-                <div style="color:#8e8e8e; text-align:center; margin-top:50px;">No new notifications yet.</div>
-            </div>
-
-            <div id="setPage" class="page" style="padding:20px;">
-                <h3>Account Settings</h3>
-                <div style="background:#fff; border:1px solid #dbdbdb; padding:20px; border-radius:8px;">
-                    <label>Update Profile Picture:</label>
-                    <input type="file" id="newPfp" style="margin-top:10px;">
-                    <label>Change Display Name:</label>
-                    <input type="text" id="newName" placeholder="Enter new name">
-                    <button id="saveSet">Save Changes</button>
-                </div>
-            </div>
-
+            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3></div>
+            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3><input type="text" placeholder="Search..."></div>
+            <div id="setPage" class="page" style="padding:20px;"><h3>Settings</h3><button id="saveSet">Update PFP</button></div>
         </div>
     </div>
 
@@ -149,24 +111,19 @@
         let myData = { name: "User", pfp: "" };
         const ADMIN_EMAIL = "eaton.garrett@icloud.com";
 
-        // SIDEBAR NAVIGATION LOGIC
         window.showPage = (id, el) => { 
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
             document.getElementById(id).style.display = 'block'; 
             if(el) el.classList.add('active');
         };
 
-        document.getElementById('authBtn').onclick = () => {
-            signInWithEmailAndPassword(auth, document.getElementById('lEmail').value, document.getElementById('lPass').value);
-        };
+        document.getElementById('authBtn').onclick = () => signInWithEmailAndPassword(auth, lEmail.value, lPass.value);
 
         onAuthStateChanged(auth, (u) => {
             if(u) {
-                if(u.email === ADMIN_EMAIL) document.getElementById('adminPanel').style.display='flex';
-                document.getElementById('authPage').style.display='none';
-                document.getElementById('sideBar').style.display='flex';
+                if(u.email === ADMIN_EMAIL) adminPanel.style.display='flex';
+                authPage.style.display='none'; sideBar.style.display='flex';
                 showPage('homePage', document.querySelector('.nav-item.active'));
                 init(u);
             }
@@ -186,81 +143,68 @@
         }
 
         function init(u) {
-            onValue(ref(db, 'users/'+u.uid), (s) => { 
-                if(s.exists()){ 
-                    myData = s.val(); 
-                    document.getElementById('profName').innerText = myData.name;
-                    document.getElementById('profEmail').innerText = u.email;
-                    document.getElementById('profPfp').style.backgroundImage = `url(${myData.pfp})`;
-                }
-            });
+            onValue(ref(db, 'users/'+u.uid), (s) => { if(s.exists()){ myData = s.val(); profName.innerText = myData.name; profPfp.style.backgroundImage = `url(${myData.pfp})`; } });
 
-            // STORIES
+            // STORIES LOGIC WITH SEEN TRACKING
             onValue(ref(db, 'stories'), (storySnap) => {
                 const stories = storySnap.val() || {};
                 onValue(ref(db, 'users'), (userSnap) => {
-                    const list = document.getElementById('storyList');
-                    list.innerHTML = "";
+                    storyList.innerHTML = "";
                     
-                    // ME
+                    // My Story
                     const myStory = stories[u.uid];
-                    const meDiv = document.createElement('div');
-                    meDiv.className = 'story';
-                    meDiv.innerHTML = `<div class="story-ring ${myStory ? 'has-story' : ''}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-story-plus" id="plus">+</div></div></div><span>You</span>`;
+                    const meDiv = document.createElement('div'); meDiv.className = 'story';
+                    // We don't show a ring for our own story typically, but we'll show grey if it exists
+                    meDiv.innerHTML = `<div class="story-ring ${myStory ? 'seen' : ''}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" id="plus">+</div></div></div><span>You</span>`;
                     meDiv.onclick = (e) => {
-                        if(e.target.id === 'plus') document.getElementById('storyInput').click();
-                        else if(myStory) { document.getElementById('storyImg').src = myStory.img; document.getElementById('storyOverlay').style.display = 'flex'; }
+                        if(e.target.id === 'plus' || !myStory) storyInput.click();
+                        else { storyImg.src = myStory.img; storyOverlay.style.display = 'flex'; }
                     };
-                    list.appendChild(meDiv);
+                    storyList.appendChild(meDiv);
 
+                    // Friend Stories
                     userSnap.forEach(c => {
                         if(c.key !== u.uid) {
                             const usr = c.val(); const s = stories[c.key];
+                            if(!s) return;
+                            
+                            // Check if I have seen this specific story
+                            const hasSeen = s.viewers && s.viewers[u.uid];
+                            const ringClass = hasSeen ? 'seen' : 'unseen';
+
                             const div = document.createElement('div'); div.className = 'story';
-                            div.innerHTML = `<div class="story-ring ${s ? 'has-story' : ''}"><div class="story-inner" style="background-image:url(${usr.pfp})"></div></div><span>${usr.name.split(' ')[0]}</span>`;
-                            if(s) div.onclick = () => { document.getElementById('storyImg').src = s.img; document.getElementById('storyOverlay').style.display = 'flex'; };
-                            list.appendChild(div);
+                            div.innerHTML = `<div class="story-ring ${ringClass}"><div class="story-inner" style="background-image:url(${usr.pfp})"></div></div><span>${usr.name.split(' ')[0]}</span>`;
+                            div.onclick = () => {
+                                // Mark as seen in DB
+                                set(ref(db, `stories/${c.key}/viewers/${u.uid}`), true);
+                                storyImg.src = s.img;
+                                storyOverlay.style.display = 'flex';
+                            };
+                            storyList.appendChild(div);
                         }
                     });
                 });
             });
 
-            document.getElementById('storyInput').onchange = (e) => {
-                compress(e.target.files[0], (b64) => set(ref(db, 'stories/'+u.uid), {img: b64}));
-            };
+            storyInput.onchange = (e) => compress(e.target.files[0], (b64) => set(ref(db, 'stories/'+u.uid), {img: b64, ts: Date.now(), viewers: {}}));
 
-            // POSTING
-            document.getElementById('sendPost').onclick = () => {
-                const f = document.getElementById('postImg').files[0];
-                const t = document.getElementById('postText').value;
-                if(f) compress(f, (b64) => {
-                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: t, img: b64 });
-                    document.getElementById('postText').value = "";
-                });
+            sendPost.onclick = () => {
+                const f = postImg.files[0];
+                if(f) compress(f, (b64) => push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: postText.value, img: b64 }));
             };
 
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val();
                 const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>`;
-                document.getElementById('postFeed').prepend(card);
+                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;">${p.text}</div>`;
+                postFeed.prepend(card);
                 if(p.uid === u.uid) {
-                    const gi = document.createElement('div'); gi.className = 'grid-item'; gi.style.backgroundImage = `url(${p.img})`;
+                    const gi = document.createElement('div'); gi.className = 'gi'; gi.style.backgroundImage = `url(${p.img})`;
                     gi.style.width="100%"; gi.style.aspectRatio="1/1"; gi.style.backgroundSize="cover";
-                    document.getElementById('myPostsGrid').prepend(gi);
+                    myPostsGrid.prepend(gi);
                 }
             });
-
-            // SETTINGS
-            document.getElementById('saveSet').onclick = () => {
-                const f = document.getElementById('newPfp').files[0];
-                const n = document.getElementById('newName').value || myData.name;
-                if(f) compress(f, (b) => update(ref(db, 'users/'+u.uid), {pfp: b, name: n}).then(()=>location.reload()));
-                else update(ref(db, 'users/'+u.uid), {name: n}).then(()=>location.reload());
-            };
         }
-
-        window.clearFeed = () => { if(confirm("Clear feed?")) remove(ref(db, 'posts')).then(()=>location.reload()); };
     </script>
 </body>
 </html>
