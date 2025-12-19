@@ -56,10 +56,20 @@
         .notif-dot { width: 10px; height: 10px; background: #FF8C42; border-radius: 50%; }
         
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #BF360C; }
-        .p-avatar { width: 36px; height: 36px; background: #FFCC80; border-radius: 50%; }
+        
+        /* UPDATED AVATAR CSS */
+        .p-avatar { 
+            width: 36px; height: 36px; background: #FFCC80; border-radius: 50%; 
+            background-size: cover; background-position: center; flex-shrink: 0;
+            border: 1px solid #FFE0B2;
+        }
+        
         .post-content { padding: 0 12px 15px 12px; font-size: 1rem; line-height: 1.5; color: #5D4037; }
         
-        input { width: 100%; padding: 12px; margin-bottom: 12px; background: #FFFFFF; border: 1px solid #FFE0B2; color: #4A4A4A; border-radius: 8px; font-size: 1rem; }
+        input[type="text"], input[type="email"], input[type="password"], input[type="file"] { 
+            width: 100%; padding: 12px; margin-bottom: 12px; background: #FFFFFF; border: 1px solid #FFE0B2; 
+            color: #4A4A4A; border-radius: 8px; font-size: 1rem; 
+        }
         button { background: #FF8C42; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         button:hover { background: #F4511E; transform: translateY(-1px); }
         
@@ -88,7 +98,6 @@
         <div class="nav-item" onclick="go('notifPage')">🔔 Notifications</div>
         <div class="nav-item" onclick="go('friendsPage')">👥 Friends</div>
         <div class="nav-item" onclick="go('setPage')">⚙️ Settings</div>
-        
         <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #D84315; border-top: 1px solid #FFE0B2; padding-top: 20px;">🚪 Logout</div>
     </div>
 
@@ -110,10 +119,7 @@
                     <button id="clearNotifs" class="btn-clear">Clear All</button>
                 </div>
                 <div id="notifList">
-                    <div class="notif-item">
-                        <div class="notif-dot"></div>
-                        <div style="flex:1;"><b>Welcome!</b> You've joined Chatter Box.</div>
-                    </div>
+                    <div class="notif-item"><div class="notif-dot"></div><div style="flex:1;"><b>Welcome!</b> You've joined Chatter Box.</div></div>
                 </div>
             </div>
         </div>
@@ -121,10 +127,7 @@
         <div id="friendsPage" class="page">
             <div class="feed-wrapper">
                 <h2 style="color: #E65100;">Find Friends</h2>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="fSearch" placeholder="Friend's Email">
-                    <button id="fAdd">Add</button>
-                </div>
+                <div style="display:flex; gap:10px;"><input type="text" id="fSearch" placeholder="Friend's Email"><button id="fAdd">Add</button></div>
                 <div id="fList" style="margin-top:30px;"></div>
             </div>
         </div>
@@ -133,9 +136,11 @@
             <div class="feed-wrapper">
                 <h2 style="color: #E65100;">Settings</h2>
                 <div class="create-box">
-                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; margin-bottom: 8px;">Display Name</label>
+                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; margin-bottom: 8px;">Profile Picture</label>
+                    <input type="file" id="pfpInput" accept="image/*">
+                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; margin-bottom: 8px; margin-top: 15px;">Display Name</label>
                     <input type="text" id="sNick" placeholder="New nickname">
-                    <button id="sSave" style="width:100%;">Save Changes</button>
+                    <button id="sSave" style="width:100%;">Save Profile</button>
                 </div>
             </div>
         </div>
@@ -160,27 +165,20 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         let isReg = false;
+        let currentUserPFP = ""; // Store local PFP URL
 
-        // NAVIGATION LOGIC
         window.go = (id) => {
-            // Hide all pages
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            // Show the selected page
             const target = document.getElementById(id);
             if (target) target.style.display = 'block';
-            
-            // Highlight active nav item
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
-                if (item.getAttribute('onclick')?.includes(id)) {
-                    item.classList.add('active');
-                }
+                if (item.getAttribute('onclick')?.includes(id)) item.classList.add('active');
             });
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
 
-        // AUTH SWITCHING
         document.getElementById('authSwitch').onclick = () => {
             isReg = !isReg;
             document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
@@ -200,7 +198,6 @@
             }
         };
 
-        // AUTH STATE OBSERVER
         onAuthStateChanged(auth, (u) => {
             if(u) { 
                 document.getElementById('authPage').style.display = 'none';
@@ -214,7 +211,13 @@
         });
 
         function start(u) {
-            // Post logic
+            // Load user data including PFP if it exists
+            get(ref(db, 'users/' + u.uid)).then(snap => {
+                if(snap.exists() && snap.val().pfp) {
+                    currentUserPFP = snap.val().pfp;
+                }
+            });
+
             const postsRef = ref(db, 'posts');
             document.getElementById('postBtn').onclick = () => {
                 const text = document.getElementById('postIn').value;
@@ -222,6 +225,7 @@
                     push(postsRef, {
                         sender: auth.currentUser.displayName || u.email.split('@')[0],
                         content: text,
+                        senderPfp: currentUserPFP, // Save PFP with post
                         timestamp: Date.now()
                     });
                     document.getElementById('postIn').value = "";
@@ -234,19 +238,39 @@
                 const data = snap.val();
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post-card';
+                const pfpStyle = data.senderPfp ? `style="background-image: url('${data.senderPfp}')"` : "";
                 postDiv.innerHTML = `
-                    <div class="post-header"><div class="p-avatar"></div><span>${data.sender}</span></div>
+                    <div class="post-header"><div class="p-avatar" ${pfpStyle}></div><span>${data.sender}</span></div>
                     <div class="post-content">${data.content}</div>
                 `;
                 feedWin.prepend(postDiv);
             });
 
-            // Notification Clear logic
             document.getElementById('clearNotifs').onclick = () => {
                 document.getElementById('notifList').innerHTML = '<p style="text-align:center; color:#8D6E63; margin-top:20px;">No new notifications</p>';
             };
 
-            // Friends logic
+            // SETTINGS PFP LOGIC
+            document.getElementById('sSave').onclick = () => {
+                const n = document.getElementById('sNick').value;
+                const pfpFile = document.getElementById('pfpInput').files[0];
+                let updates = {};
+                
+                if(n) updates.name = n;
+
+                if(pfpFile) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        updates.pfp = e.target.result; // Use Base64 string for PFP
+                        currentUserPFP = e.target.result;
+                        update(ref(db, 'users/' + u.uid), updates).then(() => alert("Profile Updated!"));
+                    };
+                    reader.readAsDataURL(pfpFile);
+                } else if (n) {
+                    update(ref(db, 'users/' + u.uid), updates).then(() => alert("Profile Updated!"));
+                }
+            };
+
             document.getElementById('fAdd').onclick = () => {
                 const s = document.getElementById('fSearch').value.toLowerCase().trim();
                 get(ref(db, 'users')).then(snap => {
@@ -254,12 +278,6 @@
                     snap.forEach(c => { if(c.val().email === s) fid = c.key; });
                     if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Friend Request Sent!"));
                 });
-            };
-
-            // Settings logic
-            document.getElementById('sSave').onclick = () => {
-                const n = document.getElementById('sNick').value;
-                if(n) update(ref(db, 'users/' + u.uid), {name: n}).then(() => alert("Profile Updated!"));
             };
         }
     </script>
