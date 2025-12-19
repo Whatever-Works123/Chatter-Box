@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Fixed Stories</title>
+    <title>Chatter Box | Stories Fixed</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -23,23 +23,25 @@
         .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
         .stories-bar::-webkit-scrollbar { display: none; }
         .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; text-align: center; flex-shrink: 0; }
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        /* Glowing ring if they have a story */
-        .has-story { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
+        
+        /* The Glow Ring */
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; background: #eee; }
+        .has-story { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888) !important; }
+        
         .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
-        .add-story-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .add-story-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; z-index: 2; }
         .story span { font-size: 11px; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* FEED & PROFILE */
+        /* FEED & GRID */
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; position: relative; }
         .post-img { width: 100%; display: block; }
         .profile-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px; padding: 3px; }
         .grid-item { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #efefef; }
 
-        /* STORY OVERLAY */
-        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: none; justify-content: center; align-items: center; }
-        #storyImg { max-width: 90%; max-height: 80vh; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+        /* OVERLAYS */
+        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; justify-content: center; align-items: center; }
+        #storyImg { max-width: 95%; max-height: 85vh; border-radius: 8px; }
         .close-story { position: absolute; top: 20px; right: 20px; color: white; font-size: 40px; cursor: pointer; }
 
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
@@ -76,11 +78,12 @@
             <div id="homePage" class="page">
                 <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
                 <input type="file" id="storyInput" accept="image/*" style="display:none;">
+                
                 <div class="feed-content">
-                    <div style="border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="Post a photo..." style="width:100%; border:none; outline:none;"></textarea>
-                        <input type="file" id="postImg" accept="image/*">
-                        <button id="sendPost" style="margin-top:10px;">Share</button>
+                    <div style="border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px; background:white;">
+                        <textarea id="postText" placeholder="What's on your mind?" style="width:100%; border:none; outline:none; margin-bottom:10px;"></textarea>
+                        <input type="file" id="postImg" accept="image/*" style="margin-bottom:10px;">
+                        <button id="sendPost" style="width:100%">Share to Feed</button>
                     </div>
                     <div id="postFeed"></div>
                 </div>
@@ -88,7 +91,7 @@
 
             <div id="profilePage" class="page">
                 <div style="padding:40px; display:flex; align-items:center; gap:20px;">
-                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd;"></div>
+                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd; background-color:#eee;"></div>
                     <h2 id="profName">User</h2>
                 </div>
                 <div class="profile-grid" id="myPostsGrid"></div>
@@ -132,9 +135,9 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 600; canvas.height = (img.height/img.width)*600;
+                    canvas.width = 800; canvas.height = (img.height/img.width)*800;
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    cb(canvas.toDataURL('image/jpeg', 0.6));
+                    cb(canvas.toDataURL('image/jpeg', 0.7));
                 };
             };
         }
@@ -148,24 +151,51 @@
                 }
             });
 
-            // LOAD STORIES
+            // LOAD STORIES & WATCH FOR CHANGES
             onValue(ref(db, 'stories'), (storySnap) => {
                 const stories = storySnap.val() || {};
                 onValue(ref(db, 'users'), (userSnap) => {
                     const list = document.getElementById('storyList');
-                    list.innerHTML = `<div class="story" onclick="document.getElementById('storyInput').click()">
-                        <div class="story-ring"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-story-plus">+</div></div></div>
-                        <span>Your Story</span></div>`;
+                    list.innerHTML = "";
 
+                    // MY STORY CIRCLE
+                    const myActiveStory = stories[u.uid];
+                    const myRingClass = myActiveStory ? 'has-story' : '';
+                    const myStoryDiv = document.createElement('div');
+                    myStoryDiv.className = 'story';
+                    myStoryDiv.innerHTML = `
+                        <div class="story-ring ${myRingClass}">
+                            <div class="story-inner" style="background-image:url(${myData.pfp})">
+                                <div class="add-story-plus" id="uploadTrigger">+</div>
+                            </div>
+                        </div>
+                        <span>Your Story</span>`;
+                    
+                    // Click logic: View if exists, else upload
+                    myStoryDiv.onclick = (e) => {
+                        if (e.target.id === 'uploadTrigger' || !myActiveStory) {
+                            document.getElementById('storyInput').click();
+                        } else {
+                            viewStory(myActiveStory.img);
+                        }
+                    };
+                    list.appendChild(myStoryDiv);
+
+                    // FRIENDS STORIES
                     userSnap.forEach(c => {
                         const user = c.val();
                         if(c.key !== u.uid && user.pfp) {
-                            const activeStory = Object.values(stories).find(s => s.uid === c.key);
+                            const activeStory = stories[c.key];
                             const ringClass = activeStory ? 'has-story' : '';
-                            const clickAction = activeStory ? `onclick="viewStory('${activeStory.img}')"` : '';
-                            list.innerHTML += `<div class="story" ${clickAction}>
-                                <div class="story-ring ${ringClass}"><div class="story-inner" style="background-image:url(${user.pfp})"></div></div>
-                                <span>${user.name.split(' ')[0]}</span></div>`;
+                            const friendStoryDiv = document.createElement('div');
+                            friendStoryDiv.className = 'story';
+                            friendStoryDiv.innerHTML = `
+                                <div class="story-ring ${ringClass}">
+                                    <div class="story-inner" style="background-image:url(${user.pfp})"></div>
+                                </div>
+                                <span>${user.name.split(' ')[0]}</span>`;
+                            if(activeStory) friendStoryDiv.onclick = () => viewStory(activeStory.img);
+                            list.appendChild(friendStoryDiv);
                         }
                     });
                 });
@@ -177,27 +207,39 @@
             };
 
             document.getElementById('storyInput').onchange = (e) => {
-                compress(e.target.files[0], (b64) => {
-                    set(ref(db, 'stories/' + u.uid), { uid: u.uid, img: b64, ts: Date.now() });
-                    alert("Story Updated!");
-                });
+                if(e.target.files[0]) {
+                    compress(e.target.files[0], (b64) => {
+                        set(ref(db, 'stories/' + u.uid), { uid: u.uid, img: b64, ts: Date.now() });
+                        alert("Story uploaded! Tap your profile to see it.");
+                    });
+                }
             };
 
             document.getElementById('sendPost').onclick = () => {
                 const file = document.getElementById('postImg').files[0];
                 const text = document.getElementById('postText').value;
-                if(file) compress(file, (b64) => {
-                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: text, img: b64 });
-                    document.getElementById('postText').value = "";
-                });
+                if(file) {
+                    compress(file, (b64) => {
+                        push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, pfp: myData.pfp, text: text, img: b64 });
+                        document.getElementById('postText').value = "";
+                        document.getElementById('postImg').value = "";
+                    });
+                } else {
+                    alert("Please select a photo to post.");
+                }
             };
 
+            document.getElementById('postFeed').innerHTML = "";
+            document.getElementById('myPostsGrid').innerHTML = "";
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val();
                 const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div>
-                    <img src="${p.img}" class="post-img"><div style="padding:10px;">${p.text}</div>`;
+                card.innerHTML = `<div style="padding:10px; font-weight:bold; display:flex; align-items:center; gap:8px;">
+                    <div style="width:25px; height:25px; border-radius:50%; background-image:url(${p.pfp}); background-size:cover;"></div>
+                    ${p.sender}</div>
+                    <img src="${p.img}" class="post-img"><div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>`;
                 document.getElementById('postFeed').prepend(card);
+                
                 if(p.uid === u.uid) {
                     const grid = document.createElement('div'); grid.className = 'grid-item';
                     grid.style.backgroundImage = `url(${p.img})`;
@@ -206,7 +248,7 @@
             });
         }
 
-        window.clearFeed = () => { if(confirm("Clear?")) remove(ref(db, 'posts')); };
+        window.clearFeed = () => { if(confirm("Clear all posts?")) remove(ref(db, 'posts')); };
     </script>
 </body>
 </html>
