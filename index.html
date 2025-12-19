@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Pro Stories</title>
+    <title>Chatter Box | Dynamic Stories</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -15,7 +15,7 @@
         .nav-item:hover { background: #f2f2f2; }
         .nav-item.active { background: #FFF5EE; color: #FF8C42; }
 
-        /* MAIN */
+        /* MAIN CONTENT */
         .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
         .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
 
@@ -24,8 +24,8 @@
         .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
         .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
         
-        /* THE RING LOGIC */
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
+        /* RINGS */
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; transition: background 0.3s; }
         .ring-unseen { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); }
         .ring-seen { background: #dbdbdb; }
         .ring-none { background: transparent; border: 1px solid #efefef; }
@@ -33,7 +33,7 @@
         .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
         .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* FEED */
+        /* POSTS */
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
         .post-img { width: 100%; display: block; }
@@ -44,15 +44,14 @@
 
         .page { display: none; width: 100%; }
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
-        button { background: #FF8C42; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; font-size: 14px; }
+        button { background: #FF8C42; color: white; border: none; padding: 12px 20px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
 
-    <div id="storyOverlay" onclick="this.style.display='none'">
-        <img id="storyImg" src="">
-    </div>
+    <div id="storyOverlay" onclick="this.style.display='none'"><img id="storyImg" src=""></div>
 
     <div id="authPage">
         <div style="width: 320px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; border-radius: 8px;">
@@ -81,28 +80,33 @@
                 <input type="file" id="storyInput" accept="image/*" style="display:none;">
                 <div class="feed-content">
                     <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="What's happening?"></textarea>
+                        <textarea id="postText" placeholder="Share a photo to the feed..."></textarea>
                         <input type="file" id="postImg" accept="image/*">
-                        <button id="sendPost" style="margin-top:10px;">Post to Feed</button>
+                        <button id="sendPost" style="margin-top:10px;">Post</button>
                     </div>
                     <div id="postFeed"></div>
                 </div>
             </div>
 
+            <div id="searchPage" class="page" style="padding:20px;">
+                <h3>Search Users</h3>
+                <input type="text" id="userSearchInp" placeholder="Type a name...">
+                <div id="searchResults" style="margin-top:20px;"></div>
+            </div>
+
             <div id="profilePage" class="page">
                 <div style="padding:40px; border-bottom:1px solid #efefef; display: flex; align-items: center; gap: 20px;">
-                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; background-position:center; border:1px solid #ddd; background-color:#eee;"></div>
+                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; background-position:center; border:1px solid #ddd;"></div>
                     <h2 id="profName">User</h2>
                 </div>
                 <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:3px;"></div>
             </div>
 
-            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div>
-            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3><input type="text" placeholder="Find people..."></div>
+            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3><p>You're all caught up!</p></div>
             <div id="setPage" class="page" style="padding:20px;">
                 <h3>Settings</h3>
-                <button onclick="document.getElementById('setInp').click()">Change Profile Photo</button>
-                <input type="file" id="setInp" style="display:none;" accept="image/*">
+                <button onclick="document.getElementById('setPfpInp').click()">Update Profile Picture</button>
+                <input type="file" id="setPfpInp" style="display:none;" accept="image/*">
             </div>
         </div>
     </div>
@@ -151,37 +155,27 @@
 
         function init(u) {
             onValue(ref(db, 'users/'+u.uid), (s) => { 
-                if(s.exists()){ 
-                    myData = s.val(); 
-                    profName.innerText = myData.name; 
-                    profPfp.style.backgroundImage = `url(${myData.pfp})`; 
-                } 
+                if(s.exists()){ myData = s.val(); profName.innerText = myData.name; profPfp.style.backgroundImage = `url(${myData.pfp})`; } 
             });
 
-            // COMPREHENSIVE STORY LOGIC
+            // LIVE STORY FEED
             onValue(ref(db, 'stories'), (storySnap) => {
                 const allStories = storySnap.val() || {};
                 onValue(ref(db, 'users'), (userSnap) => {
                     storyList.innerHTML = "";
                     
-                    // 1. MY STORY CIRCLE
+                    // ME
                     const myStory = allStories[u.uid];
                     const meDiv = document.createElement('div');
                     meDiv.className = 'story';
-                    meDiv.innerHTML = `
-                        <div class="story-ring ${myStory ? 'ring-seen' : 'ring-none'}">
-                            <div class="story-inner" style="background-image:url(${myData.pfp})">
-                                <div class="add-plus" id="uploadPlus">+</div>
-                            </div>
-                        </div>
-                        <span>You</span>`;
+                    meDiv.innerHTML = `<div class="story-ring ${myStory ? 'ring-seen' : 'ring-none'}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" id="uploadPlus">+</div></div></div><span>You</span>`;
                     meDiv.onclick = (e) => {
                         if(e.target.id === 'uploadPlus' || !myStory) storyInput.click();
                         else { storyImg.src = myStory.img; storyOverlay.style.display = 'flex'; }
                     };
                     storyList.appendChild(meDiv);
 
-                    // 2. FRIENDS STORIES
+                    // FRIENDS
                     userSnap.forEach(snap => {
                         const userId = snap.key;
                         const user = snap.val();
@@ -192,14 +186,8 @@
 
                             const friendDiv = document.createElement('div');
                             friendDiv.className = 'story';
-                            friendDiv.innerHTML = `
-                                <div class="story-ring ${hasSeen ? 'ring-seen' : 'ring-unseen'}">
-                                    <div class="story-inner" style="background-image:url(${user.pfp})"></div>
-                                </div>
-                                <span>${user.name.split(' ')[0]}</span>`;
-                            
+                            friendDiv.innerHTML = `<div class="story-ring ${hasSeen ? 'ring-seen' : 'ring-unseen'}"><div class="story-inner" style="background-image:url(${user.pfp})"></div></div><span>${user.name.split(' ')[0]}</span>`;
                             friendDiv.onclick = () => {
-                                // Update database to mark as seen
                                 update(ref(db, `stories/${userId}/viewers`), { [u.uid]: true });
                                 storyImg.src = sData.img;
                                 storyOverlay.style.display = 'flex';
@@ -210,19 +198,44 @@
                 });
             });
 
+            // UPLOAD STORY (This resets the colorful ring for everyone)
             storyInput.onchange = (e) => {
                 if(e.target.files[0]) compress(e.target.files[0], (b64) => {
-                    // Reset viewers list when a new story is posted!
-                    set(ref(db, 'stories/'+u.uid), { img: b64, ts: Date.now(), viewers: {} });
+                    // CRITICAL: Setting a new story AND an empty viewers object {}
+                    // This is what makes the ring colorful again for friends!
+                    set(ref(db, 'stories/'+u.uid), { 
+                        img: b64, 
+                        ts: Date.now(), 
+                        viewers: { [u.uid]: true } // You've seen your own story
+                    });
+                    alert("New story posted! It will be colorful for your friends.");
                 });
             };
 
-            // SETTINGS PFP CHANGE
-            setInp.onchange = (e) => {
+            // SEARCH LOGIC
+            userSearchInp.oninput = (e) => {
+                const term = e.target.value.toLowerCase();
+                searchResults.innerHTML = "";
+                if(!term) return;
+                onValue(ref(db, 'users'), (snap) => {
+                    snap.forEach(child => {
+                        const user = child.val();
+                        if(user.name.toLowerCase().includes(term)) {
+                            searchResults.innerHTML += `<div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee;">
+                                <div style="width:40px; height:40px; border-radius:50%; background-image:url(${user.pfp}); background-size:cover;"></div>
+                                <span>${user.name}</span>
+                            </div>`;
+                        }
+                    });
+                }, { onlyOnce: true });
+            };
+
+            // SETTINGS PFP
+            setPfpInp.onchange = (e) => {
                 compress(e.target.files[0], (b64) => update(ref(db, 'users/'+u.uid), {pfp: b64}));
             };
 
-            // FEED POSTING
+            // FEED
             sendPost.onclick = () => {
                 const f = postImg.files[0];
                 if(f) compress(f, (b64) => {
@@ -244,7 +257,7 @@
             });
         }
 
-        window.clearFeed = () => { if(confirm("Wipe all posts?")) remove(ref(db, 'posts')); };
+        window.clearFeed = () => { if(confirm("Delete all posts?")) remove(ref(db, 'posts')); };
     </script>
 </body>
 </html>
