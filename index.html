@@ -10,75 +10,66 @@
         input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; box-sizing: border-box; background: white; color: black; }
         button { padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; }
         
-        /* Section Visibility */
-        #authSection, #friendsSection, #chatSection, #settingsSection { display: none; flex-direction: column; height: 100%; }
+        /* Layout Sections */
+        .page { display: none; flex-direction: column; height: 100%; }
+        .scroll-area { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 10px 0; padding: 15px; border-radius: 15px; }
         
-        #chatWindow, #friendsList, #settingsBox { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 10px 0; padding: 15px; border-radius: 15px; }
-        
-        .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
-        .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 10px; }
-        
+        /* Navigation */
         .nav-bar { display: flex; justify-content: space-around; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto; }
-        .nav-item { cursor: pointer; opacity: 0.6; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; padding: 5px; }
+        .nav-item { cursor: pointer; opacity: 0.5; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; padding: 10px; }
         .nav-item.active { opacity: 1; color: #2575fc; border-bottom: 2px solid #2575fc; }
-        .small-btn { padding: 5px 10px; font-size: 0.7rem; width: auto; margin: 0; }
+        
+        .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 10px; }
         .danger { background: #ff4b2b; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="authSection">
-            <h2 id="authTitle" style="text-align:center;">Chatter Box</h2>
-            <div id="nickWrap" style="display:none;"><input type="text" id="regNick" placeholder="Choose a Nickname"></div>
-            <input type="email" id="loginEmail" placeholder="Email">
-            <input type="password" id="loginPass" placeholder="Password">
-            <button id="mainAuthBtn">Continue</button>
-            <p id="authToggle" style="cursor:pointer; text-align:center; font-size: 0.8rem; color: #2575fc; margin-top: 15px;">New? Register</p>
+        <div id="authPage" class="page">
+            <h2 style="text-align:center;">Chatter Box</h2>
+            <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Nickname"></div>
+            <input type="email" id="lEmail" placeholder="Email">
+            <input type="password" id="lPass" placeholder="Password">
+            <button id="authGo">Continue</button>
+            <p id="authSwitch" style="cursor:pointer; text-align:center; font-size: 0.8rem; color: #2575fc; margin-top: 15px;">New? Register</p>
         </div>
 
-        <div id="friendsSection">
-            <h3 style="margin: 0;">Friends</h3>
-            <div style="display:flex; gap:5px; margin-top:10px;">
-                <input type="text" id="friendEmailInput" placeholder="Friend's Email" style="margin:0;">
-                <button id="addFriendBtn" class="small-btn">Add</button>
-            </div>
-            <div id="friendsList"></div>
+        <div id="friendsPage" class="page">
+            <h3 style="margin:0;">Friends</h3>
+            <div style="display:flex; gap:5px;"><input type="text" id="fSearch" placeholder="Friend Email" style="margin:0;"><button id="fAdd" style="width:auto; margin:0; padding:0 10px;">Add</button></div>
+            <div id="fList" class="scroll-area"></div>
             <div class="nav-bar">
                 <div class="nav-item active">Friends</div>
-                <div class="nav-item" onclick="view('chatSection')">Chat</div>
-                <div class="nav-item" onclick="view('settingsSection')">Settings</div>
+                <div class="nav-item" onclick="go('chatPage')">Chat</div>
+                <div class="nav-item" onclick="go('setPage')">Settings</div>
             </div>
         </div>
 
-        <div id="chatSection">
-            <h3 style="margin: 0;">Global Chat</h3>
-            <div id="chatWindow"></div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="msgInput" placeholder="Message..." style="margin:0;">
-                <button id="sendBtn" style="width:auto; padding: 0 20px;">Send</button>
-            </div>
+        <div id="chatPage" class="page">
+            <h3 style="margin:0;">Global Chat</h3>
+            <div id="cWin" class="scroll-area"></div>
+            <div style="display:flex; gap:5px;"><input type="text" id="mIn" placeholder="Message..." style="margin:0;"><button id="mSend" style="width:auto; margin:0; padding:0 15px;">Send</button></div>
             <div class="nav-bar">
-                <div class="nav-item" onclick="view('friendsSection')">Friends</div>
+                <div class="nav-item" onclick="go('friendsPage')">Friends</div>
                 <div class="nav-item active">Chat</div>
-                <div class="nav-item" onclick="view('settingsSection')">Settings</div>
+                <div class="nav-item" onclick="go('setPage')">Settings</div>
             </div>
         </div>
 
-        <div id="settingsSection">
-            <h3 style="margin: 0;">Settings</h3>
-            <div id="settingsBox">
-                <label style="font-size: 0.8rem; opacity: 0.7;">Change Nickname:</label>
-                <input type="text" id="updateNickInput" placeholder="New Nickname">
-                <button id="updateNickBtn">Save Nickname</button>
-                
-                <hr style="margin: 30px 0; border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
-                
+        <div id="setPage" class="page">
+            <h3 style="margin:0;">Settings</h3>
+            <div class="scroll-area">
+                <p style="font-size:0.8rem; opacity:0.7;">Change Nickname:</p>
+                <input type="text" id="sNick" placeholder="New Nickname">
+                <button id="sSave">Save Name</button>
+                <hr style="margin:20px 0; opacity:0.1;">
                 <button onclick="logOut()" class="danger">Sign Out</button>
             </div>
             <div class="nav-bar">
-                <div class="nav-item" onclick="view('friendsSection')">Friends</div>
-                <div class="nav-item" onclick="view('chatSection')">Chat</div>
+                <div class="nav-item" onclick="go('friendsPage')">Friends</div>
+                <div class="nav-item" onclick="go('chatPage')">Chat</div>
                 <div class="nav-item active">Settings</div>
             </div>
         </div>
@@ -89,7 +80,7 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
+        const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
             databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
@@ -99,109 +90,91 @@
             appId: "1:509263602746:web:01051fc91ecb3bfa384103"
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let isRegisterMode = false;
+        let isReg = false;
 
-        window.view = (id) => {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('friendsSection').style.display = 'none';
-            document.getElementById('chatSection').style.display = 'none';
-            document.getElementById('settingsSection').style.display = 'none';
+        window.go = (id) => {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById(id).style.display = 'flex';
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
 
-        document.getElementById('authToggle').onclick = () => {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('authTitle').innerText = isRegisterMode ? "Create Account" : "Chatter Box";
-            document.getElementById('nickWrap').style.display = isRegisterMode ? "block" : "none";
-            document.getElementById('authToggle').innerText = isRegisterMode ? "Back to Sign In" : "New? Register";
+        document.getElementById('authSwitch').onclick = () => {
+            isReg = !isReg;
+            document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
+            document.getElementById('authSwitch').innerText = isReg ? 'Back to Login' : 'New? Register';
         };
 
-        document.getElementById('mainAuthBtn').onclick = () => {
-            const email = document.getElementById('loginEmail').value;
-            const pass = document.getElementById('loginPass').value;
-            const nick = document.getElementById('regNick').value;
-            if(!email || !pass) return alert("Fill in email and password");
-
-            if(isRegisterMode) {
-                createUserWithEmailAndPassword(auth, email, pass)
-                .then((res) => {
-                    updateProfile(res.user, { displayName: nick });
-                    set(ref(db, 'users/' + res.user.uid), { email: email.toLowerCase(), name: nick });
-                }).catch(e => alert(e.message));
+        document.getElementById('authGo').onclick = () => {
+            const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rNick').value;
+            if(isReg) {
+                createUserWithEmailAndPassword(auth, e, p).then(res => {
+                    updateProfile(res.user, {displayName: n});
+                    set(ref(db, 'users/' + res.user.uid), {email: e.toLowerCase(), name: n});
+                }).catch(err => alert(err.message));
             } else {
-                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+                signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
             }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                view('friendsSection');
-                initApp(user);
-            } else {
-                view('authSection');
-            }
+        onAuthStateChanged(auth, (u) => {
+            if(u) { go('friendsPage'); start(u); } else { go('authPage'); }
         });
 
-        function initApp(user) {
-            // Update Nickname Logic
-            document.getElementById('updateNickBtn').onclick = () => {
-                const newName = document.getElementById('updateNickInput').value;
-                if(newName) {
-                    updateProfile(user, { displayName: newName }).then(() => {
-                        update(ref(db, 'users/' + user.uid), { name: newName });
-                        alert("Nickname updated!");
-                    });
-                }
-            };
-
-            // Friend Logic
-            document.getElementById('addFriendBtn').onclick = () => {
-                const search = document.getElementById('friendEmailInput').value.toLowerCase().trim();
-                get(ref(db, 'users')).then(snap => {
-                    let friendId = null;
-                    snap.forEach(c => { if(c.val().email === search) friendId = c.key; });
-                    if(friendId && friendId !== user.uid) {
-                        set(ref(db, `friends/${user.uid}/${friendId}`), true);
-                        alert("Friend Added!");
-                    } else { alert("User not found"); }
+        function start(u) {
+            // Save Name
+            document.getElementById('sSave').onclick = () => {
+                const n = document.getElementById('sNick').value;
+                if(n) updateProfile(u, {displayName: n}).then(() => {
+                    update(ref(db, 'users/' + u.uid), {name: n});
+                    alert("Saved!");
                 });
             };
 
-            const fList = document.getElementById('friendsList');
-            fList.innerHTML = "";
-            onChildAdded(ref(db, `friends/${user.uid}`), (snap) => {
-                get(ref(db, `users/${snap.key}`)).then(uSnap => {
-                    const div = document.createElement('div');
-                    div.className = 'friend-item';
-                    div.innerHTML = `<span>${uSnap.val().name}</span> <button class="small-btn">Chat</button>`;
-                    fList.appendChild(div);
+            // Friends
+            document.getElementById('fAdd').onclick = () => {
+                const s = document.getElementById('fSearch').value.toLowerCase().trim();
+                get(ref(db, 'users')).then(snap => {
+                    let fid = null;
+                    snap.forEach(c => { if(c.val().email === s) fid = c.key; });
+                    if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Added!"));
+                    else alert("Not found");
+                });
+            };
+
+            const list = document.getElementById('fList');
+            list.innerHTML = "";
+            onChildAdded(ref(db, `friends/${u.uid}`), (snap) => {
+                get(ref(db, `users/${snap.key}`)).then(s => {
+                    const d = document.createElement('div');
+                    d.className = 'friend-item';
+                    d.innerHTML = `<span>${s.val().name}</span> <button style="width:auto; padding:5px;">Chat</button>`;
+                    list.appendChild(d);
                 });
             });
 
-            // Global Chat Logic
+            // Global Chat
             const cRef = ref(db, 'messages');
-            document.getElementById('sendBtn').onclick = () => {
-                const txt = document.getElementById('msgInput').value;
-                if(txt.trim()) {
-                    push(cRef, { sender: user.displayName || user.email, content: txt });
-                    document.getElementById('msgInput').value = "";
+            document.getElementById('mSend').onclick = () => {
+                const t = document.getElementById('mIn').value;
+                if(t.trim()) {
+                    push(cRef, {sender: auth.currentUser.displayName || u.email, content: t});
+                    document.getElementById('mIn').value = "";
                 }
             };
 
-            const cWin = document.getElementById('chatWindow');
-            cWin.innerHTML = "";
+            const win = document.getElementById('cWin');
+            win.innerHTML = "";
             onChildAdded(cRef, (snap) => {
                 const d = snap.val();
-                const div = document.createElement('div');
-                div.className = "msg";
-                div.innerHTML = `<strong>${d.sender}:</strong> ${d.content}`;
-                cWin.appendChild(div);
-                cWin.scrollTop = cWin.scrollHeight;
+                const v = document.createElement('div');
+                v.className = 'msg';
+                v.innerHTML = `<strong>${d.sender}:</strong> ${d.content}`;
+                win.appendChild(v);
+                win.scrollTop = win.scrollHeight;
             });
         }
     </script>
