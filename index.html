@@ -1,72 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatter Box</title>
     <style>
-        :root {
-            --primary: #2575fc;
-            --bg: #0f0c29;
-            --card-bg: rgba(255, 255, 255, 0.08);
-            --danger: #ff4b2b;
-        }
+        body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); }
+        #chatSection { display: none; }
+        input { width: 80%; padding: 10px; margin: 5px 0; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 5px; font-weight: bold; margin: 5px; }
+        .logout-btn { background: #ff4b2b; }
+        #chatWindow { height: 300px; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 10px 0; padding: 10px; text-align: left; border-radius: 10px; }
+        .msg { margin-bottom: 10px; padding: 8px; border-radius: 10px; background: rgba(255,255,255,0.1); }
+        .toggle-link { color: #2575fc; cursor: pointer; text-decoration: underline; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
 
-        body {
-            font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
+    <div class="container">
+        <div id="authSection">
+            <h1 id="authTitle">Sign In</h1>
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="password" placeholder="Password">
+            <button onclick="handleAuth()" id="mainBtn">Sign In</button>
+            <p class="toggle-link" onclick="toggleMode()" id="toggleText">New? Create Account</p>
+        </div>
 
-        .app-container {
-            width: 95%;
-            max-width: 400px;
-            height: 85vh;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-        }
-
-        #authSection {
-            padding: 40px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
-
-        h1 { margin: 0 0 8px 0; color: var(--primary); font-size: 2.2rem; }
-        #subtitle { margin-bottom: 30px; opacity: 0.6; font-size: 0.95rem; }
-
-        input {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            color: white;
-            margin-bottom: 12px;
-            outline: none;
-        }
-
-        .btn-main {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .toggle
+        <div id="chatSection">
+            <div style="display:flex; justify-content: space-between; align-items: center;">
+                <strong>Chatter Box</strong>
+                <button class="logout-btn" onclick="logout()">Log Out</button>
+            </div>
+            <div id="chatWindow"></div>
+            <div style="display:flex; gap: 5px;">
+                <input type="text" id="msgInput" placeholder="Message..." style="flex:1;">
+            
