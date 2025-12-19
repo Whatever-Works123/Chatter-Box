@@ -9,42 +9,42 @@
         .app-container { width: 95%; max-width: 450px; height: 85vh; background: rgba(255, 255, 255, 0.05); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         #authSection { padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
         #chatSection { display: none; flex-direction: column; height: 100%; }
-        .header { padding: 20px; background: rgba(255, 255, 255, 0.1); text-align: center; font-weight: bold; font-size: 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .message-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.1); }
-        .bubble { padding: 12px 18px; border-radius: 20px; width: fit-content; max-width: 80%; word-wrap: break-word; font-size: 14px; line-height: 1.4; }
-        .my-msg { align-self: flex-end; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; }
-        .friend-msg { align-self: flex-start; background: #333; color: #eee; }
-        .input-area { padding: 20px; display: flex; gap: 10px; background: rgba(0,0,0,0.3); }
-        input { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 12px; color: white; outline: none; }
-        button { background: #2575fc; color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        button:hover { background: #1a5fdb; }
+        .header { padding: 15px; background: rgba(255, 255, 255, 0.1); text-align: center; font-weight: bold; }
+        .message-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        .bubble { padding: 12px; border-radius: 15px; max-width: 80%; word-wrap: break-word; }
+        .my-msg { align-self: flex-end; background: #2575fc; }
+        .friend-msg { align-self: flex-start; background: #333; }
+        input { background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 12px; color: white; margin-bottom: 10px; outline: none; }
+        button { background: #2575fc; color: white; border: none; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 5px; }
+        .switch-text { font-size: 12px; cursor: pointer; color: #2575fc; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="app-container">
         <div id="authSection">
-            <h1 style="color: #2575fc;">Chatter Box</h1>
-            <p>Connect with your friends</p>
-            <input type="text" id="usernameInput" placeholder="Create a nickname">
-            <button onclick="login()">Enter Chatter Box</button>
+            <h1 id="authTitle">Sign In</h1>
+            <input type="email" id="emailInput" placeholder="Email (e.g. name@mail.com)">
+            <input type="password" id="passInput" placeholder="Password">
+            <button id="authBtn" onclick="handleAuth()">Sign In</button>
+            <p class="switch-text" id="toggleLink" onclick="toggleAuth()">Don't have an account? Sign Up</p>
         </div>
 
         <div id="chatSection">
-            <div class="header" id="chatHeader">Chatter Box</div>
+            <div class="header">Chatter Box</div>
             <div class="message-box" id="chatWindow"></div>
-            <div class="input-area">
-                <input type="text" id="msgInput" placeholder="Say something...">
-                <button onclick="sendMsg()">Send</button>
+            <div style="padding: 15px; display: flex; gap: 5px;">
+                <input type="text" id="msgInput" placeholder="Message..." style="flex:1;">
+                <button onclick="sendMsg()" style="margin:0;">Send</button>
             </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Your specific Chatter Box keys
         const firebaseConfig = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
@@ -52,53 +52,62 @@
             storageBucket: "chatterbox-4b7dd.firebasestorage.app",
             messagingSenderId: "509263602746",
             appId: "1:509263602746:web:01051fc91ecb3bfa384103",
-            measurementId: "G-N2NPMZG33J"
         };
 
         const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
         const db = getDatabase(app);
-        const messagesRef = ref(db, 'messages');
+        let isSigningUp = false;
 
-        let user = "";
+        // Toggle between Login and Sign Up UI
+        window.toggleAuth = function() {
+            isSigningUp = !isSigningUp;
+            document.getElementById('authTitle').innerText = isSigningUp ? "Sign Up" : "Sign In";
+            document.getElementById('authBtn').innerText = isSigningUp ? "Create Account" : "Sign In";
+            document.getElementById('toggleLink').innerText = isSigningUp ? "Already have an account? Sign In" : "Don't have an account? Sign Up";
+        }
 
-        window.login = function() {
-            const name = document.getElementById('usernameInput').value;
-            if (name.trim() !== "") {
-                user = name;
+        // Handle the Actual Sign Up / Sign In
+        window.handleAuth = function() {
+            const email = document.getElementById('emailInput').value;
+            const pass = document.getElementById('passInput').value;
+            
+            if (isSigningUp) {
+                createUserWithEmailAndPassword(auth, email, pass).catch(err => alert(err.message));
+            } else {
+                signInWithEmailAndPassword(auth, email, pass).catch(err => alert(err.message));
+            }
+        }
+
+        // Detect if user is logged in
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('chatSection').style.display = 'flex';
+                startChat(user.email);
             }
-        };
-
-        window.sendMsg = function() {
-            const text = document.getElementById('msgInput').value;
-            if (text.trim() !== "") {
-                push(messagesRef, {
-                    name: user,
-                    text: text
-                });
-                document.getElementById('msgInput').value = "";
-            }
-        };
-
-        // Listen for incoming messages
-        onChildAdded(messagesRef, (snapshot) => {
-            const data = snapshot.val();
-            const chatWindow = document.getElementById('chatWindow');
-            const div = document.createElement('div');
-            
-            // Logic to check if you sent it or a friend sent it
-            if (data.name === user) {
-                div.className = 'bubble my-msg';
-                div.innerHTML = `<strong>You:</strong> ${data.text}`;
-            } else {
-                div.className = 'bubble friend-msg';
-                div.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
-            }
-            
-            chatWindow.appendChild(div);
-            chatWindow.scrollTop = chatWindow.scrollHeight;
         });
+
+        function startChat(userEmail) {
+            const messagesRef = ref(db, 'messages');
+            
+            window.sendMsg = function() {
+                const text = document.getElementById('msgInput').value;
+                if (text.trim() !== "") {
+                    push(messagesRef, { name: userEmail, text: text });
+                    document.getElementById('msgInput').value = "";
+                }
+            };
+
+            onChildAdded(messagesRef, (snap) => {
+                const data = snap.val();
+                const div = document.createElement('div');
+                div.className = data.name === userEmail ? 'bubble my-msg' : 'bubble friend-msg';
+                div.innerHTML = `<strong>${data.name.split('@')[0]}:</strong> ${data.text}`;
+                document.getElementById('chatWindow').appendChild(div);
+                document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+            });
+        }
     </script>
 </body>
 </html>
