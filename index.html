@@ -33,11 +33,11 @@
             text-align: center;
         }
 
-        /* 3. SIDEBAR (Creamy contrast) */
+        /* 3. SIDEBAR */
         .sidebar { 
             width: 245px; border-right: 1px solid #FFE0B2; padding: 20px; 
             display: flex; flex-direction: column; height: 100%;
-            background: #FFF3E0; /* Slightly darker cream */
+            background: #FFF3E0; 
         }
         .logo { font-size: 1.8rem; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; color: #FF8C42; }
         .nav-item { 
@@ -55,7 +55,7 @@
             width: 100%; max-width: 470px; margin: 0 auto; padding: 30px 0; 
         }
 
-        /* 5. POST CARDS & INPUTS */
+        /* 5. POST CARDS & NOTIFICATIONS */
         .create-box { 
             background: #FFFFFF; border: 1px solid #FFE0B2; 
             border-radius: 12px; padding: 15px; margin-bottom: 20px; 
@@ -64,11 +64,14 @@
             width: 100%; background: transparent; border: none; color: #4A4A4A; 
             resize: none; font-size: 1rem; outline: none; height: 40px; font-family: inherit;
         }
-        .post-card { 
+        .post-card, .notif-item { 
             background: #FFFFFF; border: 1px solid #FFE0B2; 
             border-radius: 12px; margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
+        .notif-item { padding: 15px; display: flex; align-items: center; gap: 12px; }
+        .notif-dot { width: 8px; height: 8px; background: #FF8C42; border-radius: 50%; }
+        
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #BF360C; }
         .p-avatar { width: 32px; height: 32px; background: #FFCC80; border-radius: 50%; }
         .post-content { padding: 0 12px 15px 12px; font-size: 0.95rem; line-height: 1.4; color: #5D4037; }
@@ -104,6 +107,7 @@
     <div id="sideNav" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
         <div class="nav-item" onclick="go('homePage')">🏠 Home</div>
+        <div class="nav-item" onclick="go('notifPage')">🔔 Notifications</div>
         <div class="nav-item" onclick="go('friendsPage')">👥 Friends</div>
         <div class="nav-item" onclick="go('setPage')">⚙️ Settings</div>
         <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #D84315;">🚪 Logout</div>
@@ -117,6 +121,18 @@
                     <div style="text-align:right;"><button id="postBtn">Post</button></div>
                 </div>
                 <div id="feedWin"></div>
+            </div>
+        </div>
+
+        <div id="notifPage" class="page" style="display:none;">
+            <div class="feed-wrapper">
+                <h3 style="color: #E65100;">Notifications</h3>
+                <div id="notifList">
+                    <div class="notif-item">
+                        <div class="notif-dot"></div>
+                        <div style="flex:1;">Welcome to Chatter Box!</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -161,7 +177,6 @@
         window.go = (id) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('authPage').style.display = 'none';
-
             const target = document.getElementById(id);
             if (id === 'authPage') {
                 target.style.display = 'flex';
