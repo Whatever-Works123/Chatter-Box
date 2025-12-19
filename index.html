@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Multi-Fix Feed</title>
+    <title>Chatter Box | Admin Mode</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -31,10 +31,16 @@
         .create-post { border: 1px solid #dbdbdb; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: white; }
         textarea { width: 100%; border: none; outline: none; font-size: 14px; resize: none; min-height: 50px; }
         
-        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 25px; background: white; overflow: hidden; }
+        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 25px; background: white; overflow: hidden; position: relative; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
         .post-img { width: 100%; display: block; max-height: 600px; object-fit: contain; background: #fafafa; }
         .post-info { padding: 12px; font-size: 14px; line-height: 1.4; }
+
+        /* ADMIN DELETE BUTTON */
+        .admin-del-btn { 
+            position: absolute; top: 12px; right: 12px; background: #ff4d4d; color: white; 
+            border: none; border-radius: 5px; padding: 5px 10px; cursor: pointer; font-size: 12px; z-index: 10;
+        }
 
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-box { width: 350px; padding: 30px; background: white; border: 1px solid #dbdbdb; text-align: center; }
@@ -42,7 +48,6 @@
         button { background: #FF8C42; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
 
         .page { display: none; width: 100%; }
-        .user-search-result { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -68,6 +73,9 @@
         <div class="nav-item" onclick="showPage('notifPage')">🔔 Notifications</div>
         <div class="nav-item" onclick="showPage('friendsPage')">👥 Friends</div>
         <div class="nav-item" onclick="showPage('setPage')">⚙️ Settings</div>
+        
+        <div id="adminPanel" class="nav-item" style="display:none; color: #D84315; border: 1px dashed #D84315; margin-top: 20px;" onclick="clearEntireFeed()">🔥 Clear All Posts</div>
+        
         <div id="logoutBtn" class="nav-item" style="margin-top:auto; color:red;">Logout</div>
     </div>
 
@@ -90,31 +98,15 @@
             </div>
 
             <div id="notifPage" class="page"><div style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div></div>
-            
-            <div id="friendsPage" class="page">
-                <div style="padding:20px;">
-                    <h3>Find Friends</h3>
-                    <input type="text" id="userSearchInput" placeholder="Search by name..." oninput="searchUsers()">
-                    <div id="userListResults" style="margin-top:20px;"></div>
-                </div>
-            </div>
-
-            <div id="setPage" class="page">
-                <div style="padding:40px; text-align:center;">
-                    <h3>Settings</h3>
-                    <div id="setPreview" style="width:120px; height:120px; border-radius:50%; margin:20px auto; background-size:cover; border:2px solid #FF8C42; background-color:#eee;"></div>
-                    <input type="file" id="setPfp" accept="image/*" style="margin-bottom:15px;">
-                    <input type="text" id="setName" placeholder="Update Name">
-                    <button id="saveSet" style="width:100%">Save & Refresh</button>
-                </div>
-            </div>
+            <div id="friendsPage" class="page"><div style="padding:20px;"><h3>Friends</h3><input type="text" placeholder="Search..."><div id="friendList"></div></div></div>
+            <div id="setPage" class="page"><div style="padding:40px; text-align:center;"><h3>Settings</h3><div id="setPreview" style="width:120px; height:120px; border-radius:50%; margin:20px auto; background-size:cover; border:2px solid #FF8C42;"></div><input type="file" id="setPfp" accept="image/*" style="margin-bottom:15px;"><input type="text" id="setName" placeholder="Update Name"><button id="saveSet" style="width:100%">Save & Refresh</button></div></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, onChildRemoved, set, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
@@ -126,6 +118,10 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        
+        // Admin Configured Email
+        const ADMIN_EMAIL = "eaton.garrett@icloud.com"; 
+        let isAdmin = false;
         let myName = "User";
         let myPfp = "";
         let pendingPostImg = "";
@@ -151,12 +147,28 @@
 
         onAuthStateChanged(auth, (u) => {
             if(u) { 
+                if(u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                    isAdmin = true;
+                    document.getElementById('adminPanel').style.display = 'block';
+                }
                 document.getElementById('authPage').style.display = 'none';
                 document.getElementById('sideBar').style.display = 'flex';
                 showPage('homePage');
                 init(u);
             }
         });
+
+        window.clearEntireFeed = () => {
+            if(confirm("Are you sure you want to delete EVERY post?")) {
+                remove(ref(db, 'posts')).then(() => location.reload());
+            }
+        };
+
+        window.deletePost = (postId) => {
+            if(confirm("Delete this post?")) {
+                remove(ref(db, 'posts/' + postId));
+            }
+        };
 
         function compress(file, quality, width, cb) {
             const reader = new FileReader();
@@ -174,28 +186,6 @@
             };
         }
 
-        // Search Logic
-        window.searchUsers = () => {
-            const query = document.getElementById('userSearchInput').value.toLowerCase();
-            const resultsDiv = document.getElementById('userListResults');
-            resultsDiv.innerHTML = "";
-            if(!query) return;
-
-            get(ref(db, 'users')).then(snap => {
-                snap.forEach(child => {
-                    const u = child.val();
-                    if(u.name.toLowerCase().includes(query)) {
-                        resultsDiv.innerHTML += `
-                            <div class="user-search-result">
-                                <div class="pill-pfp" style="background-image:url(${u.pfp})"></div>
-                                <span>${u.name}</span>
-                                <button style="margin-left:auto; padding:5px 10px; font-size:12px;">Follow</button>
-                            </div>`;
-                    }
-                });
-            });
-        };
-
         function init(u) {
             get(ref(db, 'users/'+u.uid)).then(s => {
                 if(s.exists()){
@@ -203,22 +193,8 @@
                     myName = d.name || "User";
                     myPfp = d.pfp || "";
                     document.getElementById('meName').innerText = myName;
-                    if(myPfp) {
-                        document.getElementById('mePfp').style.backgroundImage = `url(${myPfp})`;
-                        document.getElementById('setPreview').style.backgroundImage = `url(${myPfp})`;
-                    }
+                    if(myPfp) document.getElementById('mePfp').style.backgroundImage = `url(${myPfp})`;
                 }
-            });
-
-            get(ref(db, 'users')).then(snap => {
-                const list = document.getElementById('storyList');
-                list.innerHTML = "";
-                snap.forEach(child => {
-                    const user = child.val();
-                    if(user.pfp) {
-                        list.innerHTML += `<div class="story"><div class="story-circle" style="background-image:url(${user.pfp})"></div><span>${(user.name || "User").split(' ')[0]}</span></div>`;
-                    }
-                });
             });
 
             document.getElementById('postImg').onchange = (e) => {
@@ -249,16 +225,18 @@
 
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val();
+                const id = snap.key;
                 const card = document.createElement('div');
                 card.className = 'post-card';
+                card.id = "post-" + id;
                 
-                // MULTI-FIX: Check for all possible name versions (new and old)
                 const name = p.senderName || p.sender || p.name || "User";
                 const text = p.postText || p.content || p.text || "";
                 const pfp = p.senderPfp || p.pfp || "";
                 const img = p.postImg || p.img || "";
 
                 card.innerHTML = `
+                    ${isAdmin ? `<button class="admin-del-btn" onclick="deletePost('${id}')">🗑️ Delete</button>` : ''}
                     <div class="post-header">
                         <div class="pill-pfp" style="background-image:url(${pfp}); width:30px; height:30px;"></div>
                         <span>${name}</span>
@@ -267,6 +245,11 @@
                     <div class="post-info"><b>${name}</b> ${text}</div>
                 `;
                 document.getElementById('postFeed').prepend(card);
+            });
+
+            onChildRemoved(ref(db, 'posts'), (snap) => {
+                const el = document.getElementById("post-" + snap.key);
+                if(el) el.remove();
             });
 
             document.getElementById('saveSet').onclick = () => {
