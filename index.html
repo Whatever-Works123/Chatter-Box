@@ -2,72 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger Project</title>
+    <title>Chat App</title>
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #111119;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            color: white;
+        /* All CSS is here so we don't need a separate file */
+        body { 
+            background: #0f0c29; 
+            color: white; 
+            font-family: sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        #app { 
+            background: rgba(255,255,255,0.1); 
+            padding: 30px; 
+            border-radius: 20px; 
+            text-align: center; 
+            width: 300px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        input { 
+            width: 80%; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 10px; 
+            border: none; 
+        }
+        button { 
+            padding: 10px 20px; 
+            background: #24243e; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="app">
+        <div id="login-view">
+            <h2>Sign In</h2>
+            <input type="text" id="username" placeholder="Username">
+            <br>
+            <button onclick="enterChat()">Start Chatting</button>
+        </div>
+
+        <div id="chat-view" class="hidden">
+            <h2 id="welcome-msg"></h2>
+            <div id="messages" style="height:150px; overflow-y:auto; margin-bottom:10px; background:rgba(0,0,0,0.2); border-radius:10px; padding:10px;">
+                <p>Welcome to the room!</p>
+            </div>
+            <input type="text" id="msg" placeholder="Type here...">
+            <button onclick="send()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // All Logic is here
+        function enterChat() {
+            const user = document.getElementById('username').value;
+            if(user) {
+                document.getElementById('login-view').classList.add('hidden');
+                document.getElementById('chat-view').classList.remove('hidden');
+                document.getElementById('welcome-msg').innerText = "Hi, " + user;
+            }
         }
 
-        /* Container that holds both Login and Chat */
-        .app-container {
-            width: 90%;
-            max-width: 450px;
-            height: 80vh;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+        function send() {
+            const m = document.getElementById('msg');
+            const box = document.getElementById('messages');
+            if(m.value) {
+                box.innerHTML += `<p><strong>Me:</strong> ${m.value}</p>`;
+                m.value = "";
+                box.scrollTop = box.scrollHeight;
+            }
         }
-
-        /* Login Box styling */
-        #authSection {
-            padding: 40px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            height: 100%;
-        }
-
-        /* Chat Box styling (Hidden by default) */
-        #chatSection {
-            display: none; 
-            flex-direction: column;
-            height: 100%;
-        }
-
-        input {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 12px;
-            color: white;
-            margin-bottom: 15px;
-            outline: none;
-            text-align: center;
-        }
-
-        button {
-            background: #2575fc;
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .message-box {
-            flex: 1;
-            padding: 20px;
+    </script>
+</body>
+</html>
