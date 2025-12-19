@@ -3,29 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box</title>
+    <title>Chatter Box Pro</title>
     <style>
-        body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
-        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 8px; font-weight: bold; }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .container { width: 90%; max-width: 420px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15); backdrop-filter: blur(10px); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; box-sizing: border-box; font-size: 1rem; }
+        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 10px; font-weight: bold; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
         #chatSection, #settingsSection { display: none; text-align: left; }
-        #chatWindow { height: 280px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; }
-        .msg { margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; }
-        .small-btn { width: auto; padding: 5px 10px; font-size: 0.7rem; margin-left: 5px; background: #444; }
+        #chatWindow { height: 320px; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 15px 0; padding: 15px; border-radius: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 10px 14px; background: rgba(255,255,255,0.08); border-radius: 12px; font-size: 0.95rem; width: fit-content; max-width: 85%; }
+        .time { font-size: 0.65rem; opacity: 0.4; margin-left: 8px; }
+        .small-btn { width: auto; padding: 6px 12px; font-size: 0.75rem; margin-left: 5px; background: rgba(255,255,255,0.15); }
         .danger { background: #ff4b2b; }
+        .sender { font-size: 0.75rem; font-weight: bold; color: #2575fc; display: block; margin-bottom: 2px; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div id="authSection">
-            <h2 id="authTitle">Sign In</h2>
-            <div id="nickWrap" style="display:none;"><input type="text" id="nick" placeholder="Nickname"></div>
+            <h2 id="authTitle" style="text-align:center;">Chatter Box</h2>
+            <div id="nickWrap" style="display:none;"><input type="text" id="nick" placeholder="Choose a Nickname"></div>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="pass" placeholder="Password">
-            <button id="authBtn">Go</button>
-            <p id="toggle" style="cursor:pointer; font-size: 0.8rem; margin-top:15px; text-decoration: underline;">New? Register</p>
+            <button id="authBtn">Continue</button>
+            <p id="toggle" style="cursor:pointer; font-size: 0.85rem; text-align:center; margin-top:20px; text-decoration: underline; color: #2575fc;">New here? Create Account</p>
         </div>
 
         <div id="chatSection">
@@ -33,26 +36,29 @@
                 <button class="small-btn" id="toSet">Settings</button>
                 <button class="small-btn danger" id="out">Out</button>
             </div>
-            <h3>Chat</h3>
+            <h3 style="margin: 0;">Live Chat</h3>
             <div id="chatWindow"></div>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="mIn" placeholder="Type..." style="margin:0;">
-                <button id="sBtn" style="width:auto; margin:0;">Send</button>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="mIn" placeholder="Type a message..." style="margin:0;">
+                <button id="sBtn" style="width:auto; margin:0; padding: 0 20px;">Send</button>
             </div>
         </div>
 
         <div id="settingsSection">
-            <h3>Settings</h3>
+            <h3 style="margin-top:0;">Settings</h3>
+            <label style="font-size: 0.8rem; opacity: 0.7;">Change Display Name:</label>
             <input type="text" id="newNick" placeholder="New Nickname">
-            <button id="saveNick">Save</button>
-            <button id="back" class="small-btn" style="margin-top:10px; width:100%;">Back to Chat</button>
+            <button id="saveNick">Save Profile</button>
+            <hr style="margin: 20px 0; opacity: 0.1;">
+            <button id="clearChat" class="danger" style="margin-bottom:10px;">Clear Global Chat History</button>
+            <button id="back" class="small-btn" style="width:100%; margin:0;">Back to Chat</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
@@ -74,17 +80,20 @@
             document.getElementById(id).style.display = "block";
         };
 
-        // UI Events
+        // Navigation & UI
         document.getElementById('toggle').onclick = () => {
             mode = (mode === "login") ? "reg" : "login";
             document.getElementById('authTitle').innerText = mode === "login" ? "Sign In" : "Register";
             document.getElementById('nickWrap').style.display = mode === "login" ? "none" : "block";
+            document.getElementById('toggle').innerText = mode === "login" ? "New? Register" : "Have an account? Login";
         };
 
+        document.getElementById('toSet').onclick = () => view("settingsSection");
+        document.getElementById('back').onclick = () => view("chatSection");
+
+        // Auth Actions
         document.getElementById('authBtn').onclick = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            const n = document.getElementById('nick').value;
+            const e = document.getElementById('email').value, p = document.getElementById('pass').value, n = document.getElementById('nick').value;
             if(mode === "reg") {
                 createUserWithEmailAndPassword(auth, e, p).then(r => updateProfile(r.user, {displayName: n})).catch(err => alert(err.message));
             } else {
@@ -93,12 +102,19 @@
         };
 
         document.getElementById('out').onclick = () => signOut(auth).then(() => location.reload());
-        document.getElementById('toSet').onclick = () => view("settingsSection");
-        document.getElementById('back').onclick = () => view("chatSection");
         
         document.getElementById('saveNick').onclick = () => {
             const n = document.getElementById('newNick').value;
-            if(n) updateProfile(auth.currentUser, {displayName: n}).then(() => { alert("Done!"); view("chatSection"); });
+            if(n) updateProfile(auth.currentUser, {displayName: n}).then(() => { alert("Updated!"); view("chatSection"); });
+        };
+
+        // Clear Chat Logic
+        document.getElementById('clearChat').onclick = () => {
+            if(confirm("Delete ALL messages forever?")) {
+                remove(ref(db, 'messages')).then(() => {
+                    document.getElementById('chatWindow').innerHTML = "";
+                });
+            }
         };
 
         onAuthStateChanged(auth, (u) => {
@@ -107,19 +123,27 @@
 
         function setupChat(u) {
             const r = ref(db, 'messages');
-            document.getElementById('sBtn').onclick = () => {
+            
+            const send = () => {
                 const t = document.getElementById('mIn').value;
+                const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
                 if(t.trim()) {
-                    push(r, { sender: auth.currentUser.displayName || u.email.split('@')[0], content: t });
+                    push(r, { sender: auth.currentUser.displayName || u.email.split('@')[0], content: t, time: time });
                     document.getElementById('mIn').value = "";
                 }
             };
+
+            document.getElementById('sBtn').onclick = send;
+            
+            // --- NEW: ENTER KEY LISTENER ---
+            document.getElementById('mIn').onkeydown = (e) => { if(e.key === "Enter") send(); };
+
             document.getElementById('chatWindow').innerHTML = "";
             onChildAdded(r, (s) => {
                 const d = s.val();
                 const v = document.createElement('div');
                 v.className = "msg";
-                v.innerHTML = `<strong>${d.sender}:</strong> ${d.content}`;
+                v.innerHTML = `<span class="sender">${d.sender}</span>${d.content}<span class="time">${d.time || ''}</span>`;
                 document.getElementById('chatWindow').appendChild(v);
                 document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
             });
