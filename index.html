@@ -3,22 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatApp</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="chat-container">
-        <header class="chat-header">
-            <h1>Messaging App</h1>
-        </header>
-        <main class="message-area" id="messageArea">
-            <div class="message received">Hello! How can I help with your code today?</div>
-            <div class="message sent">I want to make this look like a real website!</div>
-        </main>
-        <footer class="input-area">
-            <input type="text" placeholder="Type a message..." id="userInput">
-            <button onclick="sendMessage()">Send</button>
-        </footer>
-    </div>
-</body>
-</html>
+    <title>Modern Centered Chat</title>
+    <style>
+        /* Modern Gradient Background */
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e1e2f 0%, #111119 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        /* Glassmorphism Container */
+        .chat-card {
+            width: 90%;
+            max-width: 500px;
+            height: 80vh;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+        }
+
+        /* Centered Header */
+        .header {
+            padding: 25px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Centered Message Area */
+        .message-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centers the bubbles horizontally */
+            gap: 20px;
+        }
+
+        /* Centered Bubbles */
+        .bubble {
+            padding: 14px 24px;
+            border-radius: 30px;
+            width: fit-content;
+            max-width: 80%;
+            text-align: center; /* Centers the text inside the bubble */
+            font-size: 15px;
+            transition: transform 0.2s ease;
+            animation: fadeIn 0.3s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .sent {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            box-shadow
