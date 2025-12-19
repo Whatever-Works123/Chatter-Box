@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Centered Feed</title>
+    <title>Chatter Box | Fixed Feed</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -11,50 +11,31 @@
             background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh;
         }
 
-        /* 1. SIDEBAR (Left) */
-        .sidebar { 
-            width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; 
-            display: flex; flex-direction: column; background: #FFF; flex-shrink: 0;
-        }
+        /* SIDEBAR */
+        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
         .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
         .user-pill { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
         .pill-pfp { width: 40px; height: 40px; border-radius: 50%; background: #efefef; background-size: cover; background-position: center; border: 1px solid #dbdbdb; }
         .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; }
         .nav-item:hover { background: #fafafa; color: #FF8C42; }
 
-        /* 2. CENTERED MAIN VIEW */
-        .main-view { 
-            flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; 
-        }
-        .center-container {
-            width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef;
-        }
+        /* CENTERED VIEW */
+        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
+        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; }
         
-        /* STORIES BAR */
-        .stories-bar { 
-            display: flex; gap: 15px; padding: 20px 10px; overflow-x: auto; border-bottom: 1px solid #dbdbdb;
-        }
+        .stories-bar { display: flex; gap: 15px; padding: 20px 10px; overflow-x: auto; border-bottom: 1px solid #dbdbdb; }
         .story { display: flex; flex-direction: column; align-items: center; min-width: 75px; font-size: 12px; }
-        .story-circle { 
-            width: 60px; height: 60px; border-radius: 50%; padding: 2px; 
-            border: 2px solid #FF8C42; background: #fff; background-size: cover; background-position: center;
-        }
+        .story-circle { width: 60px; height: 60px; border-radius: 50%; padding: 2px; border: 2px solid #FF8C42; background: #fff; background-size: cover; background-position: center; }
 
-        /* FEED & CARDS */
         .feed-content { padding: 20px; }
         .create-post { border: 1px solid #dbdbdb; border-radius: 8px; padding: 15px; margin-bottom: 20px; background: white; }
-        textarea { width: 100%; border: none; outline: none; font-size: 14px; resize: none; }
+        textarea { width: 100%; border: none; outline: none; font-size: 14px; resize: none; min-height: 50px; }
         
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 25px; background: white; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
-        .post-img { width: 100%; display: block; }
-        .post-info { padding: 12px; font-size: 14px; }
+        .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
+        .post-info { padding: 12px; font-size: 14px; line-height: 1.4; }
 
-        /* LISTS (Friends/Notifs) */
-        .list-item { display: flex; align-items: center; gap: 12px; padding: 15px; border-bottom: 1px solid #efefef; }
-        .list-pfp { width: 45px; height: 45px; border-radius: 50%; background: #efefef; background-size: cover; }
-
-        /* AUTH */
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-box { width: 350px; padding: 30px; background: white; border: 1px solid #dbdbdb; text-align: center; }
         input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 5px; }
@@ -68,10 +49,10 @@
     <div id="authPage">
         <div class="auth-box">
             <h1 class="logo">Chatter Box</h1>
-            <div id="regFields" style="display:none;"><input type="text" id="rName" placeholder="Full Name"></div>
+            <div id="regFields" style="display:none;"><input type="text" id="rName" placeholder="Display Name"></div>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
-            <button id="authBtn" style="width:100%">Log In</button>
+            <button id="authBtn" style="width:100%">Enter</button>
             <p id="toggleAuth" style="font-size: 12px; cursor: pointer; margin-top: 15px;">Need an account? Sign up</p>
         </div>
     </div>
@@ -80,7 +61,7 @@
         <div class="logo">Chatter Box</div>
         <div class="user-pill">
             <div id="mePfp" class="pill-pfp"></div>
-            <div id="meName" style="font-weight:600; font-size:14px;">User</div>
+            <div id="meName" style="font-weight:600; font-size:14px;">Loading...</div>
         </div>
         <div class="nav-item" onclick="showPage('homePage')">🏠 Home</div>
         <div class="nav-item" onclick="showPage('notifPage')">🔔 Notifications</div>
@@ -91,48 +72,34 @@
 
     <div class="main-view">
         <div class="center-container">
-            
             <div id="homePage" class="page">
                 <div id="storyList" class="stories-bar"></div>
                 <div class="feed-content">
                     <div class="create-post">
-                        <textarea id="postText" placeholder="What's happening?"></textarea>
+                        <textarea id="postText" placeholder="What's on your mind?"></textarea>
                         <div id="imgPreviewArea" style="display:none; margin-top:10px;"><img id="imgPreview" src="" style="width:100%; border-radius:5px;"></div>
                         <div style="display:flex; justify-content:space-between; margin-top:10px; align-items:center;">
-                            <label for="postImg" style="cursor:pointer; color:#FF8C42; font-weight:bold;">+ Add Photo</label>
+                            <label for="postImg" style="cursor:pointer; color:#FF8C42; font-weight:bold;">+ Photo</label>
                             <input type="file" id="postImg" accept="image/*" style="display:none;">
-                            <button id="sendPost">Post</button>
+                            <button id="sendPost">Share</button>
                         </div>
                     </div>
                     <div id="postFeed"></div>
                 </div>
             </div>
 
-            <div id="notifPage" class="page">
-                <div style="padding:20px; border-bottom:1px solid #dbdbdb;"><h3>Notifications</h3></div>
-                <div id="notifList">
-                    <div class="list-item">Welcome to the community! 🧡</div>
-                </div>
-            </div>
-
-            <div id="friendsPage" class="page">
-                <div style="padding:20px; border-bottom:1px solid #dbdbdb;">
-                    <h3>Find Friends</h3>
-                    <div style="display:flex; gap:10px;"><input type="text" id="friendSearch" placeholder="Search by email..."><button id="addFriendBtn">Add</button></div>
-                </div>
-                <div id="friendList"></div>
-            </div>
+            <div id="notifPage" class="page"><div style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div></div>
+            <div id="friendsPage" class="page"><div style="padding:20px;"><h3>Friends</h3><input type="text" placeholder="Search users..."><div id="friendList"></div></div></div>
 
             <div id="setPage" class="page">
                 <div style="padding:40px; text-align:center;">
                     <h3>Settings</h3>
-                    <div id="setPreview" style="width:120px; height:120px; border-radius:50%; margin:20px auto; background-size:cover; border:2px solid #FF8C42;"></div>
-                    <input type="file" id="setPfp" accept="image/*">
+                    <div id="setPreview" style="width:120px; height:120px; border-radius:50%; margin:20px auto; background-size:cover; border:2px solid #FF8C42; background-color:#eee;"></div>
+                    <input type="file" id="setPfp" accept="image/*" style="margin-bottom:15px;">
                     <input type="text" id="setName" placeholder="Update Name">
                     <button id="saveSet" style="width:100%">Save & Refresh</button>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -151,7 +118,8 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let myData = { name: "", pfp: "" };
+        let myName = "User";
+        let myPfp = "";
         let pendingPostImg = "";
 
         window.showPage = (id) => {
@@ -162,7 +130,6 @@
         document.getElementById('toggleAuth').onclick = () => {
             const isReg = document.getElementById('regFields').style.display === 'block';
             document.getElementById('regFields').style.display = isReg ? 'none' : 'block';
-            document.getElementById('authBtn').innerText = isReg ? 'Log In' : 'Sign Up';
         };
 
         document.getElementById('authBtn').onclick = () => {
@@ -200,61 +167,94 @@
         }
 
         function init(u) {
+            // LOAD MY PROFILE
             get(ref(db, 'users/'+u.uid)).then(s => {
                 if(s.exists()){
-                    myData = s.val();
-                    document.getElementById('meName').innerText = myData.name;
-                    if(myData.pfp) {
-                        document.getElementById('mePfp').style.backgroundImage = `url(${myData.pfp})`;
-                        document.getElementById('setPreview').style.backgroundImage = `url(${myData.pfp})`;
+                    const d = s.val();
+                    myName = d.name || "User";
+                    myPfp = d.pfp || "";
+                    document.getElementById('meName').innerText = myName;
+                    if(myPfp) {
+                        document.getElementById('mePfp').style.backgroundImage = `url(${myPfp})`;
+                        document.getElementById('setPreview').style.backgroundImage = `url(${myPfp})`;
                     }
                 }
             });
 
-            // Load Stories
+            // LOAD STORIES
             get(ref(db, 'users')).then(snap => {
                 const list = document.getElementById('storyList');
                 list.innerHTML = "";
                 snap.forEach(child => {
                     const user = child.val();
                     if(user.pfp) {
-                        list.innerHTML += `<div class="story"><div class="story-circle" style="background-image:url(${user.pfp})"></div><span>${user.name.split(' ')[0]}</span></div>`;
+                        list.innerHTML += `<div class="story"><div class="story-circle" style="background-image:url(${user.pfp})"></div><span>${(user.name || "User").split(' ')[0]}</span></div>`;
                     }
                 });
             });
 
-            // Post Logic
+            // HANDLE POST IMAGE PREVIEW
             document.getElementById('postImg').onchange = (e) => {
-                compress(e.target.files[0], 0.5, 600, (base64) => {
-                    pendingPostImg = base64;
-                    document.getElementById('imgPreviewArea').style.display = 'block';
-                    document.getElementById('imgPreview').src = base64;
-                });
+                if(e.target.files[0]) {
+                    compress(e.target.files[0], 0.5, 600, (base64) => {
+                        pendingPostImg = base64;
+                        document.getElementById('imgPreviewArea').style.display = 'block';
+                        document.getElementById('imgPreview').src = base64;
+                    });
+                }
             };
 
+            // SEND POST
             document.getElementById('sendPost').onclick = () => {
                 const txt = document.getElementById('postText').value;
-                if(txt || pendingPostImg) {
-                    push(ref(db, 'posts'), { sender: myData.name, pfp: myData.pfp, text: txt, img: pendingPostImg });
+                if(txt.trim() || pendingPostImg) {
+                    push(ref(db, 'posts'), {
+                        senderName: myName,
+                        senderPfp: myPfp,
+                        postText: txt,
+                        postImg: pendingPostImg,
+                        timestamp: Date.now()
+                    });
                     document.getElementById('postText').value = "";
                     document.getElementById('imgPreviewArea').style.display = 'none';
                     pendingPostImg = "";
                 }
             };
 
+            // RENDER FEED
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val();
                 const card = document.createElement('div');
                 card.className = 'post-card';
-                card.innerHTML = `<div class="post-header"><div class="pill-pfp" style="background-image:url(${p.pfp || ''}); width:30px; height:30px;"></div><span>${p.sender}</span></div>${p.img ? `<img src="${p.img}" class="post-img">` : ""}<div class="post-info"><b>${p.sender}</b> ${p.text}</div>`;
+                
+                // Fallbacks to prevent "undefined"
+                const name = p.senderName || "Anonymous";
+                const text = p.postText || "";
+                const pfp = p.senderPfp || "";
+                const img = p.postImg || "";
+
+                card.innerHTML = `
+                    <div class="post-header">
+                        <div class="pill-pfp" style="background-image:url(${pfp}); width:30px; height:30px;"></div>
+                        <span>${name}</span>
+                    </div>
+                    ${img ? `<img src="${img}" class="post-img">` : ""}
+                    <div class="post-info"><b>${name}</b> ${text}</div>
+                `;
                 document.getElementById('postFeed').prepend(card);
             });
 
+            // SAVE SETTINGS
             document.getElementById('saveSet').onclick = () => {
-                const n = document.getElementById('setName').value || myData.name;
+                const n = document.getElementById('setName').value || myName;
                 const file = document.getElementById('setPfp').files[0];
-                if(file) compress(file, 0.4, 150, (b64) => update(ref(db, 'users/'+u.uid), {name: n, pfp: b64}).then(() => location.reload()));
-                else update(ref(db, 'users/'+u.uid), {name: n}).then(() => location.reload());
+                if(file) {
+                    compress(file, 0.4, 150, (b64) => {
+                        update(ref(db, 'users/'+u.uid), {name: n, pfp: b64}).then(() => location.reload());
+                    });
+                } else {
+                    update(ref(db, 'users/'+u.uid), {name: n}).then(() => location.reload());
+                }
             };
         }
     </script>
