@@ -3,54 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Home</title>
+    <title>Chatter Box</title>
     <style>
-        /* 1. LAYOUT & THEME */
+        /* 1. GLOBAL STYLES */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background-color: #000; color: white; margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* Sidebar Navigation (Instagram Laptop Style) */
+        /* 2. SIDEBAR (Fixed to Left) */
         .sidebar { 
             width: 245px; border-right: 1px solid #262626; padding: 20px; 
             display: flex; flex-direction: column; height: 100%; box-sizing: border-box;
+            background: #000; z-index: 10;
         }
         .logo { font-size: 1.8rem; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; }
         .nav-item { 
-            cursor: pointer; padding: 15px 10px; border-radius: 8px; transition: 0.3s; 
-            display: flex; align-items: center; gap: 15px; font-size: 1.1rem;
+            cursor: pointer; padding: 12px 10px; border-radius: 8px; transition: 0.2s; 
+            display: flex; align-items: center; gap: 15px; font-size: 1rem; color: #fafafa;
         }
         .nav-item:hover { background: rgba(255,255,255,0.1); }
-        .nav-item.active { font-weight: bold; }
 
-        /* Main Scrolling View */
-        .main-view { flex: 1; display: flex; justify-content: center; overflow-y: auto; height: 100vh; }
-        .feed-wrapper { width: 100%; max-width: 600px; padding: 30px 20px; }
+        /* 3. MAIN AREA (Centered Layout) */
+        .main-view { 
+            flex: 1; display: flex; flex-direction: column; align-items: center; 
+            overflow-y: auto; height: 100vh; background: #000;
+        }
 
-        /* 2. COMPONENT STYLES */
+        /* Centering the Login Box specifically */
+        #authPage {
+            display: none; width: 100%; height: 100%;
+            justify-content: center; align-items: center;
+        }
+
+        .auth-container { 
+            width: 350px; padding: 40px; border: 1px solid #262626; 
+            border-radius: 4px; background: #000; margin: auto;
+        }
+
+        /* Centering the Feed */
+        .feed-wrapper { 
+            width: 100%; max-width: 470px; padding: 30px 0; 
+            display: flex; flex-direction: column;
+        }
+
+        /* 4. POSTS & INPUTS */
         .create-box { 
-            background: #121212; border: 1px solid #262626; border-radius: 12px; 
-            padding: 15px; margin-bottom: 30px; 
+            background: #000; border: 1px solid #262626; border-radius: 8px; 
+            padding: 15px; margin-bottom: 20px; 
         }
         textarea { 
             width: 100%; background: transparent; border: none; color: white; 
-            resize: none; font-size: 1rem; outline: none; height: 60px; font-family: inherit;
+            resize: none; font-size: 1rem; outline: none; height: 40px;
         }
         .post-card { 
-            background: #000; border: 1px solid #262626; border-radius: 8px; margin-bottom: 25px; 
+            background: #000; border: 1px solid #262626; border-radius: 8px; margin-bottom: 12px; 
         }
-        .post-header { padding: 14px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .p-avatar { width: 32px; height: 32px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-radius: 50%; }
-        .post-content { padding: 0 14px 20px 14px; font-size: 1rem; line-height: 1.5; }
+        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+        .p-avatar { width: 32px; height: 32px; background: #262626; border-radius: 50%; border: 1px solid #363636; }
+        .post-content { padding: 0 12px 15px 12px; font-size: 0.95rem; line-height: 1.4; }
         
-        /* Auth/Login Center Box */
-        .auth-container { width: 350px; margin-top: 100px; text-align: center; border: 1px solid #262626; padding: 40px; border-radius: 4px; }
-        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #121212; border: 1px solid #262626; color: white; border-radius: 5px; box-sizing: border-box; }
-        
-        button { background: #0095f6; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; width: auto; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; background: #121212; border: 1px solid #262626; color: white; border-radius: 3px; box-sizing: border-box; }
+        button { background: #0095f6; color: white; border: none; border-radius: 8px; padding: 7px 16px; font-weight: 600; cursor: pointer; }
         button:hover { background: #1877f2; }
-        .page { display: none; width: 100%; }
+        
+        .page { width: 100%; }
     </style>
 </head>
 <body>
@@ -67,45 +84,45 @@
         
         <div id="authPage" class="page">
             <div class="auth-container">
-                <h1 style="font-style: italic;">Chatter Box</h1>
+                <h1 style="font-style: italic; text-align:center;">Chatter Box</h1>
                 <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Nickname"></div>
                 <input type="email" id="lEmail" placeholder="Email">
                 <input type="password" id="lPass" placeholder="Password">
                 <button id="authGo" style="width:100%;">Log In</button>
-                <p id="authSwitch" style="cursor:pointer; font-size:0.9rem; color:#0095f6; margin-top:20px;">Don't have an account? Sign up</p>
+                <p id="authSwitch" style="cursor:pointer; font-size:0.85rem; color:#0095f6; text-align:center; margin-top:20px;">Don't have an account? Sign up</p>
             </div>
         </div>
 
-        <div id="homePage" class="page">
+        <div id="homePage" class="page" style="display:none;">
             <div class="feed-wrapper">
                 <div class="create-box">
-                    <textarea id="postIn" placeholder="What's happening?"></textarea>
+                    <textarea id="postIn" placeholder="What's on your mind?"></textarea>
                     <div style="text-align:right;"><button id="postBtn">Post</button></div>
                 </div>
                 <div id="feedWin"></div>
             </div>
         </div>
 
-        <div id="friendsPage" class="page">
+        <div id="friendsPage" class="page" style="display:none;">
             <div class="feed-wrapper">
-                <h2>Friends</h2>
-                <div style="display:flex; gap:10px;">
+                <h3 style="margin-left:10px;">Find Friends</h3>
+                <div style="display:flex; gap:10px; padding: 0 10px;">
                     <input type="text" id="fSearch" placeholder="Friend's Email" style="margin:0;">
-                    <button id="fAdd">Add Friend</button>
+                    <button id="fAdd">Add</button>
                 </div>
-                <div id="fList" style="margin-top:30px;"></div>
+                <div id="fList" style="margin-top:20px;"></div>
             </div>
         </div>
 
-        <div id="setPage" class="page">
+        <div id="setPage" class="page" style="display:none;">
             <div class="feed-wrapper">
-                <h2>Settings</h2>
-                <p>Change Display Name</p>
-                <input type="text" id="sNick" placeholder="New nickname">
-                <button id="sSave">Save Changes</button>
+                <div class="auth-container" style="border:none; width:100%; box-sizing:border-box;">
+                    <h3>Settings</h3>
+                    <input type="text" id="sNick" placeholder="New nickname">
+                    <button id="sSave" style="width:100%;">Save Name</button>
+                </div>
             </div>
         </div>
-
     </div>
 
     <script type="module">
@@ -113,7 +130,6 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Your specific Firebase Config
         const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
@@ -129,24 +145,26 @@
         const db = getDatabase(app);
         let isReg = false;
 
-        // Navigation Function
         window.go = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            const target = document.getElementById(id);
-            if(target) target.style.display = 'block';
+            const pages = ['authPage', 'homePage', 'friendsPage', 'setPage'];
+            pages.forEach(p => {
+                const el = document.getElementById(p);
+                if (p === id) {
+                    el.style.display = (p === 'authPage') ? 'flex' : 'block';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
 
-        // Toggle Login/Register
         document.getElementById('authSwitch').onclick = () => {
             isReg = !isReg;
             document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
             document.getElementById('authSwitch').innerText = isReg ? 'Have an account? Log in' : 'Don\'t have an account? Sign up';
-            document.getElementById('authGo').innerText = isReg ? 'Sign Up' : 'Log In';
         };
 
-        // Authentication Action
         document.getElementById('authGo').onclick = () => {
             const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rNick').value;
             if(isReg) {
@@ -159,7 +177,6 @@
             }
         };
 
-        // Auth State Observer
         onAuthStateChanged(auth, (u) => {
             if(u) { 
                 document.getElementById('sideNav').style.display = 'flex';
@@ -173,8 +190,6 @@
 
         function start(u) {
             const postsRef = ref(db, 'posts');
-
-            // Handle Posting
             document.getElementById('postBtn').onclick = () => {
                 const text = document.getElementById('postIn').value;
                 if(text.trim()) {
@@ -187,7 +202,6 @@
                 }
             };
 
-            // Display Posts
             const feedWin = document.getElementById('feedWin');
             feedWin.innerHTML = "";
             onChildAdded(postsRef, (snap) => {
@@ -201,18 +215,15 @@
                 feedWin.prepend(postDiv);
             });
 
-            // Handle Friends
             document.getElementById('fAdd').onclick = () => {
                 const s = document.getElementById('fSearch').value.toLowerCase().trim();
                 get(ref(db, 'users')).then(snap => {
                     let fid = null;
                     snap.forEach(c => { if(c.val().email === s) fid = c.key; });
                     if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Added!"));
-                    else alert("User not found");
                 });
             };
 
-            // Handle Settings
             document.getElementById('sSave').onclick = () => {
                 const n = document.getElementById('sNick').value;
                 if(n) update(ref(db, 'users/' + u.uid), {name: n}).then(() => alert("Updated!"));
