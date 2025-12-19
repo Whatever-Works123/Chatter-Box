@@ -8,7 +8,228 @@
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
+        /* SIDEBAR */<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatter Box | Story Fix</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
         /* SIDEBAR */
+        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
+        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
+        .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
+        .nav-item:hover { background: #f2f2f2; }
+        .nav-item.active { background: #FFF5EE; color: #FF8C42; }
+
+        /* MAIN VIEW */
+        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
+        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
+
+        /* STORIES */
+        .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
+        .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
+        .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
+        
+        /* THE RING SYSTEM */
+        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
+        .ring-unseen { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888) !important; }
+        .ring-seen { background: #dbdbdb !important; }
+        .ring-none { background: transparent; border: 1px solid #efefef; }
+        
+        .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
+        .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        /* FEED & OVERLAYS */
+        .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
+        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
+        .post-img { width: 100%; display: block; }
+        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: none; justify-content: center; align-items: center; }
+        #storyImg { max-width: 95%; max-height: 90vh; border-radius: 10px; }
+
+        .page { display: none; width: 100%; }
+        #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
+        button { background: #FF8C42; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <div id="storyOverlay" onclick="this.style.display='none'"><img id="storyImg" src=""></div>
+
+    <div id="authPage">
+        <div style="width: 320px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center;">
+            <h1 class="logo">Chatter Box</h1>
+            <input type="email" id="lEmail" placeholder="Email">
+            <input type="password" id="lPass" placeholder="Password">
+            <button id="authBtn">Log In</button>
+        </div>
+    </div>
+
+    <div id="sideBar" class="sidebar" style="display:none;">
+        <div class="logo">Chatter Box</div>
+        <div class="nav-item active" onclick="showPage('homePage', this)">🏠 Home</div>
+        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
+        <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
+        <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
+        <div class="nav-item" onclick="showPage('setPage', this)">⚙️ Settings</div>
+        <div id="adminPanel" class="nav-item" style="display:none; color:red;" onclick="clearFeed()">🔥 Admin Reset</div>
+        <div onclick="location.reload()" class="nav-item" style="margin-top:auto;">Logout</div>
+    </div>
+
+    <div class="main-view">
+        <div class="center-container">
+            <div id="homePage" class="page">
+                <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
+                <input type="file" id="storyInput" accept="image/*" style="display:none;">
+                <div class="feed-content">
+                    <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
+                        <textarea id="postText" placeholder="Post to the feed..."></textarea>
+                        <input type="file" id="postImg" accept="image/*">
+                        <button id="sendPost" style="margin-top:10px;">Post</button>
+                    </div>
+                    <div id="postFeed"></div>
+                </div>
+            </div>
+            
+            <div id="profilePage" class="page">
+                <div style="padding:40px; display: flex; align-items: center; gap: 20px;">
+                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd;"></div>
+                    <h2 id="profName">User</h2>
+                </div>
+                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:3px;"></div>
+            </div>
+            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3></div>
+            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3></div>
+            <div id="setPage" class="page" style="padding:20px;"><h3>Settings</h3></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const config = { apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", authDomain: "chatterbox-4b7dd.firebaseapp.com", databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", projectId: "chatterbox-4b7dd" };
+        const app = initializeApp(config); const auth = getAuth(app); const db = getDatabase(app);
+        
+        let myData = { name: "User", pfp: "" };
+        const ADMIN_EMAIL = "eaton.garrett@icloud.com";
+
+        window.showPage = (id, el) => { 
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).style.display = 'block'; 
+            if(el) el.classList.add('active');
+        };
+
+        document.getElementById('authBtn').onclick = () => signInWithEmailAndPassword(auth, lEmail.value, lPass.value);
+
+        onAuthStateChanged(auth, (u) => {
+            if(u) {
+                if(u.email === ADMIN_EMAIL) adminPanel.style.display='flex';
+                authPage.style.display='none'; sideBar.style.display='flex';
+                showPage('homePage', document.querySelector('.nav-item.active'));
+                init(u);
+            }
+        });
+
+        function compress(file, cb) {
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = (e) => {
+                const img = new Image(); img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 600; canvas.height = (img.height/img.width)*600;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    cb(canvas.toDataURL('image/jpeg', 0.6));
+                };
+            };
+        }
+
+        function init(u) {
+            onValue(ref(db, 'users/'+u.uid), (s) => { if(s.exists()){ myData = s.val(); profName.innerText = myData.name; profPfp.style.backgroundImage = `url(${myData.pfp})`; } });
+
+            // STORY LISTENER
+            onValue(ref(db, 'stories'), (storySnap) => {
+                const allStories = storySnap.val() || {};
+                onValue(ref(db, 'users'), (userSnap) => {
+                    storyList.innerHTML = "";
+                    
+                    // ME
+                    const myStory = allStories[u.uid];
+                    const meDiv = document.createElement('div');
+                    meDiv.className = 'story';
+                    meDiv.innerHTML = `<div class="story-ring ${myStory ? 'ring-seen' : 'ring-none'}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" id="uploadPlus">+</div></div></div><span>You</span>`;
+                    meDiv.onclick = (e) => {
+                        if(e.target.id === 'uploadPlus' || !myStory) storyInput.click();
+                        else { storyImg.src = myStory.img; storyOverlay.style.display = 'flex'; }
+                    };
+                    storyList.appendChild(meDiv);
+
+                    // FRIENDS
+                    userSnap.forEach(snap => {
+                        const userId = snap.key;
+                        const user = snap.val();
+                        if(userId !== u.uid && allStories[userId]) {
+                            const sData = allStories[userId];
+                            const viewers = sData.viewers || {};
+                            
+                            // LOGIC: If my UID is in the viewers list, it is 'seen' (grey). Else 'unseen' (color).
+                            const hasSeen = viewers[u.uid] === true;
+                            const ringClass = hasSeen ? 'ring-seen' : 'ring-unseen';
+
+                            const friendDiv = document.createElement('div');
+                            friendDiv.className = 'story';
+                            friendDiv.innerHTML = `<div class="story-ring ${ringClass}"><div class="story-inner" style="background-image:url(${user.pfp})"></div></div><span>${user.name.split(' ')[0]}</span>`;
+                            friendDiv.onclick = () => {
+                                // Mark as seen
+                                update(ref(db, `stories/${userId}/viewers`), { [u.uid]: true });
+                                storyImg.src = sData.img;
+                                storyOverlay.style.display = 'flex';
+                            };
+                            storyList.appendChild(friendDiv);
+                        }
+                    });
+                });
+            });
+
+            // UPLOAD NEW STORY
+            storyInput.onchange = (e) => {
+                if(e.target.files[0]) compress(e.target.files[0], (b64) => {
+                    // This 'set' wipes the entire story folder for the user, 
+                    // which automatically clears the 'viewers' list.
+                    set(ref(db, 'stories/'+u.uid), { 
+                        img: b64, 
+                        ts: Date.now(), 
+                        viewers: { [u.uid]: true } // You've seen your own
+                    }).then(() => {
+                        console.log("New Story Saved - Ring should be colorful for others.");
+                    });
+                });
+            };
+
+            // FEED
+            onChildAdded(ref(db, 'posts'), (snap) => {
+                const p = snap.val();
+                const card = document.createElement('div'); card.className = 'post-card';
+                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>`;
+                postFeed.prepend(card);
+            });
+
+            sendPost.onclick = () => {
+                const f = postImg.files[0];
+                if(f) compress(f, (b64) => push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, text: postText.value, img: b64 }));
+            };
+        }
+
+        window.clearFeed = () => { if(confirm("Wipe posts?")) remove(ref(db, 'posts')); };
+    </script>
+</body>
+</html>
         .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
         .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
         .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
