@@ -3,117 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Social Feed</title>
+    <title>Chatter Box | Modern Feed</title>
     <style>
         * { box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #FFFBF5; color: #4A4A4A; margin: 0; display: flex; height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh;
         }
 
         /* SIDEBAR */
-        .sidebar { width: 280px; border-right: 1px solid #FFE0B2; padding: 25px; display: flex; flex-direction: column; background: #FFF3E0; }
-        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 25px; font-style: italic; color: #FF8C42; }
-        .user-pill { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 15px; border: 1px solid #FFE0B2; margin-bottom: 30px; }
-        .pill-pfp { width: 40px; height: 40px; background: #FFCC80; border-radius: 50%; background-size: cover; background-position: center; border: 2px solid #FF8C42; }
-        .nav-item { cursor: pointer; padding: 15px; border-radius: 12px; transition: 0.2s; display: flex; align-items: center; gap: 15px; color: #6D4C41; font-weight: 500; }
-        .nav-item:hover { background: #FFE0B2; }
+        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; }
+        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
+        .user-pill { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; }
+        .pill-pfp { width: 40px; height: 40px; border-radius: 50%; background: #efefef; background-size: cover; background-position: center; border: 1px solid #dbdbdb; }
+        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 5px; transition: 0.2s; font-weight: 500; }
+        .nav-item:hover { background: #fafafa; color: #FF8C42; }
 
-        /* MAIN AREA */
-        .main-view { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        /* FEED AREA */
+        .main-view { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; background: #fff; }
         
-        /* STORIES BAR */
-        .stories-container { 
-            width: 100%; max-width: 600px; display: flex; gap: 15px; padding: 20px; 
-            overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+        /* INSTAGRAM STYLE STORIES */
+        .stories-bar { 
+            width: 100%; max-width: 600px; display: flex; gap: 15px; padding: 20px 10px; 
+            overflow-x: auto; border-bottom: 1px solid #dbdbdb;
         }
+        .story { display: flex; flex-direction: column; align-items: center; min-width: 75px; font-size: 12px; }
         .story-circle { 
-            display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 70px; 
+            width: 60px; height: 60px; border-radius: 50%; padding: 2px; 
+            border: 2px solid #FF8C42; background: #fff; background-size: cover; background-position: center;
         }
-        .story-img { 
-            width: 64px; height: 64px; border-radius: 50%; border: 3px solid #FF8C42; 
-            padding: 2px; background: white; background-size: cover; background-position: center;
-        }
-        .story-name { font-size: 0.75rem; color: #6D4C41; }
 
-        /* FEED */
-        .feed-wrapper { width: 100%; max-width: 500px; padding-bottom: 50px; }
+        .feed { width: 100%; max-width: 470px; padding: 20px 0; }
 
-        /* POST CREATOR */
-        .create-box { background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 15px; padding: 15px; margin-bottom: 25px; }
-        textarea { width: 100%; border: none; outline: none; font-size: 1rem; resize: none; margin-bottom: 10px; }
-        .create-actions { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #FFF8F0; padding-top: 10px; }
+        /* POST BOX */
+        .create-post { border: 1px solid #dbdbdb; border-radius: 8px; padding: 15px; margin-bottom: 20px; }
+        textarea { width: 100%; border: none; outline: none; font-size: 14px; resize: none; }
+        .actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
 
         /* POST CARD */
-        .post-card { background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 15px; margin-bottom: 25px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .post-img { width: 100%; max-height: 500px; object-fit: cover; background: #F5F5F5; display: block; }
-        .post-content { padding: 15px; font-size: 0.95rem; line-height: 1.4; }
+        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 25px; background: white; }
+        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+        .post-img { width: 100%; display: block; border-top: 1px solid #efefef; border-bottom: 1px solid #efefef; }
+        .post-info { padding: 12px; font-size: 14px; }
 
-        /* AUTH & BUTTONS */
-        #authPage { position: fixed; inset: 0; background: #FFF8F0; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .auth-container { width: 340px; padding: 40px; background: white; border-radius: 20px; text-align: center; border: 1px solid #FFE0B2; }
-        button { background: #FF8C42; color: white; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
-        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 12px; border: 1px solid #FFE0B2; border-radius: 10px; }
-        
-        .page { width: 100%; display: none; }
+        /* SETTINGS */
+        .settings-card { width: 100%; max-width: 400px; padding: 40px 20px; text-align: center; }
+        .pfp-large { width: 150px; height: 150px; border-radius: 50%; margin: 0 auto 20px; background: #efefef; background-size: cover; background-position: center; border: 2px solid #FF8C42; }
+
+        /* AUTH */
+        #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .auth-box { width: 350px; padding: 30px; background: white; border: 1px solid #dbdbdb; text-align: center; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; background: #fafafa; border-radius: 3px; }
+        button { background: #FF8C42; color: white; border: none; border-radius: 5px; padding: 8px 15px; font-weight: bold; cursor: pointer; }
+
+        .page { display: none; width: 100%; }
     </style>
 </head>
 <body>
 
     <div id="authPage">
-        <div class="auth-container">
-            <h1 style="color: #FF8C42; font-style: italic;">Chatter Box</h1>
-            <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Your Name"></div>
+        <div class="auth-box">
+            <h1 class="logo">Chatter Box</h1>
+            <div id="regFields" style="display:none;"><input type="text" id="rName" placeholder="Full Name"></div>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
-            <button id="authGo" style="width: 100%;">Sign In</button>
-            <p id="authSwitch" style="cursor:pointer; color: #FF8C42; font-size: 0.8rem; margin-top: 15px;">Need an account? Sign up</p>
+            <button id="authBtn" style="width:100%">Log In</button>
+            <p id="toggleAuth" style="font-size: 12px; cursor: pointer; margin-top: 15px;">Don't have an account? Sign up</p>
         </div>
     </div>
 
-    <div id="sideNav" class="sidebar" style="display:none;">
+    <div id="sideBar" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
         <div class="user-pill">
-            <div id="sidePfp" class="pill-pfp"></div>
-            <div id="sideName" style="font-weight:700;">User</div>
+            <div id="mePfp" class="pill-pfp"></div>
+            <div id="meName" style="font-weight:600; font-size:14px;">User</div>
         </div>
-        <div class="nav-item" onclick="go('homePage')">🏠 Feed</div>
-        <div class="nav-item" onclick="go('setPage')">⚙️ Settings</div>
-        <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #D84315;">🚪 Logout</div>
+        <div class="nav-item" onclick="showPage('homePage')">🏠 Home</div>
+        <div class="nav-item" onclick="showPage('setPage')">⚙️ Settings</div>
+        <div id="logoutBtn" class="nav-item" style="margin-top:auto; color:red;">Logout</div>
     </div>
 
     <div class="main-view">
         <div id="homePage" class="page">
-            <div id="storyBar" class="stories-container">
-                </div>
-
-            <div class="feed-wrapper">
-                <div class="create-box">
-                    <textarea id="postIn" placeholder="What's the tea?"></textarea>
-                    <div id="postImgPreview" style="margin-bottom: 10px; display: none;">
-                        <img id="postImgView" src="" style="width: 100%; border-radius: 10px;">
+            <div id="storyList" class="stories-bar"></div>
+            <div class="feed">
+                <div class="create-post">
+                    <textarea id="postText" placeholder="What's on your mind?"></textarea>
+                    <div id="imgPreviewArea" style="display:none; margin-top:10px;">
+                        <img id="imgPreview" src="" style="width:100%; border-radius:5px;">
                     </div>
-                    <div class="create-actions">
-                        <label for="postImgInput" style="cursor:pointer; color: #FF8C42; font-weight: 600;">🖼️ Add Photo</label>
-                        <input type="file" id="postImgInput" accept="image/*" style="display: none;">
-                        <button id="postBtn">Share</button>
+                    <div class="actions">
+                        <label for="postImg" style="cursor:pointer; font-weight:bold; color:#FF8C42;">+ Add Photo</label>
+                        <input type="file" id="postImg" accept="image/*" style="display:none;">
+                        <button id="sendPost">Post</button>
                     </div>
                 </div>
-
-                <div id="feedWin"></div>
+                <div id="postFeed"></div>
             </div>
         </div>
 
         <div id="setPage" class="page">
-            <div class="feed-wrapper" style="padding-top: 40px;">
-                <h2 style="text-align: center;">Edit Profile</h2>
-                <div class="create-box" style="text-align: center;">
-                    <div id="pfpPrev" style="width:120px; height:120px; border-radius:50%; margin: 0 auto 15px; background-size:cover; border:3px solid #FF8C42;"></div>
-                    <input type="file" id="pfpInput" accept="image/*" style="margin-bottom: 15px;">
-                    <input type="text" id="sNick" placeholder="Display Name">
-                    <button id="sSave" style="width:100%;">Save Changes</button>
-                </div>
+            <div class="settings-card">
+                <h2>Edit Profile</h2>
+                <div id="setPreview" class="pfp-large"></div>
+                <input type="file" id="setPfp" accept="image/*">
+                <input type="text" id="setName" placeholder="Change Name">
+                <button id="saveSet" style="width:100%">Save and Refresh</button>
             </div>
         </div>
     </div>
@@ -133,35 +128,39 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let userPFP = ""; 
-        let currentPostImg = "";
+        let myData = { name: "", pfp: "" };
+        let pendingPostImg = "";
 
-        window.go = (id) => {
+        window.showPage = (id) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById(id).style.display = 'block';
         };
 
-        window.logOut = () => signOut(auth).then(() => location.reload());
-
-        document.getElementById('authSwitch').onclick = () => {
-            const reg = document.getElementById('regBox');
-            reg.style.display = reg.style.display === 'none' ? 'block' : 'none';
+        document.getElementById('toggleAuth').onclick = () => {
+            const isReg = document.getElementById('regFields').style.display === 'block';
+            document.getElementById('regFields').style.display = isReg ? 'none' : 'block';
+            document.getElementById('authBtn').innerText = isReg ? 'Log In' : 'Sign Up';
         };
 
-        document.getElementById('authGo').onclick = () => {
-            const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rNick').value;
-            if(document.getElementById('regBox').style.display !== 'none') {
-                createUserWithEmailAndPassword(auth, e, p).then(res => set(ref(db, 'users/' + res.user.uid), {name: n, pfp: ""}));
-            } else {
-                signInWithEmailAndPassword(auth, e, p);
-            }
+        document.getElementById('authBtn').onclick = () => {
+            const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rName').value;
+            if(document.getElementById('regFields').style.display === 'block') {
+                createUserWithEmailAndPassword(auth, e, p).then(r => set(ref(db, 'users/'+r.user.uid), {name: n, pfp: ""}));
+            } else { signInWithEmailAndPassword(auth, e, p); }
         };
+
+        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (u) => {
-            if(u) { document.getElementById('authPage').style.display = 'none'; document.getElementById('sideNav').style.display = 'flex'; go('homePage'); start(u); }
+            if(u) { 
+                document.getElementById('authPage').style.display = 'none';
+                document.getElementById('sideBar').style.display = 'flex';
+                showPage('homePage');
+                init(u);
+            }
         });
 
-        function compress(file, size, cb) {
+        function compress(file, quality, width, cb) {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (e) => {
@@ -169,90 +168,92 @@
                 img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const scale = size / img.width;
-                    canvas.width = size; canvas.height = img.height * scale;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    cb(canvas.toDataURL('image/jpeg', 0.6));
+                    const scale = width / img.width;
+                    canvas.width = width; canvas.height = img.height * scale;
+                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                    cb(canvas.toDataURL('image/jpeg', quality));
                 };
             };
         }
 
-        function start(u) {
-            const sync = () => {
-                get(ref(db, 'users/' + u.uid)).then(s => {
-                    const d = s.val();
-                    userPFP = d.pfp || "";
-                    document.getElementById('sideName').innerText = d.name || "User";
-                    if(userPFP) {
-                        document.getElementById('sidePfp').style.backgroundImage = `url(${userPFP})`;
-                        document.getElementById('pfpPrev').style.backgroundImage = `url(${userPFP})`;
+        function init(u) {
+            // Load My Data
+            get(ref(db, 'users/'+u.uid)).then(s => {
+                if(s.exists()){
+                    myData = s.val();
+                    document.getElementById('meName').innerText = myData.name;
+                    if(myData.pfp) {
+                        document.getElementById('mePfp').style.backgroundImage = `url(${myData.pfp})`;
+                        document.getElementById('setPreview').style.backgroundImage = `url(${myData.pfp})`;
+                    }
+                }
+            });
+
+            // Load Stories (All users with PFPs)
+            get(ref(db, 'users')).then(snap => {
+                const list = document.getElementById('storyList');
+                list.innerHTML = "";
+                snap.forEach(child => {
+                    const user = child.val();
+                    if(user.pfp) {
+                        list.innerHTML += `<div class="story"><div class="story-circle" style="background-image:url(${user.pfp})"></div><span>${user.name.split(' ')[0]}</span></div>`;
                     }
                 });
-                
-                // Load Stories
-                get(ref(db, 'users')).then(snap => {
-                    const bar = document.getElementById('storyBar');
-                    bar.innerHTML = "";
-                    snap.forEach(child => {
-                        const ud = child.val();
-                        if(ud.pfp) {
-                            bar.innerHTML += `
-                                <div class="story-circle">
-                                    <div class="story-img" style="background-image:url(${ud.pfp})"></div>
-                                    <span class="story-name">${ud.name}</span>
-                                </div>`;
-                        }
-                    });
-                });
-            };
-            sync();
+            });
 
-            // Handle Post Photo
-            document.getElementById('postImgInput').onchange = (e) => {
-                compress(e.target.files[0], 500, (base64) => {
-                    currentPostImg = base64;
-                    document.getElementById('postImgPreview').style.display = "block";
-                    document.getElementById('postImgView').src = base64;
+            // Post Image Logic
+            document.getElementById('postImg').onchange = (e) => {
+                compress(e.target.files[0], 0.5, 600, (base64) => {
+                    pendingPostImg = base64;
+                    document.getElementById('imgPreviewArea').style.display = 'block';
+                    document.getElementById('imgPreview').src = base64;
                 });
             };
 
-            document.getElementById('postBtn').onclick = () => {
-                const txt = document.getElementById('postIn').value;
-                if(txt || currentPostImg) {
+            document.getElementById('sendPost').onclick = () => {
+                const txt = document.getElementById('postText').value;
+                if(txt || pendingPostImg) {
                     push(ref(db, 'posts'), {
-                        name: document.getElementById('sideName').innerText,
+                        sender: myData.name,
+                        pfp: myData.pfp,
                         text: txt,
-                        pfp: userPFP,
-                        img: currentPostImg,
-                        time: Date.now()
+                        img: pendingPostImg,
+                        ts: Date.now()
                     });
-                    document.getElementById('postIn').value = "";
-                    document.getElementById('postImgPreview').style.display = "none";
-                    currentPostImg = "";
+                    document.getElementById('postText').value = "";
+                    document.getElementById('imgPreviewArea').style.display = 'none';
+                    pendingPostImg = "";
                 }
             };
 
-            onChildAdded(ref(db, 'posts'), (s) => {
-                const p = s.val();
+            // Feed Logic
+            onChildAdded(ref(db, 'posts'), (snap) => {
+                const p = snap.val();
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 card.innerHTML = `
                     <div class="post-header">
-                        <div class="pill-pfp" style="background-image:url(${p.pfp || ''}); width:32px; height:32px;"></div>
-                        <span>${p.name}</span>
+                        <div class="pill-pfp" style="background-image:url(${p.pfp || ''}); width:30px; height:30px;"></div>
+                        <span>${p.sender}</span>
                     </div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ""}
-                    <div class="post-content"><b>${p.name}</b> ${p.text}</div>
+                    <div class="post-info"><b>${p.sender}</b> ${p.text}</div>
                 `;
-                document.getElementById('feedWin').prepend(card);
+                document.getElementById('postFeed').prepend(card);
             });
 
-            document.getElementById('sSave').onclick = () => {
-                const n = document.getElementById('sNick').value;
-                const file = document.getElementById('pfpInput').files[0];
-                if(file) compress(file, 100, (b64) => update(ref(db, 'users/' + u.uid), {pfp: b64, name: n}).then(() => location.reload()));
-                else update(ref(db, 'users/' + u.uid), {name: n}).then(() => location.reload());
+            // Save Settings
+            document.getElementById('saveSet').onclick = () => {
+                const newName = document.getElementById('setName').value || myData.name;
+                const file = document.getElementById('setPfp').files[0];
+                
+                if(file) {
+                    compress(file, 0.4, 150, (b64) => {
+                        update(ref(db, 'users/'+u.uid), {name: newName, pfp: b64}).then(() => location.reload());
+                    });
+                } else {
+                    update(ref(db, 'users/'+u.uid), {name: newName}).then(() => location.reload());
+                }
             };
         }
     </script>
