@@ -6,57 +6,46 @@
     <title>Chatter Box</title>
     <style>
         body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; background: white; color: black; }
-        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
-        
-        /* Sections */
+        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: none; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 8px; font-weight: bold; }
         #chatSection, #settingsSection { display: none; text-align: left; }
-        
-        #chatWindow { height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
-        .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
-        .toggle-text { margin-top: 20px; font-size: 0.8rem; color: #2575fc; cursor: pointer; text-decoration: underline; }
-        
-        .nav-btn { background: rgba(255,255,255,0.2); width: auto; padding: 5px 10px; font-size: 0.7rem; border-radius: 5px; }
-        .logout { background: #ff4b2b; }
-        
-        .header-btns { display: flex; gap: 5px; float: right; }
-        #nicknameBox { display: none; }
+        #chatWindow { height: 280px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; }
+        .msg { margin-bottom: 10px; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; }
+        .small-btn { width: auto; padding: 5px 10px; font-size: 0.7rem; margin-left: 5px; background: #444; }
+        .danger { background: #ff4b2b; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div id="authSection">
-            <h1 id="authTitle">Chatter Box</h1>
-            <div id="nicknameBox">
-                <input type="text" id="nickname" placeholder="Choose a Nickname">
-            </div>
+            <h2 id="authTitle">Sign In</h2>
+            <div id="nickWrap" style="display:none;"><input type="text" id="nick" placeholder="Nickname"></div>
             <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password (6+ chars)">
-            <button id="authBtn">Sign In</button>
-            <div id="toggleLink" class="toggle-text">New here? Create Account</div>
+            <input type="password" id="pass" placeholder="Password">
+            <button id="authBtn">Go</button>
+            <p id="toggle" style="cursor:pointer; font-size: 0.8rem; margin-top:15px; text-decoration: underline;">New? Register</p>
         </div>
 
         <div id="chatSection">
-            <div class="header-btns">
-                <button class="nav-btn" id="toSettingsBtn">Settings</button>
-                <button class="nav-btn logout" id="logoutBtn">Log Out</button>
+            <div style="float:right;">
+                <button class="small-btn" id="toSet">Settings</button>
+                <button class="small-btn danger" id="out">Out</button>
             </div>
-            <h3 style="margin: 0 0 15px 0;">Messages</h3>
+            <h3>Chat</h3>
             <div id="chatWindow"></div>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="msgInput" placeholder="Message..." style="margin: 0;">
-                <button id="sendBtn" style="width: auto; margin: 0;">Send</button>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="mIn" placeholder="Type..." style="margin:0;">
+                <button id="sBtn" style="width:auto; margin:0;">Send</button>
             </div>
         </div>
 
         <div id="settingsSection">
-            <button class="nav-btn" id="backToChatBtn">← Back</button>
-            <h3 style="text-align: center;">Settings</h3>
-            <p style="font-size: 0.8rem; opacity: 0.7;">Change your nickname:</p>
-            <input type="text" id="newNickname" placeholder="New Nickname">
-            <button id="saveSettingsBtn">Save Changes</button>
+            <h3>Settings</h3>
+            <input type="text" id="newNick" placeholder="New Nickname">
+            <button id="saveNick">Save</button>
+            <button id="back" class="small-btn" style="margin-top:10px; width:100%;">Back to Chat</button>
         </div>
     </div>
 
@@ -65,7 +54,7 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
+        const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
             databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
@@ -75,92 +64,63 @@
             appId: "1:509263602746:web:01051fc91ecb3bfa384103"
         };
 
-        const app = initializeApp(firebaseConfig);
+        const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let isSignUp = false;
+        let mode = "login";
 
-        // Navigation Logic
-        const showSection = (id) => {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('chatSection').style.display = 'none';
-            document.getElementById('settingsSection').style.display = 'none';
-            document.getElementById(id).style.display = 'block';
+        const view = (id) => {
+            ["authSection", "chatSection", "settingsSection"].forEach(s => document.getElementById(s).style.display = "none");
+            document.getElementById(id).style.display = "block";
         };
 
-        document.getElementById('toSettingsBtn').onclick = () => showSection('settingsSection');
-        document.getElementById('backToChatBtn').onclick = () => showSection('chatSection');
-
-        // Toggle Auth Mode
-        document.getElementById('toggleLink').onclick = () => {
-            isSignUp = !isSignUp;
-            document.getElementById('authTitle').innerText = isSignUp ? "Create Account" : "Chatter Box";
-            document.getElementById('authBtn').innerText = isSignUp ? "Sign Up" : "Sign In";
-            document.getElementById('nicknameBox').style.display = isSignUp ? "block" : "none";
+        // UI Events
+        document.getElementById('toggle').onclick = () => {
+            mode = (mode === "login") ? "reg" : "login";
+            document.getElementById('authTitle').innerText = mode === "login" ? "Sign In" : "Register";
+            document.getElementById('nickWrap').style.display = mode === "login" ? "none" : "block";
         };
 
-        // Auth Logic
         document.getElementById('authBtn').onclick = () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            const nick = document.getElementById('nickname').value;
-            
-            if (isSignUp) {
-                createUserWithEmailAndPassword(auth, email, pass)
-                    .then((res) => updateProfile(res.user, { displayName: nick }))
-                    .catch(e => alert(e.message));
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            const n = document.getElementById('nick').value;
+            if(mode === "reg") {
+                createUserWithEmailAndPassword(auth, e, p).then(r => updateProfile(r.user, {displayName: n})).catch(err => alert(err.message));
             } else {
-                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+                signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
             }
         };
 
-        // Save New Nickname
-        document.getElementById('saveSettingsBtn').onclick = () => {
-            const newNick = document.getElementById('newNickname').value;
-            if (newNick) {
-                updateProfile(auth.currentUser, { displayName: newNick })
-                    .then(() => {
-                        alert("Nickname updated!");
-                        showSection('chatSection');
-                    })
-                    .catch(e => alert(e.message));
-            }
+        document.getElementById('out').onclick = () => signOut(auth).then(() => location.reload());
+        document.getElementById('toSet').onclick = () => view("settingsSection");
+        document.getElementById('back').onclick = () => view("chatSection");
+        
+        document.getElementById('saveNick').onclick = () => {
+            const n = document.getElementById('newNick').value;
+            if(n) updateProfile(auth.currentUser, {displayName: n}).then(() => { alert("Done!"); view("chatSection"); });
         };
 
-        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                showSection('chatSection');
-                startChat(user);
-            } else {
-                showSection('authSection');
-            }
+        onAuthStateChanged(auth, (u) => {
+            if(u) { view("chatSection"); setupChat(u); } else { view("authSection"); }
         });
 
-        function startChat(user) {
-            const mRef = ref(db, 'messages');
-            
-            document.getElementById('sendBtn').onclick = () => {
-                const text = document.getElementById('msgInput').value;
-                if(text.trim()) {
-                    push(mRef, { 
-                        sender: auth.currentUser.displayName || user.email.split('@')[0], 
-                        content: text, 
-                        uid: user.uid 
-                    });
-                    document.getElementById('msgInput').value = "";
+        function setupChat(u) {
+            const r = ref(db, 'messages');
+            document.getElementById('sBtn').onclick = () => {
+                const t = document.getElementById('mIn').value;
+                if(t.trim()) {
+                    push(r, { sender: auth.currentUser.displayName || u.email.split('@')[0], content: t });
+                    document.getElementById('mIn').value = "";
                 }
             };
-
-            // Clear window before adding messages to avoid duplicates
             document.getElementById('chatWindow').innerHTML = "";
-            onChildAdded(mRef, (snap) => {
-                const data = snap.val();
-                const div = document.createElement('div');
-                div.className = 'msg';
-                div.innerHTML = `<strong>${data.sender}:</strong> ${data.content}`;
-                document.getElementById('chatWindow').appendChild(div);
+            onChildAdded(r, (s) => {
+                const d = s.val();
+                const v = document.createElement('div');
+                v.className = "msg";
+                v.innerHTML = `<strong>${d.sender}:</strong> ${d.content}`;
+                document.getElementById('chatWindow').appendChild(v);
                 document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
             });
         }
