@@ -14,6 +14,7 @@
         .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
         .toggle-text { margin-top: 20px; font-size: 0.8rem; color: #2575fc; cursor: pointer; text-decoration: underline; }
         .logout { background: #ff4b2b; width: auto; padding: 5px 10px; font-size: 0.7rem; float: right; margin: 0; }
+        #nicknameBox { display: none; } /* Hidden by default, shown in Register mode */
     </style>
 </head>
 <body>
@@ -21,6 +22,9 @@
     <div class="container">
         <div id="authSection">
             <h1 id="authTitle">Chatter Box</h1>
+            <div id="nicknameBox">
+                <input type="text" id="nickname" placeholder="Choose a Nickname">
+            </div>
             <input type="email" id="email" placeholder="Email (name@mail.com)">
             <input type="password" id="password" placeholder="Password (6+ chars)">
             <button id="authBtn">Sign In</button>
@@ -40,7 +44,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -58,39 +62,44 @@
         const db = getDatabase(app);
         let isSignUp = false;
 
-        // --- BUTTON LOGIC ---
-        
-        // 1. Toggle between Login and Signup
+        // Toggle Logic
         document.getElementById('toggleLink').addEventListener('click', () => {
             isSignUp = !isSignUp;
             document.getElementById('authTitle').innerText = isSignUp ? "Create Account" : "Chatter Box";
             document.getElementById('authBtn').innerText = isSignUp ? "Sign Up" : "Sign In";
             document.getElementById('toggleLink').innerText = isSignUp ? "Already have an account? Sign In" : "New here? Create Account";
+            document.getElementById('nicknameBox').style.display = isSignUp ? "block" : "none";
         });
 
-        // 2. Handle Authentication
+        // Auth Logic
         document.getElementById('authBtn').addEventListener('click', () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
+            const nick = document.getElementById('nickname').value;
             
-            if (!email || !pass) return alert("Please fill in both boxes.");
+            if (!email || !pass) return alert("Please fill in email and password.");
 
             if (isSignUp) {
+                if (!nick) return alert("Please choose a nickname!");
+                
                 createUserWithEmailAndPassword(auth, email, pass)
-                    .then(() => alert("Account Created!"))
+                    .then((userCredential) => {
+                        // This saves the nickname to the user's profile
+                        updateProfile(userCredential.user, { displayName: nick })
+                        .then(() => {
+                            alert("Account created for " + nick);
+                        });
+                    })
                     .catch(e => alert(e.message));
             } else {
-                signInWithEmailAndPassword(auth, email, pass)
-                    .catch(e => alert(e.message));
+                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
             }
         });
 
-        // 3. Logout
         document.getElementById('logoutBtn').addEventListener('click', () => {
             signOut(auth).then(() => location.reload());
         });
 
-        // --- STATE LISTENER ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('authSection').style.display = 'none';
@@ -105,17 +114,18 @@
         function startChat(user) {
             const mRef = ref(db, 'messages');
             
-            document.getElementById('sendBtn').addEventListener('click', () => {
+            document.getElementById('sendBtn').onclick = () => {
                 const text = document.getElementById('msgInput').value;
                 if(text.trim()) {
                     push(mRef, { 
-                        sender: user.email.split('@')[0], 
+                        // Use displayName if it exists, otherwise use email
+                        sender: user.displayName || user.email.split('@')[0], 
                         content: text, 
                         uid: user.uid 
                     });
                     document.getElementById('msgInput').value = "";
                 }
-            });
+            };
 
             onChildAdded(mRef, (snap) => {
                 const data = snap.val();
