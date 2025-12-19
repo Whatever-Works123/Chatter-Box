@@ -53,28 +53,29 @@
             box-shadow: 0 2px 8px rgba(255, 140, 66, 0.05);
         }
         .notif-item { padding: 18px; display: flex; align-items: center; gap: 12px; border-left: 4px solid #FF8C42; }
-        .notif-dot { width: 10px; height: 10px; background: #FF8C42; border-radius: 50%; }
         
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #BF360C; }
         
-        /* UPDATED AVATAR CSS */
+        /* AVATAR STYLES */
         .p-avatar { 
             width: 36px; height: 36px; background: #FFCC80; border-radius: 50%; 
             background-size: cover; background-position: center; flex-shrink: 0;
             border: 1px solid #FFE0B2;
         }
+        .pfp-preview {
+            width: 80px; height: 80px; background: #FFCC80; border-radius: 50%;
+            margin: 0 auto 15px auto; background-size: cover; background-position: center;
+            border: 2px solid #FF8C42;
+        }
         
         .post-content { padding: 0 12px 15px 12px; font-size: 1rem; line-height: 1.5; color: #5D4037; }
         
-        input[type="text"], input[type="email"], input[type="password"], input[type="file"] { 
+        input[type="text"], input[type="email"], input[type="password"] { 
             width: 100%; padding: 12px; margin-bottom: 12px; background: #FFFFFF; border: 1px solid #FFE0B2; 
             color: #4A4A4A; border-radius: 8px; font-size: 1rem; 
         }
         button { background: #FF8C42; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; transition: 0.3s; }
         button:hover { background: #F4511E; transform: translateY(-1px); }
-        
-        .btn-clear { background: transparent; color: #D84315; border: 1px solid #D84315; padding: 6px 14px; font-size: 0.85rem; }
-        .btn-clear:hover { background: #FBE9E7; }
         
         .page { width: 100%; display: none; }
     </style>
@@ -114,12 +115,9 @@
 
         <div id="notifPage" class="page">
             <div class="feed-wrapper">
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                    <h2 style="color: #E65100; margin: 0;">Notifications</h2>
-                    <button id="clearNotifs" class="btn-clear">Clear All</button>
-                </div>
+                <h2 style="color: #E65100;">Notifications</h2>
                 <div id="notifList">
-                    <div class="notif-item"><div class="notif-dot"></div><div style="flex:1;"><b>Welcome!</b> You've joined Chatter Box.</div></div>
+                    <div class="notif-item"><div style="flex:1;">Welcome to Chatter Box!</div></div>
                 </div>
             </div>
         </div>
@@ -128,18 +126,21 @@
             <div class="feed-wrapper">
                 <h2 style="color: #E65100;">Find Friends</h2>
                 <div style="display:flex; gap:10px;"><input type="text" id="fSearch" placeholder="Friend's Email"><button id="fAdd">Add</button></div>
-                <div id="fList" style="margin-top:30px;"></div>
             </div>
         </div>
 
         <div id="setPage" class="page">
             <div class="feed-wrapper">
                 <h2 style="color: #E65100;">Settings</h2>
-                <div class="create-box">
-                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; margin-bottom: 8px;">Profile Picture</label>
-                    <input type="file" id="pfpInput" accept="image/*">
-                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; margin-bottom: 8px; margin-top: 15px;">Display Name</label>
-                    <input type="text" id="sNick" placeholder="New nickname">
+                <div class="create-box" style="text-align: center;">
+                    <div id="pfpPrev" class="pfp-preview"></div>
+                    <label for="pfpInput" style="display: inline-block; background: #FFE0B2; color: #BF360C; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-bottom: 20px;">
+                        Change Photo
+                    </label>
+                    <input type="file" id="pfpInput" accept="image/*" style="display: none;">
+                    
+                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; text-align: left; margin-bottom: 5px;">Nickname</label>
+                    <input type="text" id="sNick" placeholder="Update your name">
                     <button id="sSave" style="width:100%;">Save Profile</button>
                 </div>
             </div>
@@ -165,16 +166,12 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         let isReg = false;
-        let currentUserPFP = ""; // Store local PFP URL
+        let currentUserPFP = ""; 
 
         window.go = (id) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             const target = document.getElementById(id);
             if (target) target.style.display = 'block';
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-                if (item.getAttribute('onclick')?.includes(id)) item.classList.add('active');
-            });
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
@@ -182,7 +179,6 @@
         document.getElementById('authSwitch').onclick = () => {
             isReg = !isReg;
             document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
-            document.getElementById('authSwitch').innerText = isReg ? 'Have an account? Log in' : 'Don\'t have an account? Sign up';
             document.getElementById('authGo').innerText = isReg ? 'Sign Up' : 'Log In';
         };
 
@@ -211,12 +207,25 @@
         });
 
         function start(u) {
-            // Load user data including PFP if it exists
+            // Fetch profile data
             get(ref(db, 'users/' + u.uid)).then(snap => {
                 if(snap.exists() && snap.val().pfp) {
                     currentUserPFP = snap.val().pfp;
+                    document.getElementById('pfpPrev').style.backgroundImage = `url('${currentUserPFP}')`;
                 }
             });
+
+            // Live preview when file is selected
+            document.getElementById('pfpInput').onchange = (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        document.getElementById('pfpPrev').style.backgroundImage = `url('${event.target.result}')`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
 
             const postsRef = ref(db, 'posts');
             document.getElementById('postBtn').onclick = () => {
@@ -225,7 +234,7 @@
                     push(postsRef, {
                         sender: auth.currentUser.displayName || u.email.split('@')[0],
                         content: text,
-                        senderPfp: currentUserPFP, // Save PFP with post
+                        senderPfp: currentUserPFP,
                         timestamp: Date.now()
                     });
                     document.getElementById('postIn').value = "";
@@ -246,38 +255,23 @@
                 feedWin.prepend(postDiv);
             });
 
-            document.getElementById('clearNotifs').onclick = () => {
-                document.getElementById('notifList').innerHTML = '<p style="text-align:center; color:#8D6E63; margin-top:20px;">No new notifications</p>';
-            };
-
-            // SETTINGS PFP LOGIC
             document.getElementById('sSave').onclick = () => {
                 const n = document.getElementById('sNick').value;
                 const pfpFile = document.getElementById('pfpInput').files[0];
                 let updates = {};
-                
                 if(n) updates.name = n;
 
                 if(pfpFile) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        updates.pfp = e.target.result; // Use Base64 string for PFP
+                        updates.pfp = e.target.result;
                         currentUserPFP = e.target.result;
-                        update(ref(db, 'users/' + u.uid), updates).then(() => alert("Profile Updated!"));
+                        update(ref(db, 'users/' + u.uid), updates).then(() => alert("Saved!"));
                     };
                     reader.readAsDataURL(pfpFile);
-                } else if (n) {
-                    update(ref(db, 'users/' + u.uid), updates).then(() => alert("Profile Updated!"));
+                } else if(n) {
+                    update(ref(db, 'users/' + u.uid), updates).then(() => alert("Saved!"));
                 }
-            };
-
-            document.getElementById('fAdd').onclick = () => {
-                const s = document.getElementById('fSearch').value.toLowerCase().trim();
-                get(ref(db, 'users')).then(snap => {
-                    let fid = null;
-                    snap.forEach(c => { if(c.val().email === s) fid = c.key; });
-                    if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Friend Request Sent!"));
-                });
             };
         }
     </script>
