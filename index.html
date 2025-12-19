@@ -2,85 +2,103 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Chat App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatter Box</title>
     <style>
-        /* All CSS is here so we don't need a separate file */
-        body { 
-            background: #0f0c29; 
-            color: white; 
-            font-family: sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            margin: 0; 
-        }
-        #app { 
-            background: rgba(255,255,255,0.1); 
-            padding: 30px; 
-            border-radius: 20px; 
-            text-align: center; 
-            width: 300px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        input { 
-            width: 80%; 
-            padding: 10px; 
-            margin: 10px 0; 
-            border-radius: 10px; 
-            border: none; 
-        }
-        button { 
-            padding: 10px 20px; 
-            background: #24243e; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-        }
-        .hidden { display: none; }
+        body { font-family: 'Inter', sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .app-container { width: 95%; max-width: 450px; height: 85vh; background: rgba(255, 255, 255, 0.05); border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        #authSection { padding: 40px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+        #chatSection { display: none; flex-direction: column; height: 100%; }
+        .header { padding: 20px; background: rgba(255, 255, 255, 0.1); text-align: center; font-weight: bold; font-size: 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .message-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: rgba(0,0,0,0.1); }
+        .bubble { padding: 12px 18px; border-radius: 20px; width: fit-content; max-width: 80%; word-wrap: break-word; font-size: 14px; line-height: 1.4; }
+        .my-msg { align-self: flex-end; background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; }
+        .friend-msg { align-self: flex-start; background: #333; color: #eee; }
+        .input-area { padding: 20px; display: flex; gap: 10px; background: rgba(0,0,0,0.3); }
+        input { flex: 1; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 12px; color: white; outline: none; }
+        button { background: #2575fc; color: white; border: none; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #1a5fdb; }
     </style>
 </head>
 <body>
 
-    <div id="app">
-        <div id="login-view">
-            <h2>Sign In</h2>
-            <input type="text" id="username" placeholder="Username">
-            <br>
-            <button onclick="enterChat()">Start Chatting</button>
+    <div class="app-container">
+        <div id="authSection">
+            <h1 style="color: #2575fc;">Chatter Box</h1>
+            <p>Connect with your friends</p>
+            <input type="text" id="usernameInput" placeholder="Create a nickname">
+            <button onclick="login()">Enter Chatter Box</button>
         </div>
 
-        <div id="chat-view" class="hidden">
-            <h2 id="welcome-msg"></h2>
-            <div id="messages" style="height:150px; overflow-y:auto; margin-bottom:10px; background:rgba(0,0,0,0.2); border-radius:10px; padding:10px;">
-                <p>Welcome to the room!</p>
+        <div id="chatSection">
+            <div class="header" id="chatHeader">Chatter Box</div>
+            <div class="message-box" id="chatWindow"></div>
+            <div class="input-area">
+                <input type="text" id="msgInput" placeholder="Say something...">
+                <button onclick="sendMsg()">Send</button>
             </div>
-            <input type="text" id="msg" placeholder="Type here...">
-            <button onclick="send()">Send</button>
         </div>
     </div>
 
-    <script>
-        // All Logic is here
-        function enterChat() {
-            const user = document.getElementById('username').value;
-            if(user) {
-                document.getElementById('login-view').classList.add('hidden');
-                document.getElementById('chat-view').classList.remove('hidden');
-                document.getElementById('welcome-msg').innerText = "Hi, " + user;
-            }
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        function send() {
-            const m = document.getElementById('msg');
-            const box = document.getElementById('messages');
-            if(m.value) {
-                box.innerHTML += `<p><strong>Me:</strong> ${m.value}</p>`;
-                m.value = "";
-                box.scrollTop = box.scrollHeight;
+        // Your specific Chatter Box keys
+        const firebaseConfig = {
+            apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
+            authDomain: "chatterbox-4b7dd.firebaseapp.com",
+            projectId: "chatterbox-4b7dd",
+            storageBucket: "chatterbox-4b7dd.firebasestorage.app",
+            messagingSenderId: "509263602746",
+            appId: "1:509263602746:web:01051fc91ecb3bfa384103",
+            measurementId: "G-N2NPMZG33J"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const messagesRef = ref(db, 'messages');
+
+        let user = "";
+
+        window.login = function() {
+            const name = document.getElementById('usernameInput').value;
+            if (name.trim() !== "") {
+                user = name;
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('chatSection').style.display = 'flex';
             }
-        }
+        };
+
+        window.sendMsg = function() {
+            const text = document.getElementById('msgInput').value;
+            if (text.trim() !== "") {
+                push(messagesRef, {
+                    name: user,
+                    text: text
+                });
+                document.getElementById('msgInput').value = "";
+            }
+        };
+
+        // Listen for incoming messages
+        onChildAdded(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            const chatWindow = document.getElementById('chatWindow');
+            const div = document.createElement('div');
+            
+            // Logic to check if you sent it or a friend sent it
+            if (data.name === user) {
+                div.className = 'bubble my-msg';
+                div.innerHTML = `<strong>You:</strong> ${data.text}`;
+            } else {
+                div.className = 'bubble friend-msg';
+                div.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
+            }
+            
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        });
     </script>
 </body>
 </html>
