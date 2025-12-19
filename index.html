@@ -6,15 +6,22 @@
     <title>Chatter Box</title>
     <style>
         body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
         input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; background: white; color: black; }
         button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
-        #chatSection { display: none; text-align: left; }
+        
+        /* Sections */
+        #chatSection, #settingsSection { display: none; text-align: left; }
+        
         #chatWindow { height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
         .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
         .toggle-text { margin-top: 20px; font-size: 0.8rem; color: #2575fc; cursor: pointer; text-decoration: underline; }
-        .logout { background: #ff4b2b; width: auto; padding: 5px 10px; font-size: 0.7rem; float: right; margin: 0; }
-        #nicknameBox { display: none; } /* Hidden by default, shown in Register mode */
+        
+        .nav-btn { background: rgba(255,255,255,0.2); width: auto; padding: 5px 10px; font-size: 0.7rem; border-radius: 5px; }
+        .logout { background: #ff4b2b; }
+        
+        .header-btns { display: flex; gap: 5px; float: right; }
+        #nicknameBox { display: none; }
     </style>
 </head>
 <body>
@@ -25,20 +32,31 @@
             <div id="nicknameBox">
                 <input type="text" id="nickname" placeholder="Choose a Nickname">
             </div>
-            <input type="email" id="email" placeholder="Email (name@mail.com)">
+            <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password (6+ chars)">
             <button id="authBtn">Sign In</button>
             <div id="toggleLink" class="toggle-text">New here? Create Account</div>
         </div>
 
         <div id="chatSection">
-            <button class="logout" id="logoutBtn">Log Out</button>
-            <h3 style="margin: 0 0 10px 0;">Messages</h3>
+            <div class="header-btns">
+                <button class="nav-btn" id="toSettingsBtn">Settings</button>
+                <button class="nav-btn logout" id="logoutBtn">Log Out</button>
+            </div>
+            <h3 style="margin: 0 0 15px 0;">Messages</h3>
             <div id="chatWindow"></div>
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; gap: 10px;">
                 <input type="text" id="msgInput" placeholder="Message..." style="margin: 0;">
                 <button id="sendBtn" style="width: auto; margin: 0;">Send</button>
             </div>
+        </div>
+
+        <div id="settingsSection">
+            <button class="nav-btn" id="backToChatBtn">← Back</button>
+            <h3 style="text-align: center;">Settings</h3>
+            <p style="font-size: 0.8rem; opacity: 0.7;">Change your nickname:</p>
+            <input type="text" id="newNickname" placeholder="New Nickname">
+            <button id="saveSettingsBtn">Save Changes</button>
         </div>
     </div>
 
@@ -62,52 +80,61 @@
         const db = getDatabase(app);
         let isSignUp = false;
 
-        // Toggle Logic
-        document.getElementById('toggleLink').addEventListener('click', () => {
+        // Navigation Logic
+        const showSection = (id) => {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('chatSection').style.display = 'none';
+            document.getElementById('settingsSection').style.display = 'none';
+            document.getElementById(id).style.display = 'block';
+        };
+
+        document.getElementById('toSettingsBtn').onclick = () => showSection('settingsSection');
+        document.getElementById('backToChatBtn').onclick = () => showSection('chatSection');
+
+        // Toggle Auth Mode
+        document.getElementById('toggleLink').onclick = () => {
             isSignUp = !isSignUp;
             document.getElementById('authTitle').innerText = isSignUp ? "Create Account" : "Chatter Box";
             document.getElementById('authBtn').innerText = isSignUp ? "Sign Up" : "Sign In";
-            document.getElementById('toggleLink').innerText = isSignUp ? "Already have an account? Sign In" : "New here? Create Account";
             document.getElementById('nicknameBox').style.display = isSignUp ? "block" : "none";
-        });
+        };
 
         // Auth Logic
-        document.getElementById('authBtn').addEventListener('click', () => {
+        document.getElementById('authBtn').onclick = () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
             const nick = document.getElementById('nickname').value;
             
-            if (!email || !pass) return alert("Please fill in email and password.");
-
             if (isSignUp) {
-                if (!nick) return alert("Please choose a nickname!");
-                
                 createUserWithEmailAndPassword(auth, email, pass)
-                    .then((userCredential) => {
-                        // This saves the nickname to the user's profile
-                        updateProfile(userCredential.user, { displayName: nick })
-                        .then(() => {
-                            alert("Account created for " + nick);
-                        });
-                    })
+                    .then((res) => updateProfile(res.user, { displayName: nick }))
                     .catch(e => alert(e.message));
             } else {
                 signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
             }
-        });
+        };
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            signOut(auth).then(() => location.reload());
-        });
+        // Save New Nickname
+        document.getElementById('saveSettingsBtn').onclick = () => {
+            const newNick = document.getElementById('newNickname').value;
+            if (newNick) {
+                updateProfile(auth.currentUser, { displayName: newNick })
+                    .then(() => {
+                        alert("Nickname updated!");
+                        showSection('chatSection');
+                    })
+                    .catch(e => alert(e.message));
+            }
+        };
+
+        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                document.getElementById('authSection').style.display = 'none';
-                document.getElementById('chatSection').style.display = 'block';
+                showSection('chatSection');
                 startChat(user);
             } else {
-                document.getElementById('authSection').style.display = 'block';
-                document.getElementById('chatSection').style.display = 'none';
+                showSection('authSection');
             }
         });
 
@@ -118,8 +145,7 @@
                 const text = document.getElementById('msgInput').value;
                 if(text.trim()) {
                     push(mRef, { 
-                        // Use displayName if it exists, otherwise use email
-                        sender: user.displayName || user.email.split('@')[0], 
+                        sender: auth.currentUser.displayName || user.email.split('@')[0], 
                         content: text, 
                         uid: user.uid 
                     });
@@ -127,6 +153,8 @@
                 }
             };
 
+            // Clear window before adding messages to avoid duplicates
+            document.getElementById('chatWindow').innerHTML = "";
             onChildAdded(mRef, (snap) => {
                 const data = snap.val();
                 const div = document.createElement('div');
