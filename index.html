@@ -13,4 +13,110 @@
         #chatWindow { height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
         .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
         .toggle-text { margin-top: 20px; font-size: 0.8rem; color: #2575fc; cursor: pointer; text-decoration: underline; }
-        .logout { background: #ff
+        .logout { background: #ff4b2b; width: auto; padding: 5px 10px; font-size: 0.7rem; float: right; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="loadingStatus" style="font-size: 0.8rem; color: gray; margin-bottom: 10px;">Loading Chatter Box...</div>
+
+        <div id="authSection">
+            <h1 id="authTitle">Chatter Box</h1>
+            <input type="email" id="email" placeholder="Email (e.g. name@mail.com)">
+            <input type="password" id="password" placeholder="Password (6+ characters)">
+            <button id="authBtn">Sign In</button>
+            <div id="toggleLink" class="toggle-text">New here? Create Account</div>
+        </div>
+
+        <div id="chatSection">
+            <button class="logout" id="logoutBtn">Log Out</button>
+            <h3 style="margin-top: 0;">Messages</h3>
+            <div id="chatWindow"></div>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="msgInput" placeholder="Type a message..." style="margin: 0;">
+                <button id="sendBtn" style="width: auto; margin: 0;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
+            authDomain: "chatterbox-4b7dd.firebaseapp.com",
+            databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
+            projectId: "chatterbox-4b7dd",
+            storageBucket: "chatterbox-4b7dd.firebasestorage.app",
+            messagingSenderId: "509263602746",
+            appId: "1:509263602746:web:01051fc91ecb3bfa384103"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        let isSignUp = false;
+
+        document.getElementById('loadingStatus').innerText = "Firebase Connected ✅";
+
+        // UI Toggle
+        document.getElementById('toggleLink').onclick = () => {
+            isSignUp = !isSignUp;
+            document.getElementById('authTitle').innerText = isSignUp ? "Create Account" : "Chatter Box";
+            document.getElementById('authBtn').innerText = isSignUp ? "Sign Up" : "Sign In";
+            document.getElementById('toggleLink').innerText = isSignUp ? "Already have an account? Sign In" : "New here? Create Account";
+        };
+
+        // Auth Logic
+        document.getElementById('authBtn').onclick = () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            if (isSignUp) {
+                createUserWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+            } else {
+                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+            }
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
+
+        // Auth Listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('authSection').style.display = 'none';
+                document.getElementById('chatSection').style.display = 'block';
+                document.getElementById('loadingStatus').style.display = 'none';
+                startChat(user);
+            } else {
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('chatSection').style.display = 'none';
+            }
+        });
+
+        function startChat(user) {
+            const mRef = ref(db, 'messages');
+            
+            document.getElementById('sendBtn').onclick = () => {
+                const text = document.getElementById('msgInput').value;
+                if(text.trim()) {
+                    push(mRef, { sender: user.email.split('@')[0], content: text, uid: user.uid });
+                    document.getElementById('msgInput').value = "";
+                }
+            };
+
+            onChildAdded(mRef, (snap) => {
+                const data = snap.val();
+                const div = document.createElement('div');
+                div.className = 'msg';
+                div.innerHTML = `<strong>${data.sender}:</strong> ${data.content}`;
+                document.getElementById('chatWindow').appendChild(div);
+                document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
