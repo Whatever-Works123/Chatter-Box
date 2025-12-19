@@ -7,34 +7,32 @@
     <style>
         body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
         .container { width: 90%; max-width: 400px; background: rgba(255,255,255,0.1); padding: 30px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; box-sizing: border-box; background: white; color: black; }
         button { width: 100%; padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 8px; font-weight: bold; margin-top: 10px; }
         #chatSection { display: none; text-align: left; }
         #chatWindow { height: 300px; overflow-y: auto; background: rgba(0,0,0,0.3); margin: 15px 0; padding: 15px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); }
         .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; font-size: 0.9rem; }
         .toggle-text { margin-top: 20px; font-size: 0.8rem; color: #2575fc; cursor: pointer; text-decoration: underline; }
-        .logout { background: #ff4b2b; width: auto; padding: 5px 10px; font-size: 0.7rem; float: right; }
+        .logout { background: #ff4b2b; width: auto; padding: 5px 10px; font-size: 0.7rem; float: right; margin: 0; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <div id="loadingStatus" style="font-size: 0.8rem; color: gray; margin-bottom: 10px;">Loading Chatter Box...</div>
-
         <div id="authSection">
             <h1 id="authTitle">Chatter Box</h1>
-            <input type="email" id="email" placeholder="Email (e.g. name@mail.com)">
-            <input type="password" id="password" placeholder="Password (6+ characters)">
+            <input type="email" id="email" placeholder="Email (name@mail.com)">
+            <input type="password" id="password" placeholder="Password (6+ chars)">
             <button id="authBtn">Sign In</button>
             <div id="toggleLink" class="toggle-text">New here? Create Account</div>
         </div>
 
         <div id="chatSection">
             <button class="logout" id="logoutBtn">Log Out</button>
-            <h3 style="margin-top: 0;">Messages</h3>
+            <h3 style="margin: 0 0 10px 0;">Messages</h3>
             <div id="chatWindow"></div>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="msgInput" placeholder="Type a message..." style="margin: 0;">
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="text" id="msgInput" placeholder="Message..." style="margin: 0;">
                 <button id="sendBtn" style="width: auto; margin: 0;">Send</button>
             </div>
         </div>
@@ -60,36 +58,43 @@
         const db = getDatabase(app);
         let isSignUp = false;
 
-        document.getElementById('loadingStatus').innerText = "Firebase Connected ✅";
-
-        // UI Toggle
-        document.getElementById('toggleLink').onclick = () => {
+        // --- BUTTON LOGIC ---
+        
+        // 1. Toggle between Login and Signup
+        document.getElementById('toggleLink').addEventListener('click', () => {
             isSignUp = !isSignUp;
             document.getElementById('authTitle').innerText = isSignUp ? "Create Account" : "Chatter Box";
             document.getElementById('authBtn').innerText = isSignUp ? "Sign Up" : "Sign In";
             document.getElementById('toggleLink').innerText = isSignUp ? "Already have an account? Sign In" : "New here? Create Account";
-        };
+        });
 
-        // Auth Logic
-        document.getElementById('authBtn').onclick = () => {
+        // 2. Handle Authentication
+        document.getElementById('authBtn').addEventListener('click', () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
+            
+            if (!email || !pass) return alert("Please fill in both boxes.");
+
             if (isSignUp) {
-                createUserWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+                createUserWithEmailAndPassword(auth, email, pass)
+                    .then(() => alert("Account Created!"))
+                    .catch(e => alert(e.message));
             } else {
-                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+                signInWithEmailAndPassword(auth, email, pass)
+                    .catch(e => alert(e.message));
             }
-        };
+        });
 
-        // Logout
-        document.getElementById('logoutBtn').onclick = () => signOut(auth).then(() => location.reload());
+        // 3. Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            signOut(auth).then(() => location.reload());
+        });
 
-        // Auth Listener
+        // --- STATE LISTENER ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 document.getElementById('authSection').style.display = 'none';
                 document.getElementById('chatSection').style.display = 'block';
-                document.getElementById('loadingStatus').style.display = 'none';
                 startChat(user);
             } else {
                 document.getElementById('authSection').style.display = 'block';
@@ -100,13 +105,17 @@
         function startChat(user) {
             const mRef = ref(db, 'messages');
             
-            document.getElementById('sendBtn').onclick = () => {
+            document.getElementById('sendBtn').addEventListener('click', () => {
                 const text = document.getElementById('msgInput').value;
                 if(text.trim()) {
-                    push(mRef, { sender: user.email.split('@')[0], content: text, uid: user.uid });
+                    push(mRef, { 
+                        sender: user.email.split('@')[0], 
+                        content: text, 
+                        uid: user.uid 
+                    });
                     document.getElementById('msgInput').value = "";
                 }
-            };
+            });
 
             onChildAdded(mRef, (snap) => {
                 const data = snap.val();
