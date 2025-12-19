@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatter Box | Home</title>
     <style>
-        /* General Setup */
+        /* 1. LAYOUT & THEME */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #000; color: white; margin: 0; display: flex; height: 100vh; 
+            background-color: #000; color: white; margin: 0; display: flex; height: 100vh; overflow: hidden;
         }
 
-        /* Desktop Sidebar (Left) */
+        /* Sidebar Navigation (Instagram Laptop Style) */
         .sidebar { 
             width: 245px; border-right: 1px solid #262626; padding: 20px; 
-            display: flex; flex-direction: column; position: fixed; height: 100%;
+            display: flex; flex-direction: column; height: 100%; box-sizing: border-box;
         }
-        .logo { font-size: 1.6rem; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; }
+        .logo { font-size: 1.8rem; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; }
         .nav-item { 
             cursor: pointer; padding: 15px 10px; border-radius: 8px; transition: 0.3s; 
             display: flex; align-items: center; gap: 15px; font-size: 1.1rem;
@@ -24,35 +24,31 @@
         .nav-item:hover { background: rgba(255,255,255,0.1); }
         .nav-item.active { font-weight: bold; }
 
-        /* Main View Container */
-        .main-view { margin-left: 245px; flex: 1; display: flex; justify-content: center; overflow-y: auto; }
-        .feed-wrapper { width: 100%; max-width: 630px; padding: 30px 20px; }
+        /* Main Scrolling View */
+        .main-view { flex: 1; display: flex; justify-content: center; overflow-y: auto; height: 100vh; }
+        .feed-wrapper { width: 100%; max-width: 600px; padding: 30px 20px; }
 
-        /* Create Post Box */
+        /* 2. COMPONENT STYLES */
         .create-box { 
             background: #121212; border: 1px solid #262626; border-radius: 12px; 
             padding: 15px; margin-bottom: 30px; 
         }
         textarea { 
             width: 100%; background: transparent; border: none; color: white; 
-            resize: none; font-size: 1rem; outline: none; height: 50px;
+            resize: none; font-size: 1rem; outline: none; height: 60px; font-family: inherit;
         }
-
-        /* Post Card Styling */
         .post-card { 
-            background: #000; border: 1px solid #262626; border-radius: 8px; 
-            margin-bottom: 25px; 
+            background: #000; border: 1px solid #262626; border-radius: 8px; margin-bottom: 25px; 
         }
-        .post-header { padding: 14px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.9rem; }
+        .post-header { padding: 14px; display: flex; align-items: center; gap: 10px; font-weight: 600; }
         .p-avatar { width: 32px; height: 32px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); border-radius: 50%; }
-        .post-content { padding: 0 14px 20px 14px; font-size: 0.95rem; line-height: 1.5; color: #efefef; }
+        .post-content { padding: 0 14px 20px 14px; font-size: 1rem; line-height: 1.5; }
         
-        /* Auth Page Styles */
-        .auth-container { width: 350px; margin: 100px auto; text-align: center; border: 1px solid #262626; padding: 40px; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; background: #121212; border: 1px solid #262626; color: white; border-radius: 5px; box-sizing: border-box; }
+        /* Auth/Login Center Box */
+        .auth-container { width: 350px; margin-top: 100px; text-align: center; border: 1px solid #262626; padding: 40px; border-radius: 4px; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; background: #121212; border: 1px solid #262626; color: white; border-radius: 5px; box-sizing: border-box; }
         
-        /* Global Buttons */
-        button { background: #0095f6; color: white; border: none; border-radius: 8px; padding: 8px 18px; font-weight: 600; cursor: pointer; }
+        button { background: #0095f6; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; width: auto; }
         button:hover { background: #1877f2; }
         .page { display: none; width: 100%; }
     </style>
@@ -61,16 +57,17 @@
 
     <div id="sideNav" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
-        <div class="nav-item active" onclick="go('homePage')">🏠 &nbsp; Home</div>
-        <div class="nav-item" onclick="go('friendsPage')">👥 &nbsp; Friends</div>
-        <div class="nav-item" onclick="go('setPage')">⚙️ &nbsp; Settings</div>
-        <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #ed4956;">🚪 &nbsp; Logout</div>
+        <div class="nav-item" onclick="go('homePage')">🏠 Home</div>
+        <div class="nav-item" onclick="go('friendsPage')">👥 Friends</div>
+        <div class="nav-item" onclick="go('setPage')">⚙️ Settings</div>
+        <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #ed4956;">🚪 Logout</div>
     </div>
 
     <div class="main-view">
+        
         <div id="authPage" class="page">
             <div class="auth-container">
-                <h2>Chatter Box</h2>
+                <h1 style="font-style: italic;">Chatter Box</h1>
                 <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Nickname"></div>
                 <input type="email" id="lEmail" placeholder="Email">
                 <input type="password" id="lPass" placeholder="Password">
@@ -82,7 +79,7 @@
         <div id="homePage" class="page">
             <div class="feed-wrapper">
                 <div class="create-box">
-                    <textarea id="postIn" placeholder="What's on your mind?"></textarea>
+                    <textarea id="postIn" placeholder="What's happening?"></textarea>
                     <div style="text-align:right;"><button id="postBtn">Post</button></div>
                 </div>
                 <div id="feedWin"></div>
@@ -91,10 +88,10 @@
 
         <div id="friendsPage" class="page">
             <div class="feed-wrapper">
-                <h3>Find Friends</h3>
+                <h2>Friends</h2>
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="fSearch" placeholder="Enter friend's email" style="margin:0;">
-                    <button id="fAdd">Add</button>
+                    <input type="text" id="fSearch" placeholder="Friend's Email" style="margin:0;">
+                    <button id="fAdd">Add Friend</button>
                 </div>
                 <div id="fList" style="margin-top:30px;"></div>
             </div>
@@ -102,12 +99,13 @@
 
         <div id="setPage" class="page">
             <div class="feed-wrapper">
-                <h3>Settings</h3>
-                <label>Change Nickname</label>
-                <input type="text" id="sNick" placeholder="New display name" style="margin-top:10px;">
-                <button id="sSave">Update Profile</button>
+                <h2>Settings</h2>
+                <p>Change Display Name</p>
+                <input type="text" id="sNick" placeholder="New nickname">
+                <button id="sSave">Save Changes</button>
             </div>
         </div>
+
     </div>
 
     <script type="module">
@@ -115,6 +113,7 @@
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Your specific Firebase Config
         const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
@@ -130,15 +129,16 @@
         const db = getDatabase(app);
         let isReg = false;
 
+        // Navigation Function
         window.go = (id) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
-            // Update active state in sidebar
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            const target = document.getElementById(id);
+            if(target) target.style.display = 'block';
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
 
+        // Toggle Login/Register
         document.getElementById('authSwitch').onclick = () => {
             isReg = !isReg;
             document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
@@ -146,6 +146,7 @@
             document.getElementById('authGo').innerText = isReg ? 'Sign Up' : 'Log In';
         };
 
+        // Authentication Action
         document.getElementById('authGo').onclick = () => {
             const e = document.getElementById('lEmail').value, p = document.getElementById('lPass').value, n = document.getElementById('rNick').value;
             if(isReg) {
@@ -158,6 +159,7 @@
             }
         };
 
+        // Auth State Observer
         onAuthStateChanged(auth, (u) => {
             if(u) { 
                 document.getElementById('sideNav').style.display = 'flex';
@@ -172,7 +174,7 @@
         function start(u) {
             const postsRef = ref(db, 'posts');
 
-            // --- Post Feed Logic ---
+            // Handle Posting
             document.getElementById('postBtn').onclick = () => {
                 const text = document.getElementById('postIn').value;
                 if(text.trim()) {
@@ -185,6 +187,7 @@
                 }
             };
 
+            // Display Posts
             const feedWin = document.getElementById('feedWin');
             feedWin.innerHTML = "";
             onChildAdded(postsRef, (snap) => {
@@ -195,37 +198,24 @@
                     <div class="post-header"><div class="p-avatar"></div><span>${data.sender}</span></div>
                     <div class="post-content">${data.content}</div>
                 `;
-                feedWin.prepend(postDiv); // Newest on top
+                feedWin.prepend(postDiv);
             });
 
-            // --- Friend Logic ---
+            // Handle Friends
             document.getElementById('fAdd').onclick = () => {
                 const s = document.getElementById('fSearch').value.toLowerCase().trim();
                 get(ref(db, 'users')).then(snap => {
                     let fid = null;
                     snap.forEach(c => { if(c.val().email === s) fid = c.key; });
-                    if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Friend Added!"));
+                    if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Added!"));
                     else alert("User not found");
                 });
             };
 
-            const list = document.getElementById('fList');
-            onChildAdded(ref(db, `friends/${u.uid}`), (snap) => {
-                get(ref(db, `users/${snap.key}`)).then(s => {
-                    const d = document.createElement('div');
-                    d.style = "padding:10px; border-bottom:1px solid #262626; display:flex; justify-content:space-between; align-items:center;";
-                    d.innerHTML = `<span>${s.val().name}</span> <button style="font-size:0.7rem;">Profile</button>`;
-                    list.appendChild(d);
-                });
-            });
-
-            // --- Settings Logic ---
+            // Handle Settings
             document.getElementById('sSave').onclick = () => {
                 const n = document.getElementById('sNick').value;
-                if(n) updateProfile(u, {displayName: n}).then(() => {
-                    update(ref(db, 'users/' + u.uid), {name: n});
-                    alert("Profile Updated!");
-                });
+                if(n) update(ref(db, 'users/' + u.uid), {name: n}).then(() => alert("Updated!"));
             };
         }
     </script>
