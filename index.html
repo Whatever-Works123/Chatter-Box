@@ -1,74 +1,163 @@
-<div id="chatSection">
-    <div class="header" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 20px;">
-        <span>Chatter Box</span>
-        <button onclick="logout()" style="padding: 5px 12px; font-size: 0.8rem; background: #ff4b2b;">Log Out</button>
-    </div>
-    <div class="message-box" id="chatWindow"></div>
-    <div class="input-area">
-        <input type="text" id="msgInput" placeholder="Message..." style="margin-bottom: 0;">
-        <button onclick="sendMsg()" style="padding: 10px 20px;">Send</button>
-    </div>
-</div>
-
-<script type="module">
-    // Add "signOut" to your imports at the top
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
-        authDomain: "chatterbox-4b7dd.firebaseapp.com",
-        databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
-        projectId: "chatterbox-4b7dd",
-        storageBucket: "chatterbox-4b7dd.firebasestorage.app",
-        messagingSenderId: "509263602746",
-        appId: "1:509263602746:web:01051fc91ecb3bfa384103"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getDatabase(app);
-    
-    let isSignUpMode = false;
-
-    // --- NEW LOGOUT FUNCTION ---
-    window.logout = function() {
-        signOut(auth).then(() => {
-            // This will trigger onAuthStateChanged below and show the login screen
-            location.reload(); // Refresh to clear the message window
-        }).catch((error) => {
-            alert(error.message);
-        });
-    };
-
-    window.toggleMode = function() {
-        isSignUpMode = !isSignUpMode;
-        document.getElementById('title').innerText = isSignUpMode ? "Register" : "Chatter Box";
-        document.getElementById('mainBtn').innerText = isSignUpMode ? "Create Account" : "Sign In";
-        document.getElementById('toggleAuth').innerText = isSignUpMode ? "Already have an account? Sign In" : "New here? Create an account";
-    };
-
-    window.handleAuth = async function() {
-        const email = document.getElementById('email').value;
-        const pass = document.getElementById('password').value;
-        try {
-            if (isSignUpMode) {
-                await createUserWithEmailAndPassword(auth, email, pass);
-            } else {
-                await signInWithEmailAndPassword(auth, email, pass);
-            }
-        } catch (error) {
-            alert(error.message);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatter Box</title>
+    <style>
+        :root {
+            --primary: #2575fc;
+            --bg: #0f0c29;
+            --card-bg: rgba(255, 255, 255, 0.07);
+            --danger: #ff4b2b;
         }
-    };
 
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            document.getElementById('authSection').style.display = 'none';
-            document.getElementById('chatSection').style.display = 'flex';
-            initChat(user);
-        } else {
-            // If logged out, show the auth screen and hide chat
-            document.getElementById('authSection').style.display = 'flex';
-            document.getElementById('chatSection').style.display
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .app-container {
+            width: 95%;
+            max-width: 400px;
+            height: 80vh;
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        /* --- Auth Styling --- */
+        #authSection {
+            padding: 40px 30px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+        }
+
+        h1 { margin: 0 0 10px 0; color: var(--primary); font-size: 2rem; }
+        p { margin-bottom: 25px; opacity: 0.7; font-size: 0.9rem; }
+
+        input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 14px;
+            border-radius: 14px;
+            color: white;
+            margin-bottom: 12px;
+            outline: none;
+        }
+
+        .btn-main {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .btn-logout {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .toggle-link {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: var(--primary);
+            text-decoration: underline;
+        }
+
+        /* --- Chat Styling --- */
+        #chatSection { display: none; flex-direction: column; height: 100%; }
+        
+        .header {
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bubble {
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 75%;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .my-msg { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
+        .friend-msg { align-self: flex-start; background: #333; border-bottom-left-radius: 4px; }
+
+        .sender-name { font-size: 0.7rem; opacity: 0.6; margin-bottom: 4px; display: block; }
+
+        .input-area {
+            padding: 20px;
+            display: flex;
+            gap: 10px;
+            background: rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div id="authSection">
+            <h1 id="title">Chatter Box</h1>
+            <p id="subtitle">Please sign in to continue</p>
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn-main" id="mainBtn" onclick="handleAuth()">Sign In</button>
+            <div class="toggle-link" id="toggleAuth" onclick="toggleMode()">New here? Create an account</div>
+        </div>
+
+        <div id="chatSection">
+            <div class="header">
+                <span style="font-weight: bold;">Chatter Box</span>
+                <button class="btn-logout" onclick="logout()">Log Out</button>
+            </div>
+            <div class="message-box" id="chatWindow"></div>
+            <div class="input-area">
+                <input type="text" id="msgInput" placeholder="Message..." style="flex: 1; margin-bottom: 0;">
+                <button class="btn-main" onclick="sendMsg()" style="padding: 10px 20px;">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
