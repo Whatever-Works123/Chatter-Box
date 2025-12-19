@@ -1,98 +1,24 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chatter-Box — Lightweight chat UI</title>
-  <meta name="description" content="Chatter-Box — a lightweight, accessible chat UI demo and landing page." />
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="data:,">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatApp</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <div class="brand">
-        <h1>Chatter-Box</h1>
-        <p class="tagline">Lightweight, accessible chat UI — demo and landing page</p>
-      </div>
-      <nav class="site-nav" aria-label="Main">
-        <a class="btn ghost" href="https://github.com/Whatever-Works123/Chatter-Box" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-        <a class="btn" href="#demo">Try demo</a>
-      </nav>
+    <div class="chat-container">
+        <header class="chat-header">
+            <h1>Messaging App</h1>
+        </header>
+        <main class="message-area" id="messageArea">
+            <div class="message received">Hello! How can I help with your code today?</div>
+            <div class="message sent">I want to make this look like a real website!</div>
+        </main>
+        <footer class="input-area">
+            <input type="text" placeholder="Type a message..." id="userInput">
+            <button onclick="sendMessage()">Send</button>
+        </footer>
     </div>
-  </header>
-
-  <main>
-    <section class="hero container">
-      <div class="hero-left">
-        <h2>Build chat experiences faster</h2>
-        <p>Chatter-Box provides a minimal, responsive chat UI you can drop into your project. Includes accessible markup, theming, and a small demo.</p>
-        <ul class="features">
-          <li>Responsive & accessible UI</li>
-          <li>Small footprint — plain HTML/CSS/JS</li>
-          <li>Easy to extend with any backend</li>
-        </ul>
-        <p class="muted">Clone the repo and open <code>index.html</code> locally or deploy to GitHub Pages.</p>
-        <div class="cta-row">
-          <a class="btn" href="https://github.com/Whatever-Works123/Chatter-Box" target="_blank" rel="noopener noreferrer">Clone repo</a>
-          <a class="btn ghost" href="#demo">Try demo</a>
-        </div>
-      </div>
-      <div class="hero-right">
-        <figure class="phone-mock" aria-hidden="true">
-          <div class="screen-placeholder">Chat UI Demo</div>
-        </figure>
-      </div>
-    </section>
-
-    <section id="demo" class="demo container" aria-labelledby="demo-heading">
-      <h3 id="demo-heading">In-browser demo</h3>
-      <p class="muted">A local mock bot echoes messages with a typing delay. This is purely client-side.</p>
-
-      <div class="chat-wrap" id="chatWrap">
-        <ul class="messages" id="messages" aria-live="polite" aria-atomic="false"></ul>
-
-        <form id="chatForm" class="chat-form" aria-label="Send message">
-          <label for="messageInput" class="sr-only">Message</label>
-          <input id="messageInput" name="message" type="text" placeholder="Say something..." autocomplete="off" required maxlength="500" />
-          <button type="submit" class="send-btn">Send</button>
-        </form>
-
-        <div class="controls">
-          <button id="clearBtn" class="btn ghost">Clear</button>
-          <button id="persistBtn" class="btn ghost">Toggle persistence</button>
-          <span id="persistState" class="muted">Persistence: on</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="how container" aria-labelledby="how-heading">
-      <h3 id="how-heading">How to use</h3>
-      <ol>
-        <li>Clone the repository: <code>git clone https://github.com/Whatever-Works123/Chatter-Box.git</code></li>
-        <li>Open <code>index.html</code> in a browser or enable GitHub Pages for the repository.</li>
-        <li>Replace the mock reply logic in <code>app.js</code> with your backend calls when ready.</li>
-      </ol>
-    </section>
-
-    <section class="footer-info container">
-      <div>
-        <h4>Contribute</h4>
-        <p>Open issues and pull requests on the GitHub repo. Small improvements like theming, plugin hooks, and backend adapters are welcome.</p>
-      </div>
-      <div>
-        <h4>License</h4>
-        <p>Use whatever license you prefer — add a LICENSE file to the repo if you want to set one.</p>
-      </div>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container">
-      <small>© Chatter-Box • <a href="https://github.com/Whatever-Works123/Chatter-Box" target="_blank" rel="noopener noreferrer">Whatever-Works123/Chatter-Box</a></small>
-    </div>
-  </footer>
-
-  <script src="app.js" defer></script>
 </body>
 </html>
