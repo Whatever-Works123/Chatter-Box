@@ -31,14 +31,23 @@
             width: 260px; border-right: 1px solid #FFE0B2; padding: 25px; 
             display: flex; flex-direction: column; height: 100%; background: #FFF3E0; 
         }
-        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 40px; font-style: italic; color: #FF8C42; }
+        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; font-style: italic; color: #FF8C42; }
+        
+        /* SIDEBAR PROFILE WIDGET */
+        .user-pill {
+            display: flex; align-items: center; gap: 10px; background: #fff;
+            padding: 10px; border-radius: 12px; border: 1px solid #FFE0B2;
+            margin-bottom: 30px;
+        }
+        .pill-pfp { width: 30px; height: 30px; background: #FFCC80; border-radius: 50%; background-size: cover; background-position: center; }
+        .pill-name { font-weight: 600; font-size: 0.9rem; color: #BF360C; }
+
         .nav-item { 
             cursor: pointer; padding: 14px 12px; border-radius: 10px; transition: 0.2s; 
             display: flex; align-items: center; gap: 15px; font-size: 1.05rem; color: #6D4C41;
             margin-bottom: 5px;
         }
         .nav-item:hover { background: #FFE0B2; color: #BF360C; }
-        .nav-item.active { background: #FF8C42; color: white; }
 
         /* 4. MAIN VIEW */
         .main-view { flex: 1; display: flex; flex-direction: column; overflow-y: auto; height: 100vh; background: #FFFBF5; }
@@ -48,34 +57,16 @@
         .create-box { background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 12px; padding: 15px; margin-bottom: 25px; }
         textarea { width: 100%; background: transparent; border: none; color: #4A4A4A; resize: none; font-size: 1rem; outline: none; height: 60px; font-family: inherit; }
         
-        .post-card, .notif-item { 
-            background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 12px; margin-bottom: 15px;
-            box-shadow: 0 2px 8px rgba(255, 140, 66, 0.05);
-        }
-        .notif-item { padding: 18px; display: flex; align-items: center; gap: 12px; border-left: 4px solid #FF8C42; }
-        
+        .post-card { background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 12px; margin-bottom: 15px; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; color: #BF360C; }
         
-        /* AVATAR STYLES */
-        .p-avatar { 
-            width: 36px; height: 36px; background: #FFCC80; border-radius: 50%; 
-            background-size: cover; background-position: center; flex-shrink: 0;
-            border: 1px solid #FFE0B2;
-        }
-        .pfp-preview {
-            width: 80px; height: 80px; background: #FFCC80; border-radius: 50%;
-            margin: 0 auto 15px auto; background-size: cover; background-position: center;
-            border: 2px solid #FF8C42;
-        }
+        .p-avatar { width: 36px; height: 36px; background: #FFCC80; border-radius: 50%; background-size: cover; background-position: center; flex-shrink: 0; border: 1px solid #FFE0B2; }
+        .pfp-preview { width: 100px; height: 100px; background: #FFCC80; border-radius: 50%; margin: 0 auto 15px auto; background-size: cover; background-position: center; border: 2px solid #FF8C42; }
         
         .post-content { padding: 0 12px 15px 12px; font-size: 1rem; line-height: 1.5; color: #5D4037; }
         
-        input[type="text"], input[type="email"], input[type="password"] { 
-            width: 100%; padding: 12px; margin-bottom: 12px; background: #FFFFFF; border: 1px solid #FFE0B2; 
-            color: #4A4A4A; border-radius: 8px; font-size: 1rem; 
-        }
-        button { background: #FF8C42; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; transition: 0.3s; }
-        button:hover { background: #F4511E; transform: translateY(-1px); }
+        input[type="text"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; margin-bottom: 12px; background: #FFFFFF; border: 1px solid #FFE0B2; border-radius: 8px; }
+        button { background: #FF8C42; color: white; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; }
         
         .page { width: 100%; display: none; }
     </style>
@@ -84,63 +75,54 @@
 
     <div id="authPage">
         <div class="auth-container">
-            <h1 style="font-style: italic; margin-bottom: 30px; color: #FF8C42;">Chatter Box</h1>
+            <h1 style="color: #FF8C42;">Chatter Box</h1>
             <div id="regBox" style="display:none;"><input type="text" id="rNick" placeholder="Nickname"></div>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
             <button id="authGo" style="width:100%;">Log In</button>
-            <p id="authSwitch" style="cursor:pointer; font-size:0.85rem; color:#FF8C42; margin-top:20px;">Don't have an account? Sign up</p>
+            <p id="authSwitch" style="cursor:pointer; font-size:0.85rem; color:#FF8C42; margin-top:20px;">Sign up</p>
         </div>
     </div>
 
     <div id="sideNav" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
+        
+        <div class="user-pill">
+            <div id="sidePfp" class="pill-pfp"></div>
+            <div id="sideName" class="pill-name">User</div>
+        </div>
+
         <div class="nav-item" onclick="go('homePage')">🏠 Home</div>
         <div class="nav-item" onclick="go('notifPage')">🔔 Notifications</div>
         <div class="nav-item" onclick="go('friendsPage')">👥 Friends</div>
         <div class="nav-item" onclick="go('setPage')">⚙️ Settings</div>
-        <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #D84315; border-top: 1px solid #FFE0B2; padding-top: 20px;">🚪 Logout</div>
+        <div class="nav-item" onclick="logOut()" style="margin-top:auto; color: #D84315;">🚪 Logout</div>
     </div>
 
     <div class="main-view">
         <div id="homePage" class="page">
             <div class="feed-wrapper">
                 <div class="create-box">
-                    <textarea id="postIn" placeholder="Share something sunny..."></textarea>
+                    <textarea id="postIn" placeholder="Share something..."></textarea>
                     <div style="text-align:right;"><button id="postBtn">Post</button></div>
                 </div>
                 <div id="feedWin"></div>
             </div>
         </div>
 
-        <div id="notifPage" class="page">
-            <div class="feed-wrapper">
-                <h2 style="color: #E65100;">Notifications</h2>
-                <div id="notifList">
-                    <div class="notif-item"><div style="flex:1;">Welcome to Chatter Box!</div></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="friendsPage" class="page">
-            <div class="feed-wrapper">
-                <h2 style="color: #E65100;">Find Friends</h2>
-                <div style="display:flex; gap:10px;"><input type="text" id="fSearch" placeholder="Friend's Email"><button id="fAdd">Add</button></div>
-            </div>
-        </div>
+        <div id="notifPage" class="page"><div class="feed-wrapper"><h2>Notifications</h2><div id="notifList"></div></div></div>
+        <div id="friendsPage" class="page"><div class="feed-wrapper"><h2>Friends</h2><input type="text" id="fSearch" placeholder="Friend Email"><button id="fAdd">Add</button></div></div>
 
         <div id="setPage" class="page">
             <div class="feed-wrapper">
                 <h2 style="color: #E65100;">Settings</h2>
                 <div class="create-box" style="text-align: center;">
                     <div id="pfpPrev" class="pfp-preview"></div>
-                    <label for="pfpInput" style="display: inline-block; background: #FFE0B2; color: #BF360C; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; margin-bottom: 20px;">
-                        Change Photo
+                    <label for="pfpInput" style="background: #FFE0B2; color: #BF360C; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; display: inline-block; margin-bottom: 20px;">
+                        Choose Photo
                     </label>
                     <input type="file" id="pfpInput" accept="image/*" style="display: none;">
-                    
-                    <label style="font-size: 0.9rem; color: #8D6E63; display: block; text-align: left; margin-bottom: 5px;">Nickname</label>
-                    <input type="text" id="sNick" placeholder="Update your name">
+                    <input type="text" id="sNick" placeholder="Nickname">
                     <button id="sSave" style="width:100%;">Save Profile</button>
                 </div>
             </div>
@@ -170,8 +152,7 @@
 
         window.go = (id) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            const target = document.getElementById(id);
-            if (target) target.style.display = 'block';
+            document.getElementById(id).style.display = 'block';
         };
 
         window.logOut = () => signOut(auth).then(() => location.reload());
@@ -179,7 +160,6 @@
         document.getElementById('authSwitch').onclick = () => {
             isReg = !isReg;
             document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
-            document.getElementById('authGo').innerText = isReg ? 'Sign Up' : 'Log In';
         };
 
         document.getElementById('authGo').onclick = () => {
@@ -187,7 +167,7 @@
             if(isReg) {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
                     updateProfile(res.user, {displayName: n});
-                    set(ref(db, 'users/' + res.user.uid), {email: e.toLowerCase(), name: n});
+                    set(ref(db, 'users/' + res.user.uid), {email: e.toLowerCase(), name: n, pfp: ""});
                 }).catch(err => alert(err.message));
             } else {
                 signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
@@ -207,15 +187,22 @@
         });
 
         function start(u) {
-            // Fetch profile data
-            get(ref(db, 'users/' + u.uid)).then(snap => {
-                if(snap.exists() && snap.val().pfp) {
-                    currentUserPFP = snap.val().pfp;
-                    document.getElementById('pfpPrev').style.backgroundImage = `url('${currentUserPFP}')`;
-                }
-            });
+            // Function to sync UI with data
+            const syncUI = () => {
+                get(ref(db, 'users/' + u.uid)).then(snap => {
+                    if(snap.exists()){
+                        const data = snap.val();
+                        currentUserPFP = data.pfp || "";
+                        document.getElementById('sideName').innerText = data.name || u.email.split('@')[0];
+                        if(currentUserPFP) {
+                            document.getElementById('pfpPrev').style.backgroundImage = `url('${currentUserPFP}')`;
+                            document.getElementById('sidePfp').style.backgroundImage = `url('${currentUserPFP}')`;
+                        }
+                    }
+                });
+            };
+            syncUI();
 
-            // Live preview when file is selected
             document.getElementById('pfpInput').onchange = (e) => {
                 const file = e.target.files[0];
                 if(file) {
@@ -227,14 +214,36 @@
                 }
             };
 
-            const postsRef = ref(db, 'posts');
+            document.getElementById('sSave').onclick = () => {
+                const n = document.getElementById('sNick').value;
+                const pfpFile = document.getElementById('pfpInput').files[0];
+                
+                const pushUpdates = (imgData) => {
+                    let up = {};
+                    if(n) up.name = n;
+                    if(imgData) up.pfp = imgData;
+                    update(ref(db, 'users/' + u.uid), up).then(() => {
+                        alert("Profile Saved!");
+                        syncUI();
+                    });
+                };
+
+                if(pfpFile) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => pushUpdates(e.target.result);
+                    reader.readAsDataURL(pfpFile);
+                } else {
+                    pushUpdates(null);
+                }
+            };
+
             document.getElementById('postBtn').onclick = () => {
                 const text = document.getElementById('postIn').value;
                 if(text.trim()) {
-                    push(postsRef, {
-                        sender: auth.currentUser.displayName || u.email.split('@')[0],
+                    push(ref(db, 'posts'), {
+                        sender: document.getElementById('sideName').innerText,
                         content: text,
-                        senderPfp: currentUserPFP,
+                        senderPfp: currentUserPFP, // Using the synced global variable
                         timestamp: Date.now()
                     });
                     document.getElementById('postIn').value = "";
@@ -243,36 +252,17 @@
 
             const feedWin = document.getElementById('feedWin');
             feedWin.innerHTML = "";
-            onChildAdded(postsRef, (snap) => {
+            onChildAdded(ref(db, 'posts'), (snap) => {
                 const data = snap.val();
                 const postDiv = document.createElement('div');
                 postDiv.className = 'post-card';
-                const pfpStyle = data.senderPfp ? `style="background-image: url('${data.senderPfp}')"` : "";
+                const pStyle = data.senderPfp ? `style="background-image: url('${data.senderPfp}')"` : "";
                 postDiv.innerHTML = `
-                    <div class="post-header"><div class="p-avatar" ${pfpStyle}></div><span>${data.sender}</span></div>
+                    <div class="post-header"><div class="p-avatar" ${pStyle}></div><span>${data.sender}</span></div>
                     <div class="post-content">${data.content}</div>
                 `;
                 feedWin.prepend(postDiv);
             });
-
-            document.getElementById('sSave').onclick = () => {
-                const n = document.getElementById('sNick').value;
-                const pfpFile = document.getElementById('pfpInput').files[0];
-                let updates = {};
-                if(n) updates.name = n;
-
-                if(pfpFile) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        updates.pfp = e.target.result;
-                        currentUserPFP = e.target.result;
-                        update(ref(db, 'users/' + u.uid), updates).then(() => alert("Saved!"));
-                    };
-                    reader.readAsDataURL(pfpFile);
-                } else if(n) {
-                    update(ref(db, 'users/' + u.uid), updates).then(() => alert("Saved!"));
-                }
-            };
         }
     </script>
 </body>
