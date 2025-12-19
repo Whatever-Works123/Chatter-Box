@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Fixed Feed</title>
+    <title>Chatter Box | Multi-Fix Feed</title>
     <style>
         * { box-sizing: border-box; }
         body { 
@@ -33,7 +33,7 @@
         
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 25px; background: white; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
-        .post-img { width: 100%; display: block; max-height: 500px; object-fit: cover; }
+        .post-img { width: 100%; display: block; max-height: 600px; object-fit: contain; background: #fafafa; }
         .post-info { padding: 12px; font-size: 14px; line-height: 1.4; }
 
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
@@ -42,6 +42,7 @@
         button { background: #FF8C42; color: white; border: none; border-radius: 5px; padding: 10px 20px; font-weight: bold; cursor: pointer; }
 
         .page { display: none; width: 100%; }
+        .user-search-result { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -89,7 +90,14 @@
             </div>
 
             <div id="notifPage" class="page"><div style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div></div>
-            <div id="friendsPage" class="page"><div style="padding:20px;"><h3>Friends</h3><input type="text" placeholder="Search users..."><div id="friendList"></div></div></div>
+            
+            <div id="friendsPage" class="page">
+                <div style="padding:20px;">
+                    <h3>Find Friends</h3>
+                    <input type="text" id="userSearchInput" placeholder="Search by name..." oninput="searchUsers()">
+                    <div id="userListResults" style="margin-top:20px;"></div>
+                </div>
+            </div>
 
             <div id="setPage" class="page">
                 <div style="padding:40px; text-align:center;">
@@ -166,8 +174,29 @@
             };
         }
 
+        // Search Logic
+        window.searchUsers = () => {
+            const query = document.getElementById('userSearchInput').value.toLowerCase();
+            const resultsDiv = document.getElementById('userListResults');
+            resultsDiv.innerHTML = "";
+            if(!query) return;
+
+            get(ref(db, 'users')).then(snap => {
+                snap.forEach(child => {
+                    const u = child.val();
+                    if(u.name.toLowerCase().includes(query)) {
+                        resultsDiv.innerHTML += `
+                            <div class="user-search-result">
+                                <div class="pill-pfp" style="background-image:url(${u.pfp})"></div>
+                                <span>${u.name}</span>
+                                <button style="margin-left:auto; padding:5px 10px; font-size:12px;">Follow</button>
+                            </div>`;
+                    }
+                });
+            });
+        };
+
         function init(u) {
-            // LOAD MY PROFILE
             get(ref(db, 'users/'+u.uid)).then(s => {
                 if(s.exists()){
                     const d = s.val();
@@ -181,7 +210,6 @@
                 }
             });
 
-            // LOAD STORIES
             get(ref(db, 'users')).then(snap => {
                 const list = document.getElementById('storyList');
                 list.innerHTML = "";
@@ -193,7 +221,6 @@
                 });
             });
 
-            // HANDLE POST IMAGE PREVIEW
             document.getElementById('postImg').onchange = (e) => {
                 if(e.target.files[0]) {
                     compress(e.target.files[0], 0.5, 600, (base64) => {
@@ -204,7 +231,6 @@
                 }
             };
 
-            // SEND POST
             document.getElementById('sendPost').onclick = () => {
                 const txt = document.getElementById('postText').value;
                 if(txt.trim() || pendingPostImg) {
@@ -221,17 +247,16 @@
                 }
             };
 
-            // RENDER FEED
             onChildAdded(ref(db, 'posts'), (snap) => {
                 const p = snap.val();
                 const card = document.createElement('div');
                 card.className = 'post-card';
                 
-                // Fallbacks to prevent "undefined"
-                const name = p.senderName || "Anonymous";
-                const text = p.postText || "";
-                const pfp = p.senderPfp || "";
-                const img = p.postImg || "";
+                // MULTI-FIX: Check for all possible name versions (new and old)
+                const name = p.senderName || p.sender || p.name || "User";
+                const text = p.postText || p.content || p.text || "";
+                const pfp = p.senderPfp || p.pfp || "";
+                const img = p.postImg || p.img || "";
 
                 card.innerHTML = `
                     <div class="post-header">
@@ -244,7 +269,6 @@
                 document.getElementById('postFeed').prepend(card);
             });
 
-            // SAVE SETTINGS
             document.getElementById('saveSet').onclick = () => {
                 const n = document.getElementById('setName').value || myName;
                 const file = document.getElementById('setPfp').files[0];
