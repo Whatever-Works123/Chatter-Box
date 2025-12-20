@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Camera & Uploads</title>
+    <title>Chatter Box | Native Uploads</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
@@ -67,7 +67,7 @@
             
             <div id="home-page" class="page" style="display:block;">
                 <div style="max-width:470px; margin: 0 auto 30px; border:1px solid #dbdbdb; padding:15px; border-radius:8px;">
-                    <textarea id="post-text" placeholder="What's happening?" rows="2"></textarea>
+                    <textarea id="post-text" placeholder="Caption..." rows="2"></textarea>
                     <input type="file" id="post-file" accept="image/*">
                     <button id="post-btn" class="btn-blue" style="float:right;">Post</button>
                     <div style="clear:both;"></div>
@@ -76,7 +76,7 @@
             </div>
 
             <div id="search-page" class="page">
-                <input type="text" id="s-query" placeholder="Search users...">
+                <input type="text" id="s-query" placeholder="Search...">
                 <div id="s-results"></div>
             </div>
 
@@ -201,24 +201,25 @@
             document.getElementById('p-bio').style.display = s ? 'none' : 'block';
         };
 
-        // SAVE PROFILE WITH PHOTO UPLOAD
         window.saveProfile = () => {
             const file = document.getElementById('pfp-input').files[0];
             const name = document.getElementById('edit-name-in').value;
             const bio = document.getElementById('edit-bio-in').value;
 
-            const performUpdate = (pfpData = null) => {
-                const data = { name, bio };
-                if(pfpData) data.pfp = pfpData;
-                update(ref(db, 'users/' + auth.currentUser.uid), data).then(() => toggleEdit(false));
+            const updateDB = (pfpBase64 = null) => {
+                const updates = { name, bio };
+                if(pfpBase64) updates.pfp = pfpBase64;
+                update(ref(db, 'users/' + auth.currentUser.uid), updates).then(() => {
+                    toggleEdit(false);
+                });
             };
 
             if(file) {
-                const r = new FileReader();
-                r.onload = () => performUpdate(r.result);
-                r.readAsDataURL(file);
+                const reader = new FileReader();
+                reader.onload = () => updateDB(reader.result);
+                reader.readAsDataURL(file);
             } else {
-                performUpdate();
+                updateDB();
             }
         };
 
@@ -252,19 +253,6 @@
                 if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else if(text) upload();
             };
         }
-
-        document.getElementById('s-query').oninput = (e) => {
-            const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
-            if(!q) { res.innerHTML = ""; return; }
-            get(ref(db, 'users')).then(snap => {
-                res.innerHTML = "";
-                snap.forEach(c => {
-                    if(c.val().name.toLowerCase().includes(q)) {
-                        res.innerHTML += `<div style="padding:10px; border-bottom:1px solid #eee;"><b class="clickable-name" onclick="viewProfile('${c.key}')">${c.val().name}</b></div>`;
-                    }
-                });
-            });
-        };
     </script>
 </body>
 </html>
