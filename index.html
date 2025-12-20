@@ -3,101 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Messenger</title>
+    <title>Chatter Box | App Menu</title>
     <style>
         * { box-sizing: border-box; outline: none; }
-        :root { --bg: #ffffff; --card: #ffffff; --text: #1a1a1a; --border: #efefef; --accent: #0095f6; }
-        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
+        :root { --bg: #f0f2f5; --side: #ffffff; --text: #1c1e21; --accent: #0084ff; --border: #e4e6eb; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
         
-        /* AUTH */
-        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { text-align:center; width:320px; }
+        /* SIDEBAR MENU */
+        .sidebar { width: 260px; background: var(--side); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 15px; flex-shrink: 0; }
+        .app-title { font-size: 24px; font-weight: 800; color: #FF8C42; margin-bottom: 30px; padding-left: 10px; font-style: italic; }
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 5px; font-weight: 600; color: #65676b; transition: 0.2s; }
+        .menu-item:hover { background: #f2f2f2; }
+        .menu-item.active { background: #e7f3ff; color: var(--accent); }
+        .menu-icon { font-size: 20px; }
 
-        /* SIDEBAR */
-        .sidebar { width: 80px; border-right: 1px solid var(--border); display: none; flex-direction: column; align-items: center; padding: 20px 0; }
-        .nav-item { font-size: 24px; margin-bottom: 25px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
-        .nav-item.active { opacity: 1; color: var(--accent); }
+        /* MAIN CONTENT AREA */
+        .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .page { display: none; height: 100%; width: 100%; background: white; max-width: 800px; margin: 0 auto; box-shadow: 0 0 15px rgba(0,0,0,0.05); }
 
-        /* MAIN CONTENT */
-        .main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .page { display: none; height: 100%; width: 100%; overflow-y: auto; }
-        
-        /* MESSAGES / INBOX */
-        .inbox-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border); }
-        .inbox-item:hover { background: #fafafa; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; margin-right: 15px; background-color: #eee; }
-        .last-msg { font-size: 13px; color: #8e8e8e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* HEADER */
+        .page-header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .page-header h2 { margin: 0; font-size: 24px; }
 
-        /* CHAT WINDOW */
-        #chat-screen { position: fixed; inset: 0; background: white; z-index: 500; display: none; flex-direction: column; }
-        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .msg-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { padding: 8px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; }
-        .bubble.me { background: var(--accent); color: white; align-self: flex-end; }
-        .bubble.them { background: #efefef; align-self: flex-start; }
-        .chat-input-area { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        /* LISTS (INBOX / SEARCH) */
+        .list-container { overflow-y: auto; height: calc(100% - 75px); }
+        .list-item { display: flex; align-items: center; padding: 12px 20px; cursor: pointer; transition: 0.1s; border-bottom: 1px solid #f9f9f9; }
+        .list-item:hover { background: #f5f6f7; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; background-color: #ddd; margin-right: 15px; flex-shrink: 0; }
+        .item-info b { display: block; font-size: 16px; }
+        .item-info span { font-size: 13px; color: #65676b; }
 
-        /* PROFILE GALLERY */
-        .profile-head { padding: 30px; text-align: center; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; padding: 2px; }
-        .grid-item { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #eee; }
-        
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+        /* CHAT INTERFACE */
+        #chat-window { position: fixed; right: 0; top: 0; bottom: 0; left: 260px; background: white; z-index: 1000; display: none; flex-direction: column; }
+        .chat-top { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; background: #fff; display: flex; flex-direction: column; gap: 8px; }
+        .msg { padding: 10px 15px; border-radius: 18px; max-width: 65%; font-size: 14px; line-height: 1.4; }
+        .msg.me { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .msg.them { background: #e4e6eb; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .chat-input { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; align-items: center; }
+
+        /* PROFILE SECTION */
+        .profile-card { text-align: center; padding: 40px 20px; border-bottom: 1px solid var(--border); }
+        .pfp-big { width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 15px; background-size: cover; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; padding: 10px; }
+        .grid-img { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #eee; }
+
+        /* UTILS */
+        input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 20px; background: #f0f2f5; font-size: 15px; }
         .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        #auth-screen { position: fixed; inset: 0; background: #f0f2f5; z-index: 2000; display: flex; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div class="auth-box">
-            <h1 style="color:#FF8C42; font-style:italic">Chatter Box</h1>
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password">
-            <button class="btn" id="login-btn" style="width:100%">Log In / Sign Up</button>
+        <div style="background:white; padding:40px; border-radius:12px; box-shadow:0 10px 25px rgba(0,0,0,0.1); width:350px; text-align:center;">
+            <h1 style="color:#FF8C42; font-style:italic; margin-bottom:30px;">Chatter Box</h1>
+            <input type="email" id="email" placeholder="Email Address" style="margin-bottom:10px;">
+            <input type="password" id="password" placeholder="Password" style="margin-bottom:20px;">
+            <button class="btn" id="login-btn" style="width:100%; padding:14px; font-size:16px;">Log In / Sign Up</button>
         </div>
     </div>
 
-    <div id="side-nav" class="sidebar">
-        <div class="nav-item active" onclick="nav('home-page', this)">💬</div>
-        <div class="nav-item" onclick="nav('search-page', this)">🔍</div>
-        <div class="nav-item" onclick="nav('profile-page', this)">👤</div>
-        <div class="nav-item" onclick="location.reload()" style="margin-top: auto; font-size: 18px;">🚫</div>
+    <div id="side-menu" class="sidebar">
+        <div class="app-title">Chatter Box</div>
+        <div class="menu-item active" onclick="nav('home-page', this)">
+            <span class="menu-icon">🏠</span> Home
+        </div>
+        <div class="menu-item" onclick="nav('search-page', this)">
+            <span class="menu-icon">🔍</span> Search
+        </div>
+        <div class="menu-item" onclick="nav('profile-page', this)">
+            <span class="menu-icon">👤</span> Profile
+        </div>
+        <div class="menu-item" onclick="nav('settings-page', this)">
+            <span class="menu-icon">⚙️</span> Settings
+        </div>
+        
+        <div style="margin-top:auto; padding-top:20px; border-top:1px solid var(--border)">
+            <div class="menu-item" style="color:#d33" onclick="location.reload()">
+                <span class="menu-icon">🚪</span> Logout
+            </div>
+        </div>
     </div>
 
     <div class="main">
         <div id="home-page" class="page" style="display:block;">
-            <div style="padding: 20px; border-bottom: 1px solid var(--border)"><h2>Messages</h2></div>
-            <div id="inbox-list"></div>
+            <div class="page-header"><h2>Messages</h2></div>
+            <div id="inbox-list" class="list-container"></div>
         </div>
 
         <div id="search-page" class="page">
-            <div style="padding: 20px;">
-                <input type="text" id="s-query" placeholder="Search friends to message...">
-                <div id="s-results"></div>
-            </div>
+            <div class="page-header"><h2>Find Friends</h2></div>
+            <div style="padding:15px;"><input type="text" id="s-query" placeholder="Search by name..."></div>
+            <div id="s-results" class="list-container"></div>
         </div>
 
         <div id="profile-page" class="page">
-            <div class="profile-head">
-                <div id="p-pfp" style="width:100px; height:100px; border-radius:50%; margin:0 auto 15px; background-size:cover; background-position:center; border:1px solid #ddd;"></div>
-                <h3 id="p-name"></h3>
-                <p id="p-bio" style="color: #8e8e8e;"></p>
-                <input type="file" id="upload-photo" accept="image/*" style="display:none">
-                <button class="btn" style="background:#efefef; color:black; font-size:12px;" onclick="document.getElementById('upload-photo').click()">+ Post Photo</button>
+            <div class="page-header"><h2>Your Profile</h2></div>
+            <div class="profile-card">
+                <div id="p-pfp" class="pfp-big"></div>
+                <h2 id="p-name" style="margin:5px 0"></h2>
+                <p id="p-bio"></p>
+                <input type="file" id="p-upload" style="display:none" accept="image/*">
+                <button class="btn" style="background:#e4e6eb; color:black; margin-top:10px;" onclick="document.getElementById('p-upload').click()">Upload Photo</button>
             </div>
             <div id="p-grid" class="grid"></div>
         </div>
+
+        <div id="settings-page" class="page">
+            <div class="page-header"><h2>Settings</h2></div>
+            <div style="padding:20px;">
+                <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid var(--border)">
+                    <span>Notifications</span>
+                    <input type="checkbox" checked style="width:auto">
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:15px 0; border-bottom:1px solid var(--border)">
+                    <span>Dark Mode (Experimental)</span>
+                    <input type="checkbox" style="width:auto">
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div id="chat-screen">
-        <div class="chat-header">
-            <button onclick="closeChat()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
-            <div id="chat-avatar" class="avatar" style="width:35px; height:35px; margin:0"></div>
-            <b id="chat-name">Name</b>
+    <div id="chat-window">
+        <div class="chat-top">
+            <button onclick="closeChat()" style="background:none; border:none; font-size:24px; cursor:pointer;">←</button>
+            <div id="chat-pfp" class="avatar" style="width:40px; height:40px; margin:0"></div>
+            <b id="chat-user-name">User</b>
         </div>
-        <div id="msg-list" class="msg-list"></div>
-        <div class="chat-input-area">
-            <input type="text" id="msg-input" placeholder="Message..." style="margin:0">
+        <div id="chat-msgs" class="chat-msgs"></div>
+        <div class="chat-input">
+            <input type="text" id="chat-in" placeholder="Type a message...">
             <button class="btn" id="send-btn">Send</button>
         </div>
     </div>
@@ -105,7 +142,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -117,14 +154,14 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let activeChatId = null;
+        let currentPeer = null;
 
-        // --- AUTH ---
+        // AUTH
         document.getElementById('login-btn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Chatting on Chatter Box" });
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Messenger user" });
                 });
             });
         };
@@ -132,36 +169,30 @@
         onAuthStateChanged(auth, u => {
             if(u) {
                 document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('side-nav').style.display = 'flex';
-                initMessenger();
+                document.getElementById('side-menu').style.display = 'flex';
+                init();
             }
         });
 
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
             el.classList.add('active');
             if(id === 'profile-page') loadProfile(auth.currentUser.uid);
         };
 
-        // --- MESSENGER LOGIC ---
-        function initMessenger() {
-            // Load Inbox (List of people you've messaged)
+        function init() {
+            // Load Inbox
             onValue(ref(db, `users/${auth.currentUser.uid}/chats`), snap => {
-                const list = document.getElementById('inbox-list');
-                list.innerHTML = "";
-                snap.forEach(child => {
-                    const userId = child.key;
-                    get(ref(db, 'users/' + userId)).then(uSnap => {
+                const list = document.getElementById('inbox-list'); list.innerHTML = "";
+                snap.forEach(c => {
+                    get(ref(db, 'users/' + c.key)).then(uSnap => {
                         const u = uSnap.val();
                         list.insertAdjacentHTML('beforeend', `
-                            <div class="inbox-item" onclick="openChat('${userId}', '${u.name}', '${u.pfp}')">
+                            <div class="list-item" onclick="openChat('${c.key}', '${u.name}', '${u.pfp}')">
                                 <div class="avatar" style="background-image:url(${u.pfp})"></div>
-                                <div style="flex:1">
-                                    <b>${u.name}</b>
-                                    <div class="last-msg" id="last-${userId}">Click to chat...</div>
-                                </div>
+                                <div class="item-info"><b>${u.name}</b><span>Tap to view messages</span></div>
                             </div>
                         `);
                     });
@@ -170,39 +201,36 @@
         }
 
         window.openChat = (uid, name, pfp) => {
-            activeChatId = uid;
-            document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('chat-name').innerText = name;
-            document.getElementById('chat-avatar').style.backgroundImage = `url(${pfp})`;
+            currentPeer = uid;
+            document.getElementById('chat-window').style.display = 'flex';
+            document.getElementById('chat-user-name').innerText = name;
+            document.getElementById('chat-pfp').style.backgroundImage = `url(${pfp})`;
             
             const chatId = [auth.currentUser.uid, uid].sort().join('_');
             onValue(ref(db, 'messages/' + chatId), snap => {
-                const msgList = document.getElementById('msg-list');
-                msgList.innerHTML = "";
+                const box = document.getElementById('chat-msgs'); box.innerHTML = "";
                 snap.forEach(m => {
-                    const data = m.val();
-                    const side = data.sender === auth.currentUser.uid ? 'me' : 'them';
-                    msgList.insertAdjacentHTML('beforeend', `<div class="bubble ${side}">${data.text}</div>`);
+                    const d = m.val();
+                    const side = d.sender === auth.currentUser.uid ? 'me' : 'them';
+                    box.insertAdjacentHTML('beforeend', `<div class="msg ${side}">${d.text}</div>`);
                 });
-                msgList.scrollTop = msgList.scrollHeight;
+                box.scrollTop = box.scrollHeight;
             });
         };
 
-        window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
+        window.closeChat = () => document.getElementById('chat-window').style.display = 'none';
 
         document.getElementById('send-btn').onclick = () => {
-            const text = document.getElementById('msg-input').value;
-            if(!text || !activeChatId) return;
-            const chatId = [auth.currentUser.uid, activeChatId].sort().join('_');
-            
-            push(ref(db, 'messages/' + chatId), { sender: auth.currentUser.uid, text: text, time: serverTimestamp() });
-            set(ref(db, `users/${auth.currentUser.uid}/chats/${activeChatId}`), true);
-            set(ref(db, `users/${activeChatId}/chats/${auth.currentUser.uid}`), true);
-            
-            document.getElementById('msg-input').value = "";
+            const val = document.getElementById('chat-in').value;
+            if(!val || !currentPeer) return;
+            const chatId = [auth.currentUser.uid, currentPeer].sort().join('_');
+            push(ref(db, 'messages/' + chatId), { sender: auth.currentUser.uid, text: val, time: serverTimestamp() });
+            set(ref(db, `users/${auth.currentUser.uid}/chats/${currentPeer}`), true);
+            set(ref(db, `users/${currentPeer}/chats/${auth.currentUser.uid}`), true);
+            document.getElementById('chat-in').value = "";
         };
 
-        // --- SEARCH LOGIC ---
+        // SEARCH
         document.getElementById('s-query').oninput = (e) => {
             const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
             if(!q) { res.innerHTML = ""; return; }
@@ -211,16 +239,16 @@
                 snap.forEach(c => {
                     if(c.val().name.toLowerCase().includes(q) && c.key !== auth.currentUser.uid) {
                         res.insertAdjacentHTML('beforeend', `
-                            <div class="inbox-item" onclick="openChat('${c.key}', '${c.val().name}', '${c.val().pfp}')">
+                            <div class="list-item" onclick="openChat('${c.key}', '${c.val().name}', '${c.val().pfp}')">
                                 <div class="avatar" style="background-image:url(${c.val().pfp})"></div>
-                                <b>${c.val().name}</b>
+                                <div class="item-info"><b>${c.val().name}</b><span>Start conversation</span></div>
                             </div>`);
                     }
                 });
             });
         };
 
-        // --- PROFILE GALLERY LOGIC ---
+        // PROFILE
         function loadProfile(uid) {
             get(ref(db, 'users/' + uid)).then(s => {
                 const d = s.val();
@@ -228,26 +256,17 @@
                 document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
                 document.getElementById('p-bio').innerText = d.bio;
             });
-
             onValue(ref(db, 'galleries/' + uid), snap => {
-                const grid = document.getElementById('p-grid');
-                grid.innerHTML = "";
-                snap.forEach(img => {
-                    grid.insertAdjacentHTML('afterbegin', `<div class="grid-item" style="background-image:url(${img.val()})"></div>`);
-                });
+                const g = document.getElementById('p-grid'); g.innerHTML = "";
+                snap.forEach(img => g.insertAdjacentHTML('afterbegin', `<div class="grid-img" style="background-image:url(${img.val()})"></div>`));
             });
         }
 
-        document.getElementById('upload-photo').onchange = (e) => {
-            const file = e.target.files[0];
-            if(!file) return;
+        document.getElementById('p-upload').onchange = (e) => {
             const reader = new FileReader();
-            reader.onload = () => {
-                push(ref(db, 'galleries/' + auth.currentUser.uid), reader.result);
-            };
-            reader.readAsDataURL(file);
+            reader.onload = () => push(ref(db, 'galleries/' + auth.currentUser.uid), reader.result);
+            reader.readAsDataURL(e.target.files[0]);
         };
-
     </script>
 </body>
 </html>
