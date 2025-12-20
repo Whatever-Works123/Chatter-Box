@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Fixed Layout & Photos</title>
+    <title>Chatter Box | Layout Fixed</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         :root { 
@@ -32,7 +32,7 @@
         .page { display: none; }
         .page-header { padding: 20px; border-bottom: 1px solid var(--border); }
 
-        /* AVATAR SYSTEM (Fixes Olivia's Issue) */
+        /* AVATAR & LIST SPACING FIX */
         .avatar { 
             width: 50px; height: 50px; border-radius: 50%; 
             background-size: cover; background-position: center; 
@@ -40,18 +40,21 @@
             display: flex; align-items: center; justify-content: center; 
             color: white; font-weight: bold; text-transform: uppercase;
         }
-
-        /* LISTS & UI */
         .list-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border); }
         .list-item:hover { background: rgba(0,0,0,0.02); }
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
-        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+        .list-item b { margin-left: 10px; } /* Added spacing between PFP and Name */
 
         /* CHAT WINDOW (RIGHT SLIDE) */
         #chat-window { position: fixed; top: 0; right: -450px; bottom: 0; width: 400px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
         #chat-window.open { right: 0; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .chat-user-info { margin-left: 10px; } /* Space fix for chat title */
         .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        
+
+        /* UI ELEMENTS */
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); }
+        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+
         /* SETTINGS */
         .settings-section { padding: 20px; border-bottom: 1px solid var(--border); }
         .settings-row { display: flex; justify-content: space-between; padding: 10px 0; align-items: center; }
@@ -86,8 +89,16 @@
 
     <div class="main-viewport">
         <div class="content-container">
-            <div id="home-page" class="page" style="display:block;"><div class="page-header"><h2>Messages</h2></div><div id="inbox-list"></div></div>
-            <div id="search-page" class="page"><div class="page-header"><h2>Search</h2></div><div style="padding:15px"><input type="text" id="s-query" placeholder="Search usernames..."></div><div id="s-results"></div></div>
+            <div id="home-page" class="page" style="display:block;">
+                <div class="page-header"><h2>Messages</h2></div>
+                <div id="inbox-list"></div>
+            </div>
+
+            <div id="search-page" class="page">
+                <div class="page-header"><h2>Search</h2></div>
+                <div style="padding:15px"><input type="text" id="s-query" placeholder="Search usernames..."></div>
+                <div id="s-results"></div>
+            </div>
             
             <div id="profile-page" class="page">
                 <div style="text-align:center; padding:30px;">
@@ -122,10 +133,10 @@
     </div>
 
     <div id="chat-window">
-        <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:15px;">
+        <div class="chat-header">
             <button onclick="closeChat()" style="background:none; border:none; font-size:24px; cursor:pointer;">×</button>
             <div id="chat-pfp" class="avatar" style="width:35px; height:35px;"></div>
-            <b id="chat-user-name">User</b>
+            <b id="chat-user-name" class="chat-user-info">User</b>
         </div>
         <div id="chat-msgs" class="chat-msgs"></div>
         <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
@@ -151,7 +162,7 @@
         const db = getDatabase(app);
         let activePeer = null;
 
-        // --- AVATAR FIX ---
+        // FIXED AVATAR LOGIC
         function setAvatar(el, url, name) {
             if(url && url.length > 20) {
                 el.style.backgroundImage = `url(${url})`;
@@ -162,7 +173,7 @@
             }
         }
 
-        // --- AUTH ---
+        // AUTH
         document.getElementById('login-btn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
