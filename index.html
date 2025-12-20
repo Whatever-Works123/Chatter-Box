@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Admin & Stories</title>
+    <title>Chatter Box | Fixed Profile & Stories</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FFF; color: #000; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -34,10 +34,16 @@
         .insta-ring-small { width: 42px; height: 42px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #bc1888); display: flex; justify-content: center; align-items: center; }
         .pfp-small { width: 34px; height: 34px; border-radius: 50%; border: 2px solid white; background-size: cover; }
 
-        /* ADMIN DASHBOARD TABLE */
+        /* PROFILE SECTION */
+        .profile-header { display: flex; align-items: center; gap: 80px; margin-bottom: 44px; padding: 0 20px; }
+        .profile-pfp { width: 150px; height: 150px; border-radius: 50%; border: 1px solid #dbdbdb; background-size: cover; background-position: center; }
+        .profile-info h2 { font-weight: 300; font-size: 28px; margin: 0; }
+        .my-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; margin-top: 20px; }
+        .grid-post { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #fafafa; }
+
+        /* ADMIN TABLE */
         .admin-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         .admin-table th, .admin-table td { text-align: left; padding: 12px; border-bottom: 1px solid #eee; }
-        .admin-table th { background: #fafafa; }
 
         /* UI ELEMENTS */
         input, textarea { width: 100%; padding: 10px; border: 1px solid #DBDBDB; border-radius: 4px; margin-bottom: 10px; font-family: inherit; }
@@ -65,7 +71,7 @@
         <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
         <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
         <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
-        <div id="adminTab" class="nav-item" style="display:none; color: #D4AF37;" onclick="showPage('adminPage', this)">👑 Admin</div>
+        <div id="adminTab" class="nav-item" style="display:none; color: gold;" onclick="showPage('adminPage', this)">👑 Admin</div>
         <div id="logoutBtn" class="nav-item" style="margin-top:auto; color: #ed4956;">Logout</div>
     </div>
 
@@ -77,34 +83,33 @@
                 <input type="file" id="storyInput" accept="image/*" style="display:none;">
 
                 <div style="max-width: 470px; margin: 0 auto; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                    <textarea id="postText" placeholder="What's happening?"></textarea>
+                    <textarea id="postText" placeholder="What's on your mind?"></textarea>
                     <input type="file" id="postImg">
                     <button id="sendPost">Post</button>
                 </div>
                 <div id="postFeed"></div>
             </div>
 
-            <div id="adminPage" class="page">
-                <h2>Admin Control Center</h2>
-                <div style="background: #FFF5EE; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #FF8C42;">
-                    <b>Access Level:</b> Master Administrator (Garrett)
-                </div>
-                <h3>Manage Users</h3>
-                <table class="admin-table">
-                    <thead><tr><th>Name</th><th>UID</th><th>Action</th></tr></thead>
-                    <tbody id="userAdminList"></tbody>
-                </table>
+            <div id="profilePage" class="page">
+                <header class="profile-header">
+                    <div id="profPfp" class="profile-pfp"></div>
+                    <div class="profile-info">
+                        <h2 id="profNameDisplay">username</h2>
+                        <div style="margin-top:10px;">
+                            <b id="profRealName">User</b><br>
+                            <span>Official Profile</span>
+                        </div>
+                    </div>
+                </header>
+                <div id="myPostsGrid" class="my-grid"></div>
             </div>
 
-            <div id="profilePage" class="page">
-                <div style="display:flex; align-items:center; gap:50px; margin-bottom:40px;">
-                    <div class="story-ring" style="width:150px; height:150px;"><div id="profPfp" style="width:140px; height:140px; border-radius:50%; background-size:cover; border:3px solid white;"></div></div>
-                    <div>
-                        <h2 id="profNameDisplay">username</h2>
-                        <p id="profRealName" style="font-weight:bold;"></p>
-                    </div>
-                </div>
-                <div id="myPostsGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; border-top:1px solid #eee; padding-top:20px;"></div>
+            <div id="adminPage" class="page">
+                <h2>Admin Panel</h2>
+                <table class="admin-table">
+                    <thead><tr><th>User</th><th>UID</th><th>Actions</th></tr></thead>
+                    <tbody id="adminUserList"></tbody>
+                </table>
             </div>
 
             <div id="searchPage" class="page"><h3>Search</h3><input type="text" placeholder="Search..."></div>
@@ -139,12 +144,11 @@
             if(el) el.classList.add('active');
         };
 
-        // AUTH
+        // AUTH LOGIC
         document.getElementById('switchBtn').onclick = () => {
             const isLogin = document.getElementById('authBtn').innerText === 'Log In';
             document.getElementById('lName').style.display = isLogin ? 'block' : 'none';
             document.getElementById('authBtn').innerText = isLogin ? 'Sign Up' : 'Log In';
-            document.getElementById('switchBtn').innerText = isLogin ? 'Log In' : 'Sign Up';
         };
 
         document.getElementById('authBtn').onclick = () => {
@@ -163,7 +167,7 @@
                 document.getElementById('sideBar').style.display = 'flex';
                 if(u.email === ADMIN_EMAIL) {
                     document.getElementById('adminTab').style.display = 'flex';
-                    loadAdminControls();
+                    loadAdmin();
                 }
                 init(u);
             } else {
@@ -205,14 +209,14 @@
                     <div style="display:flex; align-items:center; gap:10px; padding:10px 0;">
                         <div class="insta-ring-small"><div class="pfp-small" style="background-image:url(${p.senderPfp || myData.pfp})"></div></div>
                         <span style="font-weight:600;">${p.sender}</span>
-                        ${u.email === ADMIN_EMAIL ? `<div class="admin-del-btn" onclick="deletePost('${snap.key}')">Remove Post</div>` : ''}
+                        ${u.email === ADMIN_EMAIL ? `<div class="admin-del-btn" onclick="deletePost('${snap.key}')">Delete</div>` : ''}
                     </div>
                     ${p.img ? `<img src="${p.img}" style="width:100%; border-radius:4px;">` : ''}
                     <div style="padding:10px 0; font-size:14px;"><b>${p.sender}</b> ${p.text}</div>
                 `;
                 document.getElementById('postFeed').prepend(card);
                 if(p.uid === u.uid && p.img) {
-                    const gi = document.createElement('div'); gi.className = 'story-pfp'; gi.style.cssText = `aspect-ratio:1/1; background-image:url(${p.img}); background-size:cover; border-radius:4px;`;
+                    const gi = document.createElement('div'); gi.className = 'grid-post'; gi.style.backgroundImage = `url(${p.img})`;
                     document.getElementById('myPostsGrid').prepend(gi);
                 }
             });
@@ -230,23 +234,19 @@
         function loadStories(u) {
             onValue(ref(db, 'users'), snap => {
                 const list = document.getElementById('storyList'); list.innerHTML = "";
-                // Your Story
-                list.innerHTML += `<div class="story-item"><div class="story-ring" style="background:#dbdbdb;"><div class="story-pfp" style="background-image:url(${myData.pfp})"><div class="add-story-plus" onclick="document.getElementById('storyInput').click()">+</div></div></div><span class="story-name">Your Story</span></div>`;
+                list.innerHTML += `<div class="story-item"><div class="story-ring" style="background:#dbdbdb;"><div class="story-pfp" style="background-image:url(${myData.pfp})"><div class="add-story-plus">+</div></div></div><span class="story-name">Your Story</span></div>`;
                 snap.forEach(us => { if(us.key !== u.uid) list.innerHTML += `<div class="story-item"><div class="story-ring"><div class="story-pfp" style="background-image:url(${us.val().pfp})"></div></div><span class="story-name">${us.val().name}</span></div>`; });
             });
         }
 
-        function loadAdminControls() {
+        function loadAdmin() {
             onValue(ref(db, 'users'), snap => {
-                const list = document.getElementById('userAdminList');
-                list.innerHTML = "";
+                const list = document.getElementById('adminUserList'); list.innerHTML = "";
                 snap.forEach(child => {
-                    const user = child.val();
-                    const row = `<tr><td>${user.name}</td><td>${child.key}</td><td><button style="background:#ed4956; padding:5px; font-size:10px;" onclick="deleteUser('${child.key}')">Delete User</button></td></tr>`;
-                    list.innerHTML += row;
+                    list.innerHTML += `<tr><td>${child.val().name}</td><td>${child.key}</td><td><button style="background:red; padding:5px; font-size:10px;" onclick="deleteUser('${child.key}')">Ban</button></td></tr>`;
                 });
             });
-            window.deleteUser = (uid) => { if(confirm("Permanently ban this user?")) remove(ref(db, 'users/' + uid)).then(() => alert("User Deleted")); };
+            window.deleteUser = (uid) => { if(confirm("Ban user?")) remove(ref(db, 'users/' + uid)); };
         }
     </script>
 </body>
