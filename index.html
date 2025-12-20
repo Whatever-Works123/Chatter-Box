@@ -3,43 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Notifications & Settings</title>
+    <title>Chatter Box | Instagram Style</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FFF; color: #000; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR */
-        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
-        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
-        .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .nav-item:hover { background: #f2f2f2; }
-        .nav-item.active { background: #FFF5EE; color: #FF8C42; }
+        /* SIDEBAR (INSTAGRAM STYLE) */
+        .sidebar { width: 245px; border-right: 1px solid #DBDBDB; padding: 25px 12px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
+        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 35px; padding-left: 12px; font-family: 'Arial', sans-serif; letter-spacing: -1px; }
+        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 4px; font-size: 16px; display: flex; align-items: center; gap: 16px; transition: 0.2s; }
+        .nav-item:hover { background: #FAFAFA; scale: 1.02; }
+        .nav-item.active { font-weight: bold; }
 
         /* MAIN VIEW */
-        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
-        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
+        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; }
+        .center-container { width: 100%; max-width: 630px; padding-top: 20px; }
+
+        /* STORIES BAR (THE FIX) */
+        .stories-container { 
+            display: flex; 
+            gap: 15px; 
+            padding: 10px 5px 20px 5px; 
+            overflow-x: auto; 
+            scrollbar-width: none; 
+            margin-bottom: 20px;
+        }
+        .stories-container::-webkit-scrollbar { display: none; }
+        
+        .story-item { display: flex; flex-direction: column; align-items: center; min-width: 74px; cursor: pointer; }
+        .story-ring { 
+            width: 66px; height: 66px; 
+            border-radius: 50%; 
+            padding: 2px; 
+            background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 6px;
+        }
+        .story-ring.seen { background: #DBDBDB; }
+        .story-ring.none { background: transparent; border: 1px solid #DBDBDB; padding: 0; }
+        
+        .story-photo { 
+            width: 58px; height: 58px; 
+            border-radius: 50%; 
+            border: 2px solid white; 
+            background-size: cover; 
+            background-position: center; 
+            background-color: #eee;
+            position: relative;
+        }
+        .add-story-btn {
+            position: absolute; bottom: -2px; right: -2px;
+            background: #0095F6; color: white; border-radius: 50%;
+            width: 20px; height: 20px; border: 2px solid white;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;
+        }
+        .story-name { font-size: 12px; color: #262626; width: 74px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* FEED */
-        .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
-        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
-        .post-header { padding: 12px; font-weight: bold; border-bottom: 1px solid #fafafa; }
-        .post-img { width: 100%; display: block; background-color: #f0f0f0; }
-        .post-img:not([src]), .post-img[src=""] { display: none; }
-        .post-body { padding: 12px; line-height: 1.4; }
+        .post-card { border-bottom: 1px solid #DBDBDB; margin-bottom: 30px; background: white; width: 100%; max-width: 470px; margin-left: auto; margin-right: auto; }
+        .post-header { padding: 12px 4px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
+        .post-img { width: 100%; border-radius: 4px; border: 1px solid #efefef; }
+        .post-body { padding: 12px 0; font-size: 14px; }
+        .post-sender { font-weight: 600; margin-right: 5px; }
 
-        /* NOTIFICATIONS */
-        .notif-item { padding: 15px; border-bottom: 1px solid #efefef; display: flex; align-items: center; gap: 10px; }
-        .notif-dot { width: 8px; height: 8px; background: #FF8C42; border-radius: 50%; }
-
-        /* SETTINGS */
-        .settings-row { padding: 20px 0; border-bottom: 1px solid #efefef; }
-        .settings-label { font-weight: bold; display: block; margin-bottom: 10px; }
-
-        /* AUTH */
-        #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        .auth-box { width: 350px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; border-radius: 8px; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; font-family: inherit; font-size: 14px; }
-        button { background: #FF8C42; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; }
+        /* AUTH & PAGES */
+        #authPage { position: fixed; inset: 0; background: #FFF; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .auth-box { width: 350px; padding: 40px; border: 1px solid #DBDBDB; text-align: center; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #DBDBDB; border-radius: 3px; margin-bottom: 8px; background: #FAFAFA; font-size: 12px; }
+        button { background: #0095F6; color: white; border: none; padding: 7px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
         .page { display: none; width: 100%; }
     </style>
 </head>
@@ -52,15 +83,15 @@
             <input type="password" id="lPass" placeholder="Password">
             <input type="text" id="lName" placeholder="Full Name" style="display:none;">
             <button id="authBtn">Log In</button>
-            <button id="switchBtn" style="background:none; color:#0095f6; font-size:12px;">Don't have an account? Sign Up</button>
+            <button id="switchBtn" style="background:none; color:#0095f6; font-size:12px; margin-top:15px;">Don't have an account? Sign Up</button>
         </div>
     </div>
 
     <div id="sideBar" class="sidebar" style="display:none;">
         <div class="logo">Chatter Box</div>
         <div class="nav-item active" onclick="showPage('homePage', this)">🏠 Home</div>
-        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
         <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
+        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
         <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
         <div class="nav-item" onclick="showPage('settingsPage', this)">⚙️ Settings</div>
         <div id="logoutBtn" class="nav-item" style="margin-top:auto; color: #ed4956;">Logout</div>
@@ -70,46 +101,38 @@
         <div class="center-container">
             
             <div id="homePage" class="page">
-                <div class="feed-content">
-                    <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="What's happening?"></textarea>
-                        <input type="file" id="postImg" accept="image/*">
-                        <button id="sendPost">Post</button>
+                <div class="stories-container" id="storyList">
                     </div>
-                    <div id="postFeed"></div>
-                </div>
-            </div>
+                <input type="file" id="storyInput" accept="image/*" style="display:none;">
 
-            <div id="notifPage" class="page" style="padding:20px;">
-                <h3>Notifications</h3>
-                <div class="notif-item">
-                    <div class="notif-dot"></div>
-                    <div>Welcome to <b>Chatter Box</b>! Start posting today.</div>
+                <div style="border: 1px solid #DBDBDB; border-radius: 8px; padding: 15px; margin-bottom: 30px; max-width: 470px; margin-inline: auto;">
+                    <textarea id="postText" placeholder="What's on your mind?" style="height: 60px;"></textarea>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="file" id="postImg" style="font-size: 11px;">
+                        <button id="sendPost" style="width: 100px;">Post</button>
+                    </div>
                 </div>
+
+                <div id="postFeed"></div>
             </div>
 
             <div id="searchPage" class="page" style="padding:20px;">
                 <h3>Search</h3>
-                <input type="text" id="searchInput" placeholder="Search for users...">
-                <div id="searchResultsList"></div>
+                <input type="text" id="searchInput" placeholder="Search...">
+                <div id="searchResults"></div>
             </div>
 
+            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div>
+            
             <div id="profilePage" class="page" style="padding:40px;">
                 <h2 id="profName">User</h2>
-                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px; margin-top:20px;"></div>
+                <div id="myPostsGrid" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;"></div>
             </div>
 
             <div id="settingsPage" class="page" style="padding:40px;">
                 <h3>Settings</h3>
-                <div class="settings-row">
-                    <label class="settings-label">Update Name</label>
-                    <input type="text" id="updateNameInput" placeholder="Enter new name">
-                    <button id="saveSettingsBtn">Save Changes</button>
-                </div>
-                <div class="settings-row">
-                    <label class="settings-label">Account Privacy</label>
-                    <p style="font-size:12px; color:#666;">Profile is currently set to Public.</p>
-                </div>
+                <input type="text" id="updateNameInput">
+                <button id="saveSettingsBtn">Update Name</button>
             </div>
 
         </div>
@@ -137,28 +160,26 @@
         window.showPage = (id, el) => { 
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            const target = document.getElementById(id);
-            if(target) target.style.display = 'block'; 
+            document.getElementById(id).style.display = 'block'; 
             if(el) el.classList.add('active');
         };
 
-        // Auth Logic
+        // Auth
         document.getElementById('switchBtn').onclick = () => {
             isSignUp = !isSignUp;
             document.getElementById('lName').style.display = isSignUp ? 'block' : 'none';
-            document.getElementById('authBtn').innerText = isSignUp ? 'Create Account' : 'Log In';
+            document.getElementById('authBtn').innerText = isSignUp ? 'Sign Up' : 'Log In';
         };
 
         document.getElementById('authBtn').onclick = () => {
             const email = document.getElementById('lEmail').value;
             const pass = document.getElementById('lPass').value;
-            const name = document.getElementById('lName').value;
             if (isSignUp) {
                 createUserWithEmailAndPassword(auth, email, pass).then(u => {
-                    set(ref(db, 'users/' + u.user.uid), { name: name || "User", pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' });
-                }).catch(e => alert(e.message));
+                    set(ref(db, 'users/' + u.user.uid), { name: document.getElementById('lName').value || "User", pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' });
+                });
             } else {
-                signInWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
+                signInWithEmailAndPassword(auth, email, pass);
             }
         };
 
@@ -166,6 +187,7 @@
             if(u) {
                 document.getElementById('authPage').style.display = 'none'; 
                 document.getElementById('sideBar').style.display = 'flex';
+                showPage('homePage', document.querySelector('.nav-item.active'));
                 init(u);
             } else {
                 document.getElementById('authPage').style.display = 'flex';
@@ -189,64 +211,91 @@
         }
 
         function init(u) {
-            // Get user data
             onValue(ref(db, 'users/'+u.uid), s => { 
                 if(s.exists()){ 
                     myData = s.val(); 
                     document.getElementById('profName').innerText = myData.name;
-                    document.getElementById('updateNameInput').value = myData.name;
+                    loadStories(u);
                 } 
             });
 
-            // Settings Save
-            document.getElementById('saveSettingsBtn').onclick = () => {
-                const newName = document.getElementById('updateNameInput').value;
-                if(newName) {
-                    update(ref(db, 'users/'+u.uid), { name: newName }).then(() => alert("Profile updated!"));
-                }
-            };
-
-            // Post Loading
+            // FEED
             const postFeed = document.getElementById('postFeed');
             onChildAdded(ref(db, 'posts'), snap => {
                 const p = snap.val();
                 const card = document.createElement('div'); card.className = 'post-card';
                 card.innerHTML = `
-                    <div class="post-header">${p.sender}</div>
+                    <div class="post-header">
+                        <div style="width:32px; height:32px; border-radius:50%; background:#eee; background-image:url(${p.senderPfp || ''}); background-size:cover;"></div>
+                        ${p.sender}
+                    </div>
                     ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                    <div class="post-body">${p.text}</div>
+                    <div class="post-body"><span class="post-sender">${p.sender}</span>${p.text}</div>
                 `;
                 postFeed.prepend(card);
             });
 
-            // Post Function Fixed
             document.getElementById('sendPost').onclick = () => {
                 const text = document.getElementById('postText').value;
                 const file = document.getElementById('postImg').files[0];
                 const btn = document.getElementById('sendPost');
-
-                if(!text && !file) return alert("Write something!");
-
-                btn.innerText = "Posting...";
+                if(!text && !file) return;
                 btn.disabled = true;
 
                 const submit = (img64 = "") => {
-                    push(ref(db, 'posts'), {
-                        uid: u.uid,
-                        sender: myData.name,
-                        text: text,
-                        img: img64,
-                        ts: Date.now()
-                    }).then(() => {
+                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, senderPfp: myData.pfp, text: text, img: img64 }).then(() => {
                         document.getElementById('postText').value = "";
                         document.getElementById('postImg').value = "";
-                        btn.innerText = "Post";
                         btn.disabled = false;
                     });
                 };
+                if(file) compress(file, b64 => submit(b64)); else submit("");
+            };
 
-                if(file) compress(file, b64 => submit(b64));
-                else submit("");
+            // STORIES LOGIC
+            function loadStories(user) {
+                onValue(ref(db, 'stories'), snap => {
+                    const allStories = snap.val() || {};
+                    const storyList = document.getElementById('storyList');
+                    storyList.innerHTML = "";
+
+                    // Your Story Add Button
+                    const myStory = allStories[user.uid];
+                    const meDiv = document.createElement('div');
+                    meDiv.className = 'story-item';
+                    meDiv.innerHTML = `
+                        <div class="story-ring ${myStory ? '' : 'none'}">
+                            <div class="story-photo" style="background-image:url(${myData.pfp})">
+                                <div class="add-story-btn" onclick="document.getElementById('storyInput').click()">+</div>
+                            </div>
+                        </div>
+                        <span class="story-name">Your story</span>
+                    `;
+                    storyList.appendChild(meDiv);
+
+                    // Load others
+                    onValue(ref(db, 'users'), userSnap => {
+                        userSnap.forEach(uSnap => {
+                            const uid = uSnap.key;
+                            const userData = uSnap.val();
+                            if(uid !== user.uid && allStories[uid]) {
+                                const sDiv = document.createElement('div');
+                                sDiv.className = 'story-item';
+                                sDiv.innerHTML = `
+                                    <div class="story-ring">
+                                        <div class="story-photo" style="background-image:url(${userData.pfp})"></div>
+                                    </div>
+                                    <span class="story-name">${userData.name}</span>
+                                `;
+                                storyList.appendChild(sDiv);
+                            }
+                        });
+                    }, {onlyOnce: true});
+                });
+            }
+
+            document.getElementById('storyInput').onchange = (e) => {
+                if(e.target.files[0]) compress(e.target.files[0], b64 => set(ref(db, 'stories/'+u.uid), { img: b64, ts: Date.now() }));
             };
         }
     </script>
