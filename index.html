@@ -3,42 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Search Fixed</title>
+    <title>Chatter Box | Final Stable</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #fafafa; color: #262626; }
         
         /* AUTH */
         #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { border: 1px solid #dbdbdb; padding: 40px; background: white; width: 350px; text-align: center; }
+        .auth-box { border: 1px solid #dbdbdb; padding: 40px; background: white; width: 350px; text-align: center; border-radius: 8px; }
 
         /* SIDEBAR */
         .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: none; flex-direction: column; background: white; flex-shrink: 0; }
-        .logo { color: #FF8C42; font-size: 24px; font-weight: bold; margin-bottom: 30px; }
-        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; }
+        .logo { color: #FF8C42; font-size: 26px; font-weight: bold; margin-bottom: 30px; }
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; transition: 0.1s; }
         .nav-item:hover { background: #fafafa; }
         .nav-item.active { font-weight: bold; background: #efefef; }
 
-        /* MAIN CONTENT */
+        /* MAIN */
         .main { flex: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 470px; }
         .page { display: none; width: 100%; }
 
-        /* POST CARD */
+        /* POSTS */
         .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; border-bottom: 1px solid #efefef; }
-        .post-img { width: 100%; display: block; }
+        .post-img { width: 100%; display: block; background: #eee; }
         .post-body { padding: 12px; font-size: 14px; }
 
-        /* SEARCH RESULTS */
+        /* SEARCH */
         .search-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 8px; }
-        .user-info { display: flex; align-items: center; gap: 10px; font-weight: 600; }
-        .follow-btn { padding: 6px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .follow-btn.add { background: #0095f6; color: white; }
-        .follow-btn.remove { background: #efefef; color: black; }
+        .f-btn { padding: 7px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .f-btn.add { background: #0095f6; color: white; }
+        .f-btn.remove { background: #efefef; color: black; }
 
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 4px; }
-        button#auth-btn, button#post-btn { background: #0095f6; color: white; border: none; padding: 10px; cursor: pointer; font-weight: 600; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 6px; font-size: 14px; }
+        button#auth-btn { background: #0095f6; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -48,7 +47,7 @@
             <h1 style="color: #FF8C42;">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="auth-btn" style="width:100%;">Enter App</button>
+            <button id="auth-btn">Enter App</button>
         </div>
     </div>
 
@@ -57,16 +56,16 @@
         <div class="nav-item active" onclick="nav('home-page', this)">🏠 Home</div>
         <div class="nav-item" onclick="nav('search-page', this)">🔍 Search</div>
         <div class="nav-item" onclick="nav('profile-page', this)">👤 Profile</div>
-        <button id="logout-btn" style="margin-top:auto; background:#ed4956; color:white; border:none; padding:10px; border-radius:5px; cursor:pointer;">Sign Out</button>
+        <button id="logout-btn" style="margin-top:auto; background:#ed4956; color:white; border:none; padding:10px; border-radius:6px; cursor:pointer;">Sign Out</button>
     </div>
 
     <div class="main">
         <div class="container">
             <div id="home-page" class="page" style="display:block;">
                 <div style="background:white; border:1px solid #dbdbdb; border-radius:8px; padding:15px; margin-bottom:20px;">
-                    <textarea id="post-text" placeholder="Post something..." rows="2"></textarea>
+                    <textarea id="post-text" placeholder="What's happening?" rows="2"></textarea>
                     <input type="file" id="post-file" accept="image/*">
-                    <button id="post-btn" style="float:right;">Post</button>
+                    <button id="post-btn" style="float:right; background:#0095f6; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer;">Post</button>
                     <div style="clear:both;"></div>
                 </div>
                 <div id="feed"></div>
@@ -74,14 +73,14 @@
 
             <div id="search-page" class="page">
                 <h3>Find Friends</h3>
-                <input type="text" id="s-query" placeholder="Type a name to search...">
+                <input type="text" id="s-query" placeholder="Search by name...">
                 <div id="s-results"></div>
             </div>
 
             <div id="profile-page" class="page">
-                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
-                    <div id="p-pfp" style="width:80px; height:80px; border-radius:50%; background:#eee; background-size:cover;"></div>
-                    <h2 id="p-username">Username</h2>
+                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; background:white; padding:20px; border:1px solid #dbdbdb; border-radius:8px;">
+                    <div id="p-pfp" style="width:70px; height:70px; border-radius:50%; background:#eee; background-size:cover;"></div>
+                    <h2 id="p-username" style="margin:0;">User</h2>
                 </div>
                 <div id="p-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;"></div>
             </div>
@@ -91,7 +90,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, remove, onChildAdded, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, remove, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -106,15 +105,16 @@
         let user = null;
         let myName = "";
 
+        // NAV SYSTEM
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
             if(el) el.classList.add('active');
-            // Refresh search results if going to search page
-            if(id === 'search-page') document.getElementById('s-query').dispatchEvent(new Event('input'));
+            if(id === 'search-page') loadSearch();
         };
 
+        // AUTH
         document.getElementById('auth-btn').onclick = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
@@ -137,77 +137,76 @@
                     document.getElementById('p-pfp').style.backgroundImage = `url(${data ? data.pfp : ''})`;
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('side-nav').style.display = 'flex';
+                    initHome();
                 });
-                initApp();
             }
         });
 
-        function initApp() {
-            // SEARCH SYSTEM - FIXED
-            document.getElementById('s-query').oninput = (e) => {
-                const query = e.target.value.toLowerCase();
-                const resultsDiv = document.getElementById('s-results');
+        // SEARCH LOGIC - REWRITTEN
+        function loadSearch() {
+            const query = document.getElementById('s-query').value.toLowerCase();
+            const resultsDiv = document.getElementById('s-results');
+            
+            get(ref(db, 'users')).then(snap => {
+                resultsDiv.innerHTML = "";
+                if(!snap.exists()) return;
                 
-                if(!query) { resultsDiv.innerHTML = ""; return; }
-
-                get(ref(db, 'users')).then(snap => {
-                    resultsDiv.innerHTML = ""; // Clear old results
-                    snap.forEach(child => {
-                        const otherUser = child.val();
-                        if(child.key !== user.uid && otherUser.name.toLowerCase().includes(query)) {
-                            // Check if already following
-                            onValue(ref(db, `following/${user.uid}/${child.key}`), followed => {
-                                const isF = followed.exists();
-                                const item = document.createElement('div');
-                                item.className = 'search-item';
-                                item.innerHTML = `
-                                    <div class="user-info">
-                                        <div style="width:35px; height:35px; border-radius:50%; background:#eee; background-image:url(${otherUser.pfp}); background-size:cover;"></div>
-                                        <span>${otherUser.name}</span>
-                                    </div>
-                                    <button class="follow-btn ${isF?'remove':'add'}" onclick="window.toggleFollow('${child.key}', ${isF})">
-                                        ${isF ? 'Unfollow' : 'Follow'}
-                                    </button>
-                                `;
-                                resultsDiv.appendChild(item);
-                            }, {onlyOnce: true});
-                        }
-                    });
+                snap.forEach(child => {
+                    const uData = child.val();
+                    if(child.key !== user.uid && uData.name.toLowerCase().includes(query)) {
+                        // Check following status
+                        get(ref(db, `following/${user.uid}/${child.key}`)).then(isFollowing => {
+                            const active = isFollowing.exists();
+                            const div = document.createElement('div');
+                            div.className = 'search-item';
+                            div.innerHTML = `
+                                <b>${uData.name}</b>
+                                <button class="f-btn ${active?'remove':'add'}" onclick="window.toggleFollow('${child.key}', ${active})">
+                                    ${active ? 'Unfollow' : 'Follow'}
+                                </button>
+                            `;
+                            resultsDiv.appendChild(div);
+                        });
+                    }
                 });
-            };
+            });
+        }
+        document.getElementById('s-query').oninput = loadSearch;
 
-            // HOME FEED
+        window.toggleFollow = (tid, active) => {
+            if(active) remove(ref(db, `following/${user.uid}/${tid}`));
+            else set(ref(db, `following/${user.uid}/${tid}`), true);
+            setTimeout(loadSearch, 200); // Reload list after change
+        };
+
+        // HOME FEED
+        function initHome() {
             document.getElementById('post-btn').onclick = () => {
                 const text = document.getElementById('post-text').value;
                 const file = document.getElementById('post-file').files[0];
-                const send = (img = "") => {
+                const pushPost = (img = "") => {
                     if(!text && !img) return;
-                    push(ref(db, 'posts'), { uid: user.uid, name: myName, text, img, time: Date.now() });
+                    push(ref(db, 'posts'), { name: myName, text, img, time: Date.now() });
                     document.getElementById('post-text').value = "";
-                    document.getElementById('post-file').value = "";
                 };
-                if(file) { const r = new FileReader(); r.onload = () => send(r.result); r.readAsDataURL(file); } else send();
+                if(file) { const r = new FileReader(); r.onload = () => pushPost(r.result); r.readAsDataURL(file); } else pushPost();
             };
 
-            onChildAdded(ref(db, 'posts'), snap => {
-                const p = snap.val();
-                const card = document.createElement('div');
-                card.className = 'post-card';
-                card.innerHTML = `
-                    <div class="post-header"><b>${p.name || 'User'}</b></div>
-                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                    <div class="post-body"><b>${p.name}</b> ${p.text}</div>
-                `;
-                document.getElementById('feed').prepend(card);
+            onValue(ref(db, 'posts'), snap => {
+                const feed = document.getElementById('feed');
+                feed.innerHTML = "";
+                if(snap.exists()) {
+                    let posts = [];
+                    snap.forEach(p => { posts.push(p.val()); });
+                    posts.reverse().forEach(p => {
+                        const card = document.createElement('div');
+                        card.className = 'post-card';
+                        card.innerHTML = `<div class="post-header">${p.name}</div>${p.img ? `<img src="${p.img}" class="post-img">` : ''}<div class="post-body"><b>${p.name}</b> ${p.text}</div>`;
+                        feed.appendChild(card);
+                    });
+                }
             });
         }
-
-        window.toggleFollow = (targetId, isFollowing) => {
-            if(isFollowing) remove(ref(db, `following/${user.uid}/${targetId}`));
-            else set(ref(db, `following/${user.uid}/${targetId}`), true);
-            // Instant refresh of the list
-            document.getElementById('s-query').dispatchEvent(new Event('input'));
-        };
     </script>
 </body>
 </html>
