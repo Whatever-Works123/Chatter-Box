@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Search Fixed</title>
+    <title>Chatter Box | Stories Active</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FFF; color: #000; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -23,27 +23,29 @@
         .stories-container { display: flex; gap: 15px; padding: 10px 0 20px; overflow-x: auto; border-bottom: 1px solid #efefef; margin-bottom: 20px; }
         .story-item { display: flex; flex-direction: column; align-items: center; min-width: 74px; cursor: pointer; }
         .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); display: flex; justify-content: center; align-items: center; }
+        .story-ring.watched { background: #dbdbdb; } /* Gray ring if no new story */
         .story-pfp { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; background-color: #eee; position: relative; }
         .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; border: 2px solid white; display: flex; align-items: center; justify-content: center; }
+        .story-name { font-size: 11px; margin-top: 5px; color: #262626; width: 70px; text-align: center; overflow: hidden; text-overflow: ellipsis; }
 
-        /* SEARCH RESULTS */
+        /* STORY VIEWER OVERLAY */
+        #storyViewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; justify-content: center; align-items: center; flex-direction: column; }
+        #storyViewer img { max-height: 80vh; max-width: 90vw; border-radius: 8px; border: 1px solid #333; }
+        .story-progress { width: 300px; height: 3px; background: #555; margin-bottom: 20px; position: relative; }
+        #progressBar { width: 0%; height: 100%; background: white; transition: linear; }
+
+        /* SEARCH & FEED (Same as before) */
         .search-result-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #efefef; }
         .search-pfp { width: 44px; height: 44px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #dbdbdb; }
         .follow-btn { margin-left: auto; width: auto !important; padding: 6px 16px; font-size: 13px; background: #0095F6; border-radius: 8px; color: white; border: none; font-weight: 600; cursor: pointer; }
         .follow-btn.following { background: #efefef; color: black; }
-
-        /* FEED */
         .post-card { border-bottom: 1px solid #DBDBDB; margin-bottom: 30px; width: 470px; margin-inline: auto; padding-bottom: 15px; }
         .insta-ring-small { width: 42px; height: 42px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #bc1888); display: flex; justify-content: center; align-items: center; }
         .pfp-small { width: 34px; height: 34px; border-radius: 50%; border: 2px solid white; background-size: cover; }
-
-        /* PROFILE */
         .profile-header { display: flex; align-items: center; gap: 80px; margin-bottom: 44px; }
         .profile-pfp { width: 150px; height: 150px; border-radius: 50%; border: 1px solid #dbdbdb; background-size: cover; background-position: center; }
         .my-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
         .grid-post { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #fafafa; }
-
-        /* UI */
         input, textarea { width: 100%; padding: 10px; border: 1px solid #DBDBDB; border-radius: 4px; margin-bottom: 10px; }
         button { background: #0095F6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .page { display: none; width: 100%; }
@@ -51,6 +53,12 @@
     </style>
 </head>
 <body>
+
+    <div id="storyViewer" onclick="this.style.display='none'">
+        <div class="story-progress"><div id="progressBar"></div></div>
+        <img id="viewingImg" src="">
+        <p id="viewingName" style="color:white; font-weight:bold; margin-top:15px;"></p>
+    </div>
 
     <div id="authPage">
         <div style="width: 350px; text-align: center; border: 1px solid #dbdbdb; padding: 40px; border-radius: 8px;">
@@ -77,6 +85,8 @@
         <div class="center-container">
             <div id="homePage" class="page">
                 <div class="stories-container" id="storyList"></div>
+                <input type="file" id="storyInput" accept="image/*" style="display:none;">
+
                 <div style="max-width: 470px; margin: 0 auto; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <textarea id="postText" placeholder="What's on your mind?"></textarea>
                     <input type="file" id="postImg">
@@ -137,14 +147,9 @@
             if(el) el.classList.add('active');
         };
 
-        // Toggle Follow Logic (Global)
         window.tFollow = async (tid, isF, uid) => {
-            if(isF) {
-                await remove(ref(db, `following/${uid}/${tid}`));
-            } else {
-                await set(ref(db, `following/${uid}/${tid}`), true);
-            }
-            // Trigger refresh
+            if(isF) await remove(ref(db, `following/${uid}/${tid}`));
+            else await set(ref(db, `following/${uid}/${tid}`), true);
             document.getElementById('searchInput').dispatchEvent(new Event('input'));
         };
 
@@ -193,7 +198,6 @@
         }
 
         function init(u) {
-            // Load My Profile
             onValue(ref(db, 'users/'+u.uid), s => { 
                 if(s.exists()){ 
                     myData = s.val(); 
@@ -204,11 +208,22 @@
                 } 
             });
 
-            // Search Logic
+            // STORY UPLOAD
+            document.getElementById('storyInput').onchange = (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    compress(file, b64 => {
+                        set(ref(db, `stories/${u.uid}`), { img: b64, name: myData.name, time: Date.now() })
+                        .then(() => alert("Story posted!"));
+                    });
+                }
+            };
+
+            // SEARCH
             const sInput = document.getElementById('searchInput');
-            const sResults = document.getElementById('searchResults');
             sInput.oninput = () => {
                 const term = sInput.value.toLowerCase().trim();
+                const sResults = document.getElementById('searchResults');
                 sResults.innerHTML = "";
                 onValue(ref(db, 'users'), snap => {
                     snap.forEach(child => {
@@ -218,21 +233,16 @@
                                 const isF = fSnap.exists();
                                 const item = document.createElement('div');
                                 item.className = 'search-result-item';
-                                item.innerHTML = `
-                                    <div class="search-pfp" style="background-image:url(${user.pfp})"></div>
-                                    <div><b>${user.name}</b></div>
-                                    <button class="follow-btn ${isF?'following':''}" onclick="tFollow('${child.key}', ${isF}, '${u.uid}')">
-                                        ${isF ? 'Following' : 'Follow'}
-                                    </button>`;
+                                item.innerHTML = `<div class="search-pfp" style="background-image:url(${user.pfp})"></div><div><b>${user.name}</b></div><button class="follow-btn ${isF?'following':''}" onclick="tFollow('${child.key}', ${isF}, '${u.uid}')">${isF ? 'Following' : 'Follow'}</button>`;
                                 sResults.appendChild(item);
                             }, {onlyOnce: true});
                         }
                     });
                 }, {onlyOnce: true});
             };
-            sInput.dispatchEvent(new Event('input')); // Initial load of users
+            sInput.dispatchEvent(new Event('input'));
 
-            // Feed & Posts
+            // FEED
             onChildAdded(ref(db, 'posts'), snap => {
                 const p = snap.val();
                 const card = document.createElement('div'); card.className = 'post-card';
@@ -252,17 +262,45 @@
             };
         }
 
+        // STORY VIEWER LOGIC
+        window.openStory = (img, name) => {
+            const viewer = document.getElementById('storyViewer');
+            const bar = document.getElementById('progressBar');
+            document.getElementById('viewingImg').src = img;
+            document.getElementById('viewingName').innerText = name;
+            viewer.style.display = 'flex';
+            bar.style.width = '0%';
+            setTimeout(() => bar.style.transition = '5s', 10);
+            setTimeout(() => bar.style.width = '100%', 50);
+            setTimeout(() => viewer.style.display = 'none', 5050);
+        };
+
         function loadStories(u) {
-            onValue(ref(db, `following/${u.uid}`), (fs) => {
+            onValue(ref(db, 'stories'), (allStories) => {
                 const list = document.getElementById('storyList');
-                list.innerHTML = `<div class="story-item"><div class="story-ring" style="background:#dbdbdb;"><div class="story-pfp" style="background-image:url(${myData.pfp})"><div class="add-plus">+</div></div></div><span class="story-name">Your Story</span></div>`;
-                if(fs.exists()) {
-                    Object.keys(fs.val()).forEach(id => {
-                        onValue(ref(db, `users/${id}`), us => {
-                            if(us.exists()) list.innerHTML += `<div class="story-item"><div class="story-ring"><div class="story-pfp" style="background-image:url(${us.val().pfp})"></div></div><span class="story-name">${us.val().name}</span></div>`;
-                        }, {onlyOnce: true});
+                list.innerHTML = `<div class="story-item" onclick="document.getElementById('storyInput').click()">
+                    <div class="story-ring" style="background:#dbdbdb;">
+                        <div class="story-pfp" style="background-image:url(${myData.pfp})"><div class="add-plus">+</div></div>
+                    </div><span class="story-name">Your Story</span></div>`;
+                
+                onValue(ref(db, `following/${u.uid}`), (followingSnap) => {
+                    const followingIds = followingSnap.val() ? Object.keys(followingSnap.val()) : [];
+                    allStories.forEach(sSnap => {
+                        const sid = sSnap.key;
+                        const sData = sSnap.val();
+                        // Only show stories of people you follow
+                        if(followingIds.includes(sid)) {
+                            onValue(ref(db, `users/${sid}`), uSnap => {
+                                const user = uSnap.val();
+                                const div = document.createElement('div');
+                                div.className = 'story-item';
+                                div.onclick = () => openStory(sData.img, user.name);
+                                div.innerHTML = `<div class="story-ring"><div class="story-pfp" style="background-image:url(${user.pfp})"></div></div><span class="story-name">${user.name}</span>`;
+                                list.appendChild(div);
+                            }, {onlyOnce: true});
+                        }
                     });
-                }
+                });
             });
         }
     </script>
