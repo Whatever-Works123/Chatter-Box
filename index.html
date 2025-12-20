@@ -3,11 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Full Fix</title>
+    <title>Chatter Box | Social</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
         
+        /* AUTH SCREEN */
+        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .auth-box { text-align:center; width:350px; border:1px solid #dbdbdb; padding:40px; background: white; }
+        .auth-switch { margin-top: 20px; font-size: 14px; cursor: pointer; color: #0095f6; font-weight: 600; }
+
         /* SIDEBAR */
         .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: none; flex-direction: column; background: white; flex-shrink: 0; }
         .logo { font-size: 26px; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; color: #FF8C42; cursor: pointer; }
@@ -15,19 +20,18 @@
         .nav-item:hover { background: #fafafa; }
         .nav-item.active { font-weight: bold; }
 
-        /* MAIN AREA */
+        /* MAIN */
         .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
         .container { width: 100%; max-width: 935px; padding: 30px 20px; }
         .page { display: none; width: 100%; }
 
         /* POSTS */
-        .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin: 0 auto 20px; max-width: 470px; overflow: hidden; }
+        .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin: 0 auto 20px; max-width: 470px; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #efefef; }
         .avatar-small { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; background-color: #eee; }
-        .post-img { width: 100%; display: block; background: #fafafa; }
+        .post-img { width: 100%; display: block; }
         .post-footer { padding: 12px; font-size: 14px; }
         .timestamp { color: #8e8e8e; font-size: 12px; margin-left: 8px; }
-        .clickable-name { cursor: pointer; font-weight: 600; }
 
         /* PROFILE */
         .profile-header { display: flex; align-items: center; margin-bottom: 44px; padding: 0 40px; }
@@ -35,23 +39,23 @@
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; border-top: 1px solid #dbdbdb; padding-top: 20px; }
         .grid-item { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; border: 1px solid #efefef; }
 
-        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        /* BUTTONS/INPUTS */
         input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 4px; font-family: inherit; }
         .btn-blue { background: #0095f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-grey { background: #efefef; color: black; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        
         #edit-form { display: none; margin-top: 10px; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; background: #fafafa; }
-        .pfp-upload-label { color: #0095f6; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
-        <div style="text-align:center; width:350px; border:1px solid #dbdbdb; padding:40px;">
+        <div class="auth-box">
             <h1 style="color:#FF8C42; font-style: italic;">Chatter Box</h1>
+            <p id="auth-title" style="color: #8e8e8e;">Log in to see photos and videos from your friends.</p>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="auth-btn" class="btn-blue" style="width:100%">Enter</button>
+            <button id="auth-btn" class="btn-blue" style="width:100%">Log In</button>
+            <div class="auth-switch" id="auth-toggle">Don't have an account? Sign Up</div>
         </div>
     </div>
 
@@ -65,11 +69,10 @@
 
     <div class="main">
         <div class="container">
-            
             <div id="home-page" class="page" style="display:block;">
                 <div style="max-width:470px; margin: 0 auto 30px; border:1px solid #dbdbdb; padding:15px; border-radius:8px;">
                     <textarea id="post-text" placeholder="What's on your mind?" rows="2"></textarea>
-                    <input type="file" id="post-file" accept="image/*" style="font-size: 12px; margin-bottom: 10px;">
+                    <input type="file" id="post-file" accept="image/*" style="font-size: 11px;">
                     <button id="post-btn" class="btn-blue" style="float:right;">Post</button>
                     <div style="clear:both;"></div>
                 </div>
@@ -77,8 +80,7 @@
             </div>
 
             <div id="search-page" class="page">
-                <h3>Search Users</h3>
-                <input type="text" id="s-query" placeholder="Type a username...">
+                <input type="text" id="s-query" placeholder="Search for people...">
                 <div id="s-results" style="margin-top: 20px;"></div>
             </div>
 
@@ -90,28 +92,26 @@
                             <h2 id="p-username" style="font-weight:300; margin:0;">Username</h2>
                             <div id="p-btn-container"></div>
                         </div>
-                        <div id="p-bio" style="font-size:14px; margin-bottom:10px;">Welcome to my profile!</div>
-                        
+                        <div id="p-bio" style="font-size:14px;"></div>
                         <div id="edit-form">
-                            <label class="pfp-upload-label" for="pfp-input">📸 Change Profile Photo</label>
+                            <label for="pfp-input" style="color:#0095f6; cursor:pointer; font-weight:bold; display:block; margin-bottom:10px;">Change Photo</label>
                             <input type="file" id="pfp-input" accept="image/*" style="display:none;">
                             <input type="text" id="edit-name-in" placeholder="Username">
-                            <textarea id="edit-bio-in" placeholder="Write a short bio..."></textarea>
-                            <button class="btn-blue" onclick="saveProfile()">Save Changes</button>
+                            <textarea id="edit-bio-in" placeholder="Bio"></textarea>
+                            <button class="btn-blue" onclick="saveProfile()">Save</button>
                             <button class="btn-grey" onclick="toggleEdit(false)">Cancel</button>
                         </div>
                     </div>
                 </div>
                 <div id="p-grid" class="photo-grid"></div>
             </div>
-
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -123,36 +123,25 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        let isSignUp = false;
 
-        function timeAgo(date) {
-            const seconds = Math.floor((new Date() - date) / 1000);
-            if (seconds < 60) return "just now";
-            const i = Math.floor(seconds / 60);
-            if (i < 60) return i + "m";
-            const h = Math.floor(i / 60);
-            if (h < 24) return h + "h";
-            return Math.floor(h / 24) + "d";
-        }
-
-        window.nav = (id, el) => {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).style.display = 'block';
-            if(el) el.classList.add('active'); else document.getElementById('nav-home').classList.add('active');
-            if(id === 'profile-page') viewProfile(auth.currentUser.uid);
+        // AUTH TOGGLE
+        document.getElementById('auth-toggle').onclick = () => {
+            isSignUp = !isSignUp;
+            document.getElementById('auth-btn').innerText = isSignUp ? "Sign Up" : "Log In";
+            document.getElementById('auth-toggle').innerText = isSignUp ? "Have an account? Log In" : "Don't have an account? Sign Up";
+            document.getElementById('auth-title').innerText = isSignUp ? "Sign up to see photos from your friends." : "Log in to see photos and videos from your friends.";
         };
 
         document.getElementById('auth-btn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(() => {
+            if(isSignUp) {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { 
-                        name: e.split('@')[0], 
-                        pfp: 'https://i.pravatar.cc/150', 
-                        bio: "New to Chatter Box!" 
-                    });
-                });
-            });
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "New member!" });
+                }).catch(err => alert(err.message));
+            } else {
+                signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+            }
         };
 
         document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
@@ -165,13 +154,33 @@
             }
         });
 
+        window.nav = (id, el) => {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(id).style.display = 'block';
+            if(el) el.classList.add('active');
+            if(id === 'profile-page') viewProfile(auth.currentUser.uid);
+        };
+
+        // FOLLOW LOGIC
+        window.toggleFollow = (targetUid) => {
+            const myUid = auth.currentUser.uid;
+            const followRef = ref(db, `users/${myUid}/following/${targetUid}`);
+            get(followRef).then(snap => {
+                if(snap.exists()) {
+                    remove(followRef);
+                } else {
+                    set(followRef, true);
+                }
+            });
+        };
+
         window.viewProfile = (uid) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('profile-page').style.display = 'block';
             toggleEdit(false);
 
             onValue(ref(db, 'users/' + uid), snap => {
-                if(!snap.exists()) return;
                 const d = snap.val();
                 document.getElementById('p-username').innerText = d.name;
                 document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
@@ -180,10 +189,12 @@
                 const btnArea = document.getElementById('p-btn-container');
                 if(uid === auth.currentUser.uid) {
                     btnArea.innerHTML = `<button class="btn-grey" onclick="toggleEdit(true)">Edit Profile</button>`;
-                    document.getElementById('edit-name-in').value = d.name;
-                    document.getElementById('edit-bio-in').value = d.bio || "";
                 } else {
-                    btnArea.innerHTML = `<button class="btn-blue">Follow</button>`;
+                    // Check if following
+                    onValue(ref(db, `users/${auth.currentUser.uid}/following/${uid}`), fSnap => {
+                        const isFollowing = fSnap.exists();
+                        btnArea.innerHTML = `<button class="${isFollowing?'btn-grey':'btn-blue'}" onclick="toggleFollow('${uid}')">${isFollowing?'Following':'Follow'}</button>`;
+                    });
                 }
             });
 
@@ -208,96 +219,56 @@
 
         window.saveProfile = () => {
             const file = document.getElementById('pfp-input').files[0];
-            const name = document.getElementById('edit-name-in').value;
-            const bio = document.getElementById('edit-bio-in').value;
-
-            const runUpdate = (pfpBase64 = null) => {
-                const updates = { name, bio };
-                if(pfpBase64) updates.pfp = pfpBase64;
+            const updates = { name: document.getElementById('edit-name-in').value, bio: document.getElementById('edit-bio-in').value };
+            const run = (pfp = null) => {
+                if(pfp) updates.pfp = pfp;
                 update(ref(db, 'users/' + auth.currentUser.uid), updates).then(() => toggleEdit(false));
             };
-
-            if(file) {
-                const r = new FileReader();
-                r.onload = () => runUpdate(r.result);
-                r.readAsDataURL(file);
-            } else { runUpdate(); }
+            if(file) { const r = new FileReader(); r.onload = () => run(r.result); r.readAsDataURL(file); } else run();
         };
 
         function initApp() {
-            // Live Feed
             onValue(ref(db, 'posts'), snap => {
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
                 let posts = [];
-                snap.forEach(c => posts.push(c.val()));
+                snap.forEach(c => posts.push({id: c.key, ...c.val()}));
                 posts.reverse().forEach(p => {
-                    // Fetch poster's PFP
-                    get(ref(db, 'users/' + p.uid)).then(userSnap => {
-                        const userData = userSnap.val();
+                    get(ref(db, 'users/' + p.uid)).then(uSnap => {
+                        const u = uSnap.val();
                         const card = document.createElement('div');
                         card.className = 'post-card';
                         card.innerHTML = `
                             <div class="post-header">
-                                <div class="avatar-small" style="background-image:url(${userData.pfp})"></div>
-                                <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b>
+                                <div class="avatar-small" style="background-image:url(${u.pfp})"></div>
+                                <b class="clickable-name" onclick="viewProfile('${p.uid}')">${u.name}</b>
                             </div>
                             ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                            <div class="post-footer">
-                                <b>${p.name}</b> ${p.text}
-                                <span class="timestamp">${timeAgo(p.time)}</span>
-                            </div>
+                            <div class="post-footer"><b>${u.name}</b> ${p.text}</div>
                         `;
                         feed.appendChild(card);
                     });
                 });
             });
 
-            // Post Action
             document.getElementById('post-btn').onclick = () => {
-                const text = document.getElementById('post-text').value;
-                const file = document.getElementById('post-file').files[0];
-                if(!text && !file) return;
-
-                const upload = (imgStr = "") => {
-                    get(ref(db, 'users/' + auth.currentUser.uid)).then(s => {
-                        push(ref(db, 'posts'), {
-                            uid: auth.currentUser.uid,
-                            name: s.val().name,
-                            text: text,
-                            img: imgStr,
-                            time: Date.now()
-                        });
-                        document.getElementById('post-text').value = "";
-                        document.getElementById('post-file').value = "";
-                    });
+                const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
+                const upload = (img = "") => {
+                    push(ref(db, 'posts'), { uid: auth.currentUser.uid, text, img, time: Date.now() });
+                    document.getElementById('post-text').value = ""; document.getElementById('post-file').value = "";
                 };
-
-                if(file) {
-                    const r = new FileReader();
-                    r.onload = () => upload(r.result);
-                    r.readAsDataURL(file);
-                } else { upload(); }
+                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else if(text) upload();
             };
 
-            // Search Action
             document.getElementById('s-query').oninput = (e) => {
-                const q = e.target.value.toLowerCase();
-                const res = document.getElementById('s-results');
+                const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
                 if(!q) { res.innerHTML = ""; return; }
-                
                 get(ref(db, 'users')).then(snap => {
                     res.innerHTML = "";
                     snap.forEach(c => {
-                        if(c.val().name.toLowerCase().includes(q)) {
-                            const div = document.createElement('div');
-                            div.style = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee; cursor:pointer;";
-                            div.onclick = () => viewProfile(c.key);
-                            div.innerHTML = `
-                                <div class="avatar-small" style="background-image:url(${c.val().pfp})"></div>
-                                <b>${c.val().name}</b>
-                            `;
-                            res.appendChild(div);
+                        if(c.val().name.toLowerCase().includes(q) && c.key !== auth.currentUser.uid) {
+                            res.innerHTML += `<div style="display:flex; align-items:center; gap:10px; padding:10px; cursor:pointer;" onclick="viewProfile('${c.key}')">
+                                <div class="avatar-small" style="background-image:url(${c.val().pfp})"></div><b>${c.val().name}</b></div>`;
                         }
                     });
                 });
