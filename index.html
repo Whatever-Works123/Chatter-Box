@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Edit Profile</title>
+    <title>Chatter Box | Fixed & Functional</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
         
         /* SIDEBAR */
         .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: none; flex-direction: column; background: white; flex-shrink: 0; }
-        .logo { font-size: 26px; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; color: #FF8C42; }
+        .logo { font-size: 26px; font-weight: bold; margin: 20px 0 40px 10px; font-style: italic; color: #FF8C42; cursor: pointer; }
         .nav-item { padding: 15px 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 15px; transition: 0.2s; font-size: 16px; }
         .nav-item:hover { background: #fafafa; }
         .nav-item.active { font-weight: bold; }
@@ -39,7 +39,6 @@
         .btn-blue { background: #0095f6; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .btn-grey { background: #efefef; color: black; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
-        /* EDIT MODAL/FORM */
         #edit-form { display: none; margin-top: 10px; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; background: #fafafa; }
     </style>
 </head>
@@ -50,15 +49,15 @@
             <h1 style="color:#FF8C42; font-style: italic;">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="auth-btn" class="btn-blue" style="width:100%">Log In / Sign Up</button>
+            <button id="auth-btn" class="btn-blue" style="width:100%">Enter</button>
         </div>
     </div>
 
     <div id="side-nav" class="sidebar">
-        <div class="logo">Chatter Box</div>
-        <div class="nav-item active" onclick="nav('home-page', this)">🏠 Home</div>
-        <div class="nav-item" onclick="nav('search-page', this)">🔍 Search</div>
-        <div class="nav-item" onclick="nav('profile-page', this)">👤 Profile</div>
+        <div class="logo" onclick="nav('home-page')">Chatter Box</div>
+        <div class="nav-item active" id="nav-home" onclick="nav('home-page', this)">🏠 Home</div>
+        <div class="nav-item" id="nav-search" onclick="nav('search-page', this)">🔍 Search</div>
+        <div class="nav-item" id="nav-profile" onclick="nav('profile-page', this)">👤 Profile</div>
         <button id="logout-btn" style="margin-top:auto; background:none; border:none; color:#ed4956; cursor:pointer; text-align:left;">Logout</button>
     </div>
 
@@ -67,7 +66,7 @@
             
             <div id="home-page" class="page" style="display:block;">
                 <div style="max-width:470px; margin: 0 auto 30px; border:1px solid #dbdbdb; padding:15px; border-radius:8px;">
-                    <textarea id="post-text" placeholder="Write a caption..." rows="2"></textarea>
+                    <textarea id="post-text" placeholder="What's happening?" rows="2"></textarea>
                     <input type="file" id="post-file" accept="image/*">
                     <button id="post-btn" class="btn-blue" style="float:right;">Post</button>
                     <div style="clear:both;"></div>
@@ -76,8 +75,7 @@
             </div>
 
             <div id="search-page" class="page">
-                <h3>Search People</h3>
-                <input type="text" id="s-query" placeholder="Type a name...">
+                <input type="text" id="s-query" placeholder="Search users...">
                 <div id="s-results"></div>
             </div>
 
@@ -89,17 +87,13 @@
                             <h2 id="p-username" style="font-weight:300; margin:0;">Username</h2>
                             <div id="p-btn-container"></div>
                         </div>
-                        <div style="margin-bottom:10px;"><b id="count-posts">0</b> posts</div>
-                        <div id="p-bio" style="font-size:14px; white-space: pre-wrap;">Welcome to my profile!</div>
+                        <div id="p-bio" style="font-size:14px; margin-bottom:10px;">Welcome!</div>
                         
                         <div id="edit-form">
-                            <label style="font-size:12px; font-weight:bold;">New Username</label>
-                            <input type="text" id="edit-name-in">
-                            <label style="font-size:12px; font-weight:bold;">Bio</label>
-                            <textarea id="edit-bio-in" rows="2"></textarea>
-                            <label style="font-size:12px; font-weight:bold;">Profile Picture URL</label>
-                            <input type="text" id="edit-pfp-in" placeholder="https://image-url.com">
-                            <button class="btn-blue" onclick="saveProfile()">Save Changes</button>
+                            <input type="text" id="edit-name-in" placeholder="Username">
+                            <textarea id="edit-bio-in" placeholder="Bio"></textarea>
+                            <input type="text" id="edit-pfp-in" placeholder="PFP URL">
+                            <button class="btn-blue" onclick="saveProfile()">Save</button>
                             <button class="btn-grey" onclick="toggleEdit(false)">Cancel</button>
                         </div>
                     </div>
@@ -140,7 +134,7 @@
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
-            if(el) el.classList.add('active');
+            if(el) el.classList.add('active'); else document.getElementById('nav-home').classList.add('active');
             if(id === 'profile-page') viewProfile(auth.currentUser.uid);
         };
 
@@ -148,11 +142,7 @@
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { 
-                        name: e.split('@')[0], 
-                        pfp: 'https://i.pravatar.cc/150?u='+res.user.uid,
-                        bio: "New to Chatter Box!" 
-                    });
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Hey there!" });
                 });
             });
         };
@@ -163,17 +153,17 @@
             if(u) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
-                startGlobalListeners();
+                startApp();
             }
         });
 
-        // VIEW PROFILE
         window.viewProfile = (uid) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('profile-page').style.display = 'block';
             toggleEdit(false);
 
             onValue(ref(db, 'users/' + uid), snap => {
+                if(!snap.exists()) return;
                 const d = snap.val();
                 document.getElementById('p-username').innerText = d.name;
                 document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
@@ -182,7 +172,6 @@
                 const btnArea = document.getElementById('p-btn-container');
                 if(uid === auth.currentUser.uid) {
                     btnArea.innerHTML = `<button class="btn-grey" onclick="toggleEdit(true)">Edit Profile</button>`;
-                    // Pre-fill edit inputs
                     document.getElementById('edit-name-in').value = d.name;
                     document.getElementById('edit-bio-in').value = d.bio || "";
                     document.getElementById('edit-pfp-in').value = d.pfp;
@@ -194,60 +183,43 @@
             onValue(ref(db, 'posts'), snap => {
                 const grid = document.getElementById('p-grid');
                 grid.innerHTML = "";
-                let count = 0;
                 snap.forEach(p => {
                     if(p.val().uid === uid && p.val().img) {
-                        count++;
                         const div = document.createElement('div');
                         div.className = 'grid-item';
                         div.style.backgroundImage = `url(${p.val().img})`;
                         grid.prepend(div);
                     }
                 });
-                document.getElementById('count-posts').innerText = count;
             });
         };
 
-        // EDIT PROFILE LOGIC
-        window.toggleEdit = (show) => {
-            document.getElementById('edit-form').style.display = show ? 'block' : 'none';
-            document.getElementById('p-bio').style.display = show ? 'none' : 'block';
+        window.toggleEdit = (s) => {
+            document.getElementById('edit-form').style.display = s ? 'block' : 'none';
+            document.getElementById('p-bio').style.display = s ? 'none' : 'block';
         };
 
         window.saveProfile = () => {
-            const newName = document.getElementById('edit-name-in').value;
-            const newBio = document.getElementById('edit-bio-in').value;
-            const newPfp = document.getElementById('edit-pfp-in').value;
-
             update(ref(db, 'users/' + auth.currentUser.uid), {
-                name: newName,
-                bio: newBio,
-                pfp: newPfp
-            }).then(() => {
-                toggleEdit(false);
-                alert("Profile Updated!");
-            });
+                name: document.getElementById('edit-name-in').value,
+                bio: document.getElementById('edit-bio-in').value,
+                pfp: document.getElementById('edit-pfp-in').value
+            }).then(() => toggleEdit(false));
         };
 
-        function startGlobalListeners() {
+        function startApp() {
             onValue(ref(db, 'posts'), snap => {
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
-                if(!snap.exists()) return;
                 let posts = [];
-                snap.forEach(child => { posts.push({id: child.key, ...child.val()}) });
+                snap.forEach(c => posts.push(c.val()));
                 posts.reverse().forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
                     card.innerHTML = `
-                        <div class="post-header">
-                            <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b>
-                        </div>
+                        <div class="post-header"><b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b></div>
                         ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                        <div class="post-footer">
-                            <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b> ${p.text}
-                            <span class="timestamp">${timeAgo(p.time)}</span>
-                        </div>
+                        <div class="post-footer"><b>${p.name}</b> ${p.text} <span class="timestamp">${timeAgo(p.time)}</span></div>
                     `;
                     feed.appendChild(card);
                 });
@@ -255,21 +227,14 @@
 
             document.getElementById('post-btn').onclick = () => {
                 const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
-                if(!text && !file) return;
                 const upload = (imgStr = "") => {
                     get(ref(db, 'users/' + auth.currentUser.uid)).then(s => {
-                        push(ref(db, 'posts'), {
-                            uid: auth.currentUser.uid,
-                            name: s.val().name,
-                            text: text,
-                            img: imgStr,
-                            time: Date.now()
-                        });
+                        push(ref(db, 'posts'), { uid: auth.currentUser.uid, name: s.val().name, text, img: imgStr, time: Date.now() });
                         document.getElementById('post-text').value = "";
                         document.getElementById('post-file').value = "";
                     });
                 };
-                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else upload();
+                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else if(text) upload();
             };
         }
 
