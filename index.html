@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Final Stable</title>
+    <title>Chatter Box | Profile Working</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #fafafa; color: #262626; }
@@ -19,25 +19,33 @@
         .nav-item:hover { background: #fafafa; }
         .nav-item.active { font-weight: bold; background: #efefef; }
 
-        /* MAIN */
+        /* MAIN AREA */
         .main { flex: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 470px; }
+        .container { width: 100%; max-width: 600px; }
         .page { display: none; width: 100%; }
 
-        /* POSTS */
+        /* FEED & POSTS */
         .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; font-weight: 600; border-bottom: 1px solid #efefef; }
         .post-img { width: 100%; display: block; background: #eee; }
         .post-body { padding: 12px; font-size: 14px; }
 
+        /* PROFILE STYLES */
+        .profile-header { display: flex; align-items: center; gap: 40px; padding: 30px; border-bottom: 1px solid #dbdbdb; margin-bottom: 20px; background: white; border-radius: 8px; }
+        .pfp-large { width: 120px; height: 120px; border-radius: 50%; background: #eee; background-size: cover; border: 2px solid #dbdbdb; }
+        .stats { display: flex; gap: 20px; margin-top: 10px; }
+        .stat-item { text-align: center; font-size: 14px; }
+        .stat-item b { display: block; font-size: 18px; }
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .grid-img { width: 100%; aspect-ratio: 1 / 1; background-size: cover; background-position: center; border-radius: 4px; border: 1px solid #dbdbdb; }
+
         /* SEARCH */
         .search-item { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 8px; }
-        .f-btn { padding: 7px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; font-size: 13px; }
+        .f-btn { padding: 7px 16px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; }
         .f-btn.add { background: #0095f6; color: white; }
         .f-btn.remove { background: #efefef; color: black; }
 
-        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 6px; font-size: 14px; }
-        button#auth-btn { background: #0095f6; color: white; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 6px; }
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 6px; }
     </style>
 </head>
 <body>
@@ -47,7 +55,7 @@
             <h1 style="color: #FF8C42;">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="auth-btn">Enter App</button>
+            <button id="auth-btn" style="width:100%; background:#0095f6; color:white; border:none; padding:12px; font-weight:bold; border-radius:6px; cursor:pointer;">Enter App</button>
         </div>
     </div>
 
@@ -63,7 +71,7 @@
         <div class="container">
             <div id="home-page" class="page" style="display:block;">
                 <div style="background:white; border:1px solid #dbdbdb; border-radius:8px; padding:15px; margin-bottom:20px;">
-                    <textarea id="post-text" placeholder="What's happening?" rows="2"></textarea>
+                    <textarea id="post-text" placeholder="Post a photo..." rows="2"></textarea>
                     <input type="file" id="post-file" accept="image/*">
                     <button id="post-btn" style="float:right; background:#0095f6; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer;">Post</button>
                     <div style="clear:both;"></div>
@@ -73,16 +81,22 @@
 
             <div id="search-page" class="page">
                 <h3>Find Friends</h3>
-                <input type="text" id="s-query" placeholder="Search by name...">
+                <input type="text" id="s-query" placeholder="Search users...">
                 <div id="s-results"></div>
             </div>
 
             <div id="profile-page" class="page">
-                <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px; background:white; padding:20px; border:1px solid #dbdbdb; border-radius:8px;">
-                    <div id="p-pfp" style="width:70px; height:70px; border-radius:50%; background:#eee; background-size:cover;"></div>
-                    <h2 id="p-username" style="margin:0;">User</h2>
+                <div class="profile-header">
+                    <div id="p-pfp" class="pfp-large"></div>
+                    <div>
+                        <h2 id="p-username" style="margin:0;">User</h2>
+                        <div class="stats">
+                            <div class="stat-item"><b id="count-posts">0</b> posts</div>
+                            <div class="stat-item"><b id="count-following">0</b> following</div>
+                        </div>
+                    </div>
                 </div>
-                <div id="p-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;"></div>
+                <div id="p-grid" class="photo-grid"></div>
             </div>
         </div>
     </div>
@@ -105,12 +119,14 @@
         let user = null;
         let myName = "";
 
-        // NAV SYSTEM
+        // NAVIGATION
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
             if(el) el.classList.add('active');
+            
+            if(id === 'profile-page') loadProfile();
             if(id === 'search-page') loadSearch();
         };
 
@@ -133,8 +149,6 @@
                 onValue(ref(db, 'users/'+u.uid), snap => {
                     const data = snap.val();
                     myName = data ? data.name : u.email.split('@')[0];
-                    document.getElementById('p-username').innerText = myName;
-                    document.getElementById('p-pfp').style.backgroundImage = `url(${data ? data.pfp : ''})`;
                     document.getElementById('auth-screen').style.display = 'none';
                     document.getElementById('side-nav').style.display = 'flex';
                     initHome();
@@ -142,29 +156,56 @@
             }
         });
 
-        // SEARCH LOGIC - REWRITTEN
+        // PROFILE LOGIC - FIXED
+        function loadProfile() {
+            const grid = document.getElementById('p-grid');
+            const postCount = document.getElementById('count-posts');
+            const followCount = document.getElementById('count-following');
+            
+            // Set basic info
+            document.getElementById('p-username').innerText = myName;
+            get(ref(db, 'users/'+user.uid)).then(s => {
+                if(s.val().pfp) document.getElementById('p-pfp').style.backgroundImage = `url(${s.val().pfp})`;
+            });
+
+            // Load My Posts into Grid
+            onValue(ref(db, 'posts'), snap => {
+                grid.innerHTML = "";
+                let count = 0;
+                if(snap.exists()){
+                    snap.forEach(p => {
+                        const val = p.val();
+                        if(val.uid === user.uid && val.img){
+                            count++;
+                            const div = document.createElement('div');
+                            div.className = 'grid-img';
+                            div.style.backgroundImage = `url(${val.img})`;
+                            grid.prepend(div);
+                        }
+                    });
+                }
+                postCount.innerText = count;
+            });
+
+            // Load Following Count
+            onValue(ref(db, `following/${user.uid}`), snap => {
+                followCount.innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+            });
+        }
+
+        // SEARCH LOGIC
         function loadSearch() {
             const query = document.getElementById('s-query').value.toLowerCase();
             const resultsDiv = document.getElementById('s-results');
-            
             get(ref(db, 'users')).then(snap => {
                 resultsDiv.innerHTML = "";
-                if(!snap.exists()) return;
-                
                 snap.forEach(child => {
-                    const uData = child.val();
-                    if(child.key !== user.uid && uData.name.toLowerCase().includes(query)) {
-                        // Check following status
+                    if(child.key !== user.uid && child.val().name.toLowerCase().includes(query)) {
                         get(ref(db, `following/${user.uid}/${child.key}`)).then(isFollowing => {
                             const active = isFollowing.exists();
                             const div = document.createElement('div');
                             div.className = 'search-item';
-                            div.innerHTML = `
-                                <b>${uData.name}</b>
-                                <button class="f-btn ${active?'remove':'add'}" onclick="window.toggleFollow('${child.key}', ${active})">
-                                    ${active ? 'Unfollow' : 'Follow'}
-                                </button>
-                            `;
+                            div.innerHTML = `<b>${child.val().name}</b><button class="f-btn ${active?'remove':'add'}" onclick="window.toggleFollow('${child.key}', ${active})">${active ? 'Unfollow' : 'Follow'}</button>`;
                             resultsDiv.appendChild(div);
                         });
                     }
@@ -176,7 +217,7 @@
         window.toggleFollow = (tid, active) => {
             if(active) remove(ref(db, `following/${user.uid}/${tid}`));
             else set(ref(db, `following/${user.uid}/${tid}`), true);
-            setTimeout(loadSearch, 200); // Reload list after change
+            setTimeout(loadSearch, 200);
         };
 
         // HOME FEED
@@ -186,7 +227,7 @@
                 const file = document.getElementById('post-file').files[0];
                 const pushPost = (img = "") => {
                     if(!text && !img) return;
-                    push(ref(db, 'posts'), { name: myName, text, img, time: Date.now() });
+                    push(ref(db, 'posts'), { uid: user.uid, name: myName, text, img, time: Date.now() });
                     document.getElementById('post-text').value = "";
                 };
                 if(file) { const r = new FileReader(); r.onload = () => pushPost(r.result); r.readAsDataURL(file); } else pushPost();
