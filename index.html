@@ -3,118 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Full Integration</title>
+    <title>Chatter Box | Messenger</title>
     <style>
         * { box-sizing: border-box; outline: none; }
-        :root { --bg: #fafafa; --card: #ffffff; --text: #262626; --border: #dbdbdb; }
-        body.dark { --bg: #121212; --card: #1e1e1e; --text: #ffffff; --border: #333333; }
+        :root { --bg: #ffffff; --card: #ffffff; --text: #1a1a1a; --border: #efefef; --accent: #0095f6; }
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); }
         
-        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; }
-        
-        /* AUTH SCREEN */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { text-align:center; width:350px; border:1px solid var(--border); padding:40px; background: var(--card); border-radius: 8px; }
+        /* AUTH */
+        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .auth-box { text-align:center; width:320px; }
 
         /* SIDEBAR */
-        .sidebar { width: 245px; border-right: 1px solid var(--border); padding: 20px; display: none; flex-direction: column; background: var(--card); flex-shrink: 0; }
-        .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; font-style: italic; color: #FF8C42; cursor: pointer; }
-        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; gap: 15px; align-items: center; transition: 0.2s; }
-        .nav-item:hover { background: rgba(0,0,0,0.03); }
-        .nav-item.active { font-weight: bold; background: rgba(0,0,0,0.05); }
-        body.dark .nav-item.active { background: rgba(255,255,255,0.1); }
+        .sidebar { width: 80px; border-right: 1px solid var(--border); display: none; flex-direction: column; align-items: center; padding: 20px 0; }
+        .nav-item { font-size: 24px; margin-bottom: 25px; cursor: pointer; opacity: 0.5; transition: 0.2s; }
+        .nav-item.active { opacity: 1; color: var(--accent); }
 
         /* MAIN CONTENT */
-        .main { flex: 1; overflow-y: auto; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 600px; padding: 20px; }
-        .page { display: none; width: 100%; }
+        .main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .page { display: none; height: 100%; width: 100%; overflow-y: auto; }
+        
+        /* MESSAGES / INBOX */
+        .inbox-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border); }
+        .inbox-item:hover { background: #fafafa; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; margin-right: 15px; background-color: #eee; }
+        .last-msg { font-size: 13px; color: #8e8e8e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* POSTS */
-        .post-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; }
-        .avatar-s { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; background-color: #eee; }
-        .post-img { width: 100%; display: block; background: #eee; }
-        .post-footer { padding: 12px; font-size: 14px; }
+        /* CHAT WINDOW */
+        #chat-screen { position: fixed; inset: 0; background: white; z-index: 500; display: none; flex-direction: column; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
+        .msg-list { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 8px 15px; border-radius: 18px; max-width: 70%; font-size: 14px; }
+        .bubble.me { background: var(--accent); color: white; align-self: flex-end; }
+        .bubble.them { background: #efefef; align-self: flex-start; }
+        .chat-input-area { padding: 15px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
 
-        /* BUTTONS & INPUTS */
-        .btn-b { background: #0095f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
-        .btn-g { background: #efefef; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg); color: var(--text); }
-
-        /* SETTINGS */
-        .settings-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border); }
+        /* PROFILE GALLERY */
+        .profile-head { padding: 30px; text-align: center; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2px; padding: 2px; }
+        .grid-item { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #eee; }
+        
+        input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+        .btn { background: var(--accent); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
     </style>
 </head>
-<body id="app-body">
+<body>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color:#FF8C42; font-style:italic;">Chatter Box</h1>
+            <h1 style="color:#FF8C42; font-style:italic">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
-            <input type="password" id="password" placeholder="Password (6+ chars)">
-            <button id="login-btn" class="btn-b" style="margin-bottom: 8px;">Log In</button>
-            <button id="signup-btn" class="btn-g">Sign Up</button>
-            <p id="auth-msg" style="color:red; font-size:12px; margin-top:10px;"></p>
+            <input type="password" id="password" placeholder="Password">
+            <button class="btn" id="login-btn" style="width:100%">Log In / Sign Up</button>
         </div>
     </div>
 
     <div id="side-nav" class="sidebar">
-        <div class="logo" onclick="nav('home-page')">Chatter Box</div>
-        <div class="nav-item active" id="n-home" onclick="nav('home-page', this)">🏠 Home</div>
-        <div class="nav-item" id="n-search" onclick="nav('search-page', this)">🔍 Search</div>
-        <div class="nav-item" id="n-profile" onclick="nav('profile-page', this)">👤 Profile</div>
-        <div class="nav-item" id="n-settings" onclick="nav('settings-page', this)">⚙️ Settings</div>
-        <button id="logout-btn" style="margin-top:auto; background:none; border:none; color:red; cursor:pointer; text-align:left; padding:10px;">Logout</button>
+        <div class="nav-item active" onclick="nav('home-page', this)">💬</div>
+        <div class="nav-item" onclick="nav('search-page', this)">🔍</div>
+        <div class="nav-item" onclick="nav('profile-page', this)">👤</div>
+        <div class="nav-item" onclick="location.reload()" style="margin-top: auto; font-size: 18px;">🚫</div>
     </div>
 
     <div class="main">
-        <div class="container">
-            
-            <div id="home-page" class="page" style="display:block;">
-                <div style="background:var(--card); border:1px solid var(--border); padding:15px; border-radius:8px; margin-bottom:20px;">
-                    <textarea id="post-text" placeholder="Write something..." rows="2"></textarea>
-                    <input type="file" id="post-file" accept="image/*">
-                    <button id="post-btn" class="btn-b" style="width: auto; float: right;">Post</button>
-                    <div style="clear:both"></div>
-                </div>
-                <div id="feed"></div>
-            </div>
+        <div id="home-page" class="page" style="display:block;">
+            <div style="padding: 20px; border-bottom: 1px solid var(--border)"><h2>Messages</h2></div>
+            <div id="inbox-list"></div>
+        </div>
 
-            <div id="search-page" class="page">
-                <h3>Find People</h3>
-                <input type="text" id="s-query" placeholder="Search usernames...">
+        <div id="search-page" class="page">
+            <div style="padding: 20px;">
+                <input type="text" id="s-query" placeholder="Search friends to message...">
                 <div id="s-results"></div>
             </div>
+        </div>
 
-            <div id="settings-page" class="page">
-                <h3>Settings</h3>
-                <div class="settings-row">
-                    <span>Dark Mode</span>
-                    <button class="btn-g" style="width:auto" onclick="document.body.classList.toggle('dark')">Toggle</button>
-                </div>
-                <div class="settings-row">
-                    <span>Account Privacy</span>
-                    <button class="btn-g" style="width:auto">Public</button>
-                </div>
+        <div id="profile-page" class="page">
+            <div class="profile-head">
+                <div id="p-pfp" style="width:100px; height:100px; border-radius:50%; margin:0 auto 15px; background-size:cover; background-position:center; border:1px solid #ddd;"></div>
+                <h3 id="p-name"></h3>
+                <p id="p-bio" style="color: #8e8e8e;"></p>
+                <input type="file" id="upload-photo" accept="image/*" style="display:none">
+                <button class="btn" style="background:#efefef; color:black; font-size:12px;" onclick="document.getElementById('upload-photo').click()">+ Post Photo</button>
             </div>
+            <div id="p-grid" class="grid"></div>
+        </div>
+    </div>
 
-            <div id="profile-page" class="page">
-                <div id="p-header" style="display:flex; align-items:center; gap:20px; margin-bottom:30px;">
-                    <div id="p-pfp" style="width:100px; height:100px; border-radius:50%; background-size:cover; background-position:center; border:1px solid var(--border);"></div>
-                    <div>
-                        <h2 id="p-name" style="margin:0"></h2>
-                        <div id="p-bio" style="font-size:14px; color:#8e8e8e;"></div>
-                    </div>
-                </div>
-                <div id="p-grid" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:5px;"></div>
-            </div>
-
+    <div id="chat-screen">
+        <div class="chat-header">
+            <button onclick="closeChat()" style="background:none; border:none; font-size:20px; cursor:pointer;">←</button>
+            <div id="chat-avatar" class="avatar" style="width:35px; height:35px; margin:0"></div>
+            <b id="chat-name">Name</b>
+        </div>
+        <div id="msg-list" class="msg-list"></div>
+        <div class="chat-input-area">
+            <input type="text" id="msg-input" placeholder="Message..." style="margin:0">
+            <button class="btn" id="send-btn">Send</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -126,82 +117,137 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        let activeChatId = null;
 
         // --- AUTH ---
-        document.getElementById('signup-btn').onclick = async () => {
-            const e = document.getElementById('email').value, p = document.getElementById('password').value;
-            try {
-                const res = await createUserWithEmailAndPassword(auth, e, p);
-                await set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Hey!" });
-            } catch (err) { document.getElementById('auth-msg').innerText = err.message; }
-        };
-
         document.getElementById('login-btn').onclick = () => {
-            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
-                .catch(err => document.getElementById('auth-msg').innerText = err.message);
+            const e = document.getElementById('email').value, p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(() => {
+                createUserWithEmailAndPassword(auth, e, p).then(res => {
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Chatting on Chatter Box" });
+                });
+            });
         };
 
-        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
-
-        onAuthStateChanged(auth, user => {
-            if (user) {
+        onAuthStateChanged(auth, u => {
+            if(u) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
-                initApp();
+                initMessenger();
             }
         });
 
-        // --- NAVIGATION ---
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
-            if(el) el.classList.add('active');
-            if(id === 'profile-page') viewProfile(auth.currentUser.uid);
+            el.classList.add('active');
+            if(id === 'profile-page') loadProfile(auth.currentUser.uid);
         };
 
-        // --- CORE LOGIC ---
-        function initApp() {
-            // Live Feed Listener
-            onValue(ref(db, 'posts'), snap => {
-                const feed = document.getElementById('feed'); feed.innerHTML = "";
-                let posts = []; snap.forEach(c => posts.push(c.val()));
-                posts.reverse().forEach(p => {
-                    get(ref(db, 'users/' + p.uid)).then(uSnap => {
+        // --- MESSENGER LOGIC ---
+        function initMessenger() {
+            // Load Inbox (List of people you've messaged)
+            onValue(ref(db, `users/${auth.currentUser.uid}/chats`), snap => {
+                const list = document.getElementById('inbox-list');
+                list.innerHTML = "";
+                snap.forEach(child => {
+                    const userId = child.key;
+                    get(ref(db, 'users/' + userId)).then(uSnap => {
                         const u = uSnap.val();
-                        feed.insertAdjacentHTML('beforeend', `
-                            <div class="post-card">
-                                <div class="post-header">
-                                    <div class="avatar-s" style="background-image:url(${u.pfp})"></div>
+                        list.insertAdjacentHTML('beforeend', `
+                            <div class="inbox-item" onclick="openChat('${userId}', '${u.name}', '${u.pfp}')">
+                                <div class="avatar" style="background-image:url(${u.pfp})"></div>
+                                <div style="flex:1">
                                     <b>${u.name}</b>
+                                    <div class="last-msg" id="last-${userId}">Click to chat...</div>
                                 </div>
-                                ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                                <div class="post-footer"><b>${u.name}</b> ${p.text}</div>
                             </div>
                         `);
                     });
                 });
             });
-
-            // Post Button
-            document.getElementById('post-btn').onclick = () => {
-                const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
-                const upload = (img = "") => {
-                    push(ref(db, 'posts'), { uid: auth.currentUser.uid, text, img, time: Date.now() });
-                    document.getElementById('post-text').value = ""; document.getElementById('post-file').value = "";
-                };
-                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else if(text) upload();
-            };
         }
 
-        window.viewProfile = (uid) => {
+        window.openChat = (uid, name, pfp) => {
+            activeChatId = uid;
+            document.getElementById('chat-screen').style.display = 'flex';
+            document.getElementById('chat-name').innerText = name;
+            document.getElementById('chat-avatar').style.backgroundImage = `url(${pfp})`;
+            
+            const chatId = [auth.currentUser.uid, uid].sort().join('_');
+            onValue(ref(db, 'messages/' + chatId), snap => {
+                const msgList = document.getElementById('msg-list');
+                msgList.innerHTML = "";
+                snap.forEach(m => {
+                    const data = m.val();
+                    const side = data.sender === auth.currentUser.uid ? 'me' : 'them';
+                    msgList.insertAdjacentHTML('beforeend', `<div class="bubble ${side}">${data.text}</div>`);
+                });
+                msgList.scrollTop = msgList.scrollHeight;
+            });
+        };
+
+        window.closeChat = () => document.getElementById('chat-screen').style.display = 'none';
+
+        document.getElementById('send-btn').onclick = () => {
+            const text = document.getElementById('msg-input').value;
+            if(!text || !activeChatId) return;
+            const chatId = [auth.currentUser.uid, activeChatId].sort().join('_');
+            
+            push(ref(db, 'messages/' + chatId), { sender: auth.currentUser.uid, text: text, time: serverTimestamp() });
+            set(ref(db, `users/${auth.currentUser.uid}/chats/${activeChatId}`), true);
+            set(ref(db, `users/${activeChatId}/chats/${auth.currentUser.uid}`), true);
+            
+            document.getElementById('msg-input').value = "";
+        };
+
+        // --- SEARCH LOGIC ---
+        document.getElementById('s-query').oninput = (e) => {
+            const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
+            if(!q) { res.innerHTML = ""; return; }
+            get(ref(db, 'users')).then(snap => {
+                res.innerHTML = "";
+                snap.forEach(c => {
+                    if(c.val().name.toLowerCase().includes(q) && c.key !== auth.currentUser.uid) {
+                        res.insertAdjacentHTML('beforeend', `
+                            <div class="inbox-item" onclick="openChat('${c.key}', '${c.val().name}', '${c.val().pfp}')">
+                                <div class="avatar" style="background-image:url(${c.val().pfp})"></div>
+                                <b>${c.val().name}</b>
+                            </div>`);
+                    }
+                });
+            });
+        };
+
+        // --- PROFILE GALLERY LOGIC ---
+        function loadProfile(uid) {
             get(ref(db, 'users/' + uid)).then(s => {
                 const d = s.val();
                 document.getElementById('p-name').innerText = d.name;
                 document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
                 document.getElementById('p-bio').innerText = d.bio;
             });
+
+            onValue(ref(db, 'galleries/' + uid), snap => {
+                const grid = document.getElementById('p-grid');
+                grid.innerHTML = "";
+                snap.forEach(img => {
+                    grid.insertAdjacentHTML('afterbegin', `<div class="grid-item" style="background-image:url(${img.val()})"></div>`);
+                });
+            });
+        }
+
+        document.getElementById('upload-photo').onchange = (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                push(ref(db, 'galleries/' + auth.currentUser.uid), reader.result);
+            };
+            reader.readAsDataURL(file);
         };
+
     </script>
 </body>
 </html>
