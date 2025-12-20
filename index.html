@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Final Fix</title>
+    <title>Chatter Box | Timestamps</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
@@ -23,10 +23,12 @@
         /* POSTS */
         .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin: 0 auto 20px; max-width: 470px; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #efefef; }
-        .post-img { width: 100%; display: block; background: #fafafa; min-height: 200px; }
+        .post-img { width: 100%; display: block; background: #fafafa; }
+        .post-footer { padding: 12px; font-size: 14px; line-height: 1.4; }
+        .timestamp { color: #8e8e8e; font-size: 12px; margin-left: 8px; font-weight: 400; }
         .clickable-name { cursor: pointer; font-weight: 600; }
 
-        /* PROFILE GRID */
+        /* PROFILE */
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; border-top: 1px solid #dbdbdb; padding-top: 20px; }
         .grid-item { width: 100%; aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #f8f8f8; border: 1px solid #efefef; }
 
@@ -59,7 +61,7 @@
             
             <div id="home-page" class="page" style="display:block;">
                 <div style="max-width:470px; margin: 0 auto 30px; border:1px solid #dbdbdb; padding:15px; border-radius:8px;">
-                    <textarea id="post-text" placeholder="Share something..." rows="2"></textarea>
+                    <textarea id="post-text" placeholder="Caption your photo..." rows="2"></textarea>
                     <input type="file" id="post-file" accept="image/*">
                     <button id="post-btn" class="btn-blue" style="float:right;">Post</button>
                     <div style="clear:both;"></div>
@@ -68,7 +70,8 @@
             </div>
 
             <div id="search-page" class="page">
-                <input type="text" id="s-query" placeholder="Find people...">
+                <h3>Explore</h3>
+                <input type="text" id="s-query" placeholder="Search...">
                 <div id="s-results"></div>
             </div>
 
@@ -101,7 +104,22 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        let currentUser = null;
+
+        // Helper to format time
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + "y";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + "mo";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + "d";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + "h";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + "m";
+            return "just now";
+        }
 
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -111,7 +129,6 @@
             if(id === 'profile-page') viewProfile(auth.currentUser.uid);
         };
 
-        // AUTH LOGIC
         document.getElementById('auth-btn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
@@ -125,71 +142,65 @@
 
         onAuthStateChanged(auth, u => {
             if(u) {
-                currentUser = u;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
                 startGlobalListeners();
             }
         });
 
-        // VIEW PROFILE FUNCTION
         window.viewProfile = (uid) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('profile-page').style.display = 'block';
-            
             get(ref(db, 'users/' + uid)).then(snap => {
                 const d = snap.val();
                 document.getElementById('p-username').innerText = d.name;
                 document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
             });
-
             onValue(ref(db, 'posts'), snap => {
                 const grid = document.getElementById('p-grid');
                 grid.innerHTML = "";
                 let count = 0;
                 snap.forEach(p => {
-                    if(p.val().uid === uid) {
+                    if(p.val().uid === uid && p.val().img) {
                         count++;
-                        if(p.val().img) {
-                            const div = document.createElement('div');
-                            div.className = 'grid-item';
-                            div.style.backgroundImage = `url(${p.val().img})`;
-                            grid.prepend(div);
-                        }
+                        const div = document.createElement('div');
+                        div.className = 'grid-item';
+                        div.style.backgroundImage = `url(${p.val().img})`;
+                        grid.prepend(div);
                     }
                 });
                 document.getElementById('p-stats').innerHTML = `<b>${count}</b> posts`;
             });
         };
 
-        // CORE SYSTEM
         function startGlobalListeners() {
-            // Live Feed Listener
             onValue(ref(db, 'posts'), snap => {
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
                 if(!snap.exists()) return;
-                
                 let posts = [];
                 snap.forEach(child => { posts.push({id: child.key, ...child.val()}) });
-                
                 posts.reverse().forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'post-card';
                     card.innerHTML = `
-                        <div class="post-header"><b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b></div>
+                        <div class="post-header">
+                            <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b>
+                        </div>
                         ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                        <div style="padding:12px;"><b>${p.name}</b> ${p.text}</div>
+                        <div class="post-footer">
+                            <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b> 
+                            ${p.text}
+                            <span class="timestamp">${timeAgo(p.time)}</span>
+                        </div>
                     `;
                     feed.appendChild(card);
                 });
             });
 
-            // Post Button
             document.getElementById('post-btn').onclick = () => {
-                const text = document.getElementById('post-text').value;
-                const file = document.getElementById('post-file').files[0];
-                
+                const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
+                if(!text && !file) return;
                 const upload = (imgStr = "") => {
                     get(ref(db, 'users/' + auth.currentUser.uid)).then(s => {
                         push(ref(db, 'posts'), {
@@ -203,18 +214,10 @@
                         document.getElementById('post-file').value = "";
                     });
                 };
-
-                if(file) {
-                    const r = new FileReader();
-                    r.onload = () => upload(r.result);
-                    r.readAsDataURL(file);
-                } else if(text) {
-                    upload();
-                }
+                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else upload();
             };
         }
 
-        // Search
         document.getElementById('s-query').oninput = (e) => {
             const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
             if(!q) { res.innerHTML = ""; return; }
