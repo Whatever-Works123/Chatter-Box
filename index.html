@@ -3,17 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Logout Fixed</title>
+    <title>Chatter Box | Fixed Search & UI</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+        /* SIDEBAR */
         .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
         .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
         .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
         .nav-item:hover { background: #f2f2f2; }
         .nav-item.active { background: #FFF5EE; color: #FF8C42; }
+
+        /* MAIN VIEW */
         .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
         .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
+
+        /* FEED & UI */
         .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
         .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
         .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
@@ -26,6 +32,8 @@
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
         .post-img { width: 100%; display: block; }
+
+        /* AUTH BOX */
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-box { width: 350px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; border-radius: 8px; }
         input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
@@ -33,6 +41,10 @@
         #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: none; justify-content: center; align-items: center; }
         #storyImg { max-width: 95%; max-height: 90vh; border-radius: 10px; }
         .page { display: none; width: 100%; }
+
+        /* SEARCH UI */
+        .search-result-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-bottom: 1px solid #efefef; }
+        .search-result-pfp { width: 44px; height: 44px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #dbdbdb; }
     </style>
 </head>
 <body>
@@ -58,7 +70,7 @@
         <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
         <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
         <div class="nav-item" onclick="showPage('setPage', this)">⚙️ Settings</div>
-        <div id="logoutBtn" class="nav-item" style="margin-top:auto; color: red;">Logout</div>
+        <div id="logoutBtn" class="nav-item" style="margin-top:auto; color: #ed4956;">Logout</div>
     </div>
 
     <div class="main-view">
@@ -75,24 +87,27 @@
                     <div id="postFeed"></div>
                 </div>
             </div>
-            
+
+            <div id="searchPage" class="page" style="padding:20px;">
+                <h3>Search Users</h3>
+                <input type="text" id="searchInput" placeholder="Search for names...">
+                <div id="searchResultsList"></div>
+            </div>
+
             <div id="profilePage" class="page">
                 <div style="padding:40px; display: flex; align-items: center; gap: 20px;">
                     <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd;"></div>
                     <h2 id="profName">User</h2>
                 </div>
-                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:3px;"></div>
             </div>
 
             <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div>
-            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3><p>Search feature coming soon.</p></div>
             <div id="setPage" class="page" style="padding:20px;"><h3>Settings</h3><p>User settings here.</p></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // ADDED signOut TO THE IMPORT LIST BELOW
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, push, onChildAdded, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -115,12 +130,12 @@
             const navItems = document.querySelectorAll('.nav-item');
             pages.forEach(p => p.style.display = 'none'); 
             navItems.forEach(n => n.classList.remove('active'));
-            
             const target = document.getElementById(id);
             if(target) target.style.display = 'block'; 
             if(el) el.classList.add('active');
         };
 
+        // --- AUTH LOGIC ---
         const switchBtn = document.getElementById('switchBtn');
         const lName = document.getElementById('lName');
         const authBtn = document.getElementById('authBtn');
@@ -140,17 +155,14 @@
             if(!email || !pass) return alert("Please fill in all fields.");
             authLoading.style.display = 'block';
             if (isSignUp) {
-                createUserWithEmailAndPassword(auth, email, pass)
-                    .then((u) => {
-                        set(ref(db, 'users/' + u.user.uid), { 
-                            name: name || "New User", 
-                            pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' 
-                        });
-                    })
-                    .catch(err => { alert(err.message); authLoading.style.display = 'none'; });
+                createUserWithEmailAndPassword(auth, email, pass).then((u) => {
+                    set(ref(db, 'users/' + u.user.uid), { 
+                        name: name || "New User", 
+                        pfp: 'https://cdn-icons-png.flaticon.com/512/149/149071.png' 
+                    });
+                }).catch(err => { alert(err.message); authLoading.style.display = 'none'; });
             } else {
-                signInWithEmailAndPassword(auth, email, pass)
-                .catch(err => { alert(err.message); authLoading.style.display = 'none'; });
+                signInWithEmailAndPassword(auth, email, pass).catch(err => { alert(err.message); authLoading.style.display = 'none'; });
             }
         };
 
@@ -166,13 +178,8 @@
             }
         });
 
-        // --- NEW LOGOUT LOGIC ---
         document.getElementById('logoutBtn').onclick = () => {
-            signOut(auth).then(() => {
-                location.reload();
-            }).catch((err) => {
-                alert("Logout failed: " + err.message);
-            });
+            signOut(auth).then(() => location.reload());
         };
 
         function compress(file, cb) {
@@ -189,6 +196,7 @@
         }
 
         function init(u) {
+            // Load My Data
             onValue(ref(db, 'users/'+u.uid), (s) => { 
                 if(s.exists()){ 
                     myData = s.val(); 
@@ -197,6 +205,59 @@
                 } 
             });
 
+            // --- SEARCH LOGIC ---
+            const searchInput = document.getElementById('searchInput');
+            const searchResultsList = document.getElementById('searchResultsList');
+
+            searchInput.oninput = () => {
+                const query = searchInput.value.toLowerCase();
+                if(!query) { searchResultsList.innerHTML = ""; return; }
+
+                onValue(ref(db, 'users'), (snap) => {
+                    searchResultsList.innerHTML = "";
+                    snap.forEach(userSnap => {
+                        const user = userSnap.val();
+                        if(user.name.toLowerCase().includes(query)) {
+                            const div = document.createElement('div');
+                            div.className = 'search-result-item';
+                            div.innerHTML = `
+                                <div class="search-result-pfp" style="background-image:url(${user.pfp})"></div>
+                                <strong>${user.name}</strong>
+                            `;
+                            searchResultsList.appendChild(div);
+                        }
+                    });
+                }, { onlyOnce: true });
+            };
+
+            // --- FEED LOGIC ---
+            const postFeed = document.getElementById('postFeed');
+            onChildAdded(ref(db, 'posts'), (snap) => {
+                const p = snap.val();
+                const card = document.createElement('div'); card.className = 'post-card';
+                card.innerHTML = `
+                    <div style="padding:10px; font-weight:bold; display:flex; align-items:center; gap:10px;">
+                        <div style="width:30px; height:30px; border-radius:50%; background-image:url(${p.senderPfp || ''}); background-size:cover;"></div>
+                        ${p.sender}
+                    </div>
+                    <img src="${p.img}" class="post-img">
+                    <div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>
+                `;
+                postFeed.prepend(card);
+            });
+
+            document.getElementById('sendPost').onclick = () => {
+                const f = document.getElementById('postImg').files[0];
+                const text = document.getElementById('postText');
+                if(!f) return alert("Select an image");
+                compress(f, (b64) => {
+                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, senderPfp: myData.pfp, text: text.value, img: b64 }).then(() => {
+                        text.value = ""; document.getElementById('postImg').value = "";
+                    });
+                });
+            };
+
+            // --- STORIES LOGIC ---
             onValue(ref(db, 'stories'), (storySnap) => {
                 const allStories = storySnap.val() || {};
                 onValue(ref(db, 'users'), (userSnap) => {
@@ -208,20 +269,14 @@
                     meDiv.innerHTML = `<div class="story-ring ${myStory ? 'ring-seen' : 'ring-none'}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" id="uploadPlus">+</div></div></div><span>You</span>`;
                     meDiv.onclick = (e) => {
                         if(e.target.id === 'uploadPlus' || !myStory) document.getElementById('storyInput').click();
-                        else { 
-                            document.getElementById('storyImg').src = myStory.img; 
-                            document.getElementById('storyOverlay').style.display = 'flex'; 
-                        }
+                        else { document.getElementById('storyImg').src = myStory.img; document.getElementById('storyOverlay').style.display = 'flex'; }
                     };
                     storyList.appendChild(meDiv);
                     userSnap.forEach(snap => {
-                        const userId = snap.key;
-                        const user = snap.val();
+                        const userId = snap.key; const user = snap.val();
                         if(userId !== u.uid && allStories[userId]) {
                             const sData = allStories[userId];
-                            const viewers = sData.viewers || {};
-                            const hasSeen = viewers[u.uid] === true;
-                            const ringClass = hasSeen ? 'ring-seen' : 'ring-unseen';
+                            const ringClass = (sData.viewers && sData.viewers[u.uid]) ? 'ring-seen' : 'ring-unseen';
                             const friendDiv = document.createElement('div');
                             friendDiv.className = 'story';
                             friendDiv.innerHTML = `<div class="story-ring ${ringClass}"><div class="story-inner" style="background-image:url(${user.pfp})"></div></div><span>${user.name.split(' ')[0]}</span>`;
@@ -239,22 +294,6 @@
             document.getElementById('storyInput').onchange = (e) => {
                 if(e.target.files[0]) compress(e.target.files[0], (b64) => {
                     set(ref(db, 'stories/'+u.uid), { img: b64, ts: Date.now(), viewers: { [u.uid]: true } });
-                });
-            };
-
-            onChildAdded(ref(db, 'posts'), (snap) => {
-                const p = snap.val();
-                const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>`;
-                document.getElementById('postFeed').prepend(card);
-            });
-
-            document.getElementById('sendPost').onclick = () => {
-                const f = document.getElementById('postImg').files[0];
-                const textInput = document.getElementById('postText');
-                if(f) compress(f, (b64) => {
-                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, text: textInput.value, img: b64 });
-                    textInput.value = "";
                 });
             };
         }
