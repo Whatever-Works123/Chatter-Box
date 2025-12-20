@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Full Features</title>
+    <title>Chatter Box | Text & Image Posts</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
@@ -20,47 +20,31 @@
         .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; position: relative; }
 
         /* FEED & UI */
-        .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
-        .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
-        .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        .ring-unseen { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888) !important; }
-        .ring-seen { background: #dbdbdb !important; }
-        .ring-none { background: transparent; border: 1px solid #efefef; }
-        .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
-        .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
         .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
-        .post-img { width: 100%; display: block; }
+        .post-img { width: 100%; display: block; background-color: #f0f0f0; }
+        .post-img[src=""] { display: none; } /* Hides image tag if empty */
 
-        /* MESSAGING UI */
+        /* MESSAGING */
         #msgContainer { height: 100vh; display: flex; flex-direction: column; }
         #chatBox { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; background: #f9f9f9; }
         .msg { max-width: 70%; padding: 10px; border-radius: 15px; font-size: 14px; }
         .msg.me { align-self: flex-end; background: #FF8C42; color: white; }
         .msg.them { align-self: flex-start; background: #efefef; color: black; }
 
-        /* PROFILE GRID */
-        .profile-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 5px; }
-        .grid-item { aspect-ratio: 1/1; background-size: cover; background-position: center; background-color: #eee; }
-
+        /* AUTH & COMMON */
         #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
         .auth-box { width: 350px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center; border-radius: 8px; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; font-family: inherit; }
         button { background: #FF8C42; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-bottom: 5px; }
-        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: none; justify-content: center; align-items: center; }
-        #storyImg { max-width: 95%; max-height: 90vh; border-radius: 10px; }
         .page { display: none; width: 100%; }
     </style>
 </head>
 <body>
 
-    <div id="storyOverlay" onclick="this.style.display='none'"><img id="storyImg" src=""></div>
-
     <div id="authPage">
         <div class="auth-box">
             <h1 class="logo">Chatter Box</h1>
-            <div id="authLoading" style="display:none; color:#FF8C42;">Processing...</div>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
             <input type="text" id="lName" placeholder="Full Name" style="display:none;">
@@ -81,8 +65,6 @@
     <div class="main-view">
         <div class="center-container">
             <div id="homePage" class="page">
-                <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
-                <input type="file" id="storyInput" accept="image/*" style="display:none;">
                 <div class="feed-content">
                     <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
                         <textarea id="postText" placeholder="What's on your mind?"></textarea>
@@ -95,7 +77,6 @@
 
             <div id="msgPage" class="page">
                 <div id="msgContainer">
-                    <div style="padding:15px; border-bottom:1px solid #dbdbdb; font-weight:bold;">Global Chat</div>
                     <div id="chatBox"></div>
                     <div style="padding:10px; display:flex; gap:5px;">
                         <input type="text" id="chatInput" placeholder="Write a message...">
@@ -104,17 +85,14 @@
                 </div>
             </div>
 
-            <div id="profilePage" class="page">
-                <div style="padding:40px; display: flex; align-items: center; gap: 20px; border-bottom:1px solid #efefef;">
-                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd;"></div>
-                    <h2 id="profName">User</h2>
-                </div>
-                <div id="myPostsGrid" class="profile-grid"></div>
-            </div>
-
             <div id="searchPage" class="page" style="padding:20px;">
                 <input type="text" id="searchInput" placeholder="Search users...">
                 <div id="searchResultsList"></div>
+            </div>
+
+            <div id="profilePage" class="page" style="padding:40px;">
+                <h2 id="profName">User</h2>
+                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;"></div>
             </div>
         </div>
     </div>
@@ -122,7 +100,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onChildAdded, onValue, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -145,7 +123,7 @@
             if(el) el.classList.add('active');
         };
 
-        // --- AUTH ---
+        // Auth Handling
         document.getElementById('switchBtn').onclick = () => {
             isSignUp = !isSignUp;
             document.getElementById('lName').style.display = isSignUp ? 'block' : 'none';
@@ -169,6 +147,7 @@
             if(u) {
                 document.getElementById('authPage').style.display = 'none'; 
                 document.getElementById('sideBar').style.display = 'flex';
+                showPage('homePage', document.querySelector('.nav-item.active'));
                 init(u);
             } else {
                 document.getElementById('authPage').style.display = 'flex';
@@ -192,43 +171,44 @@
         }
 
         function init(u) {
-            onValue(ref(db, 'users/'+u.uid), s => { 
-                if(s.exists()){ myData = s.val(); document.getElementById('profName').innerText = myData.name; document.getElementById('profPfp').style.backgroundImage = `url(${myData.pfp})`; } 
-            });
+            onValue(ref(db, 'users/'+u.uid), s => { if(s.exists()) myData = s.val(); document.getElementById('profName').innerText = myData.name; });
 
-            // --- POSTS & FEED ---
+            // Posts Logic (Optional Image)
             const postFeed = document.getElementById('postFeed');
-            const myPostsGrid = document.getElementById('myPostsGrid');
             onChildAdded(ref(db, 'posts'), snap => {
                 const p = snap.val();
                 const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;">${p.text}</div>`;
+                card.innerHTML = `
+                    <div style="padding:10px; font-weight:bold;">${p.sender}</div>
+                    <img src="${p.img || ''}" class="post-img">
+                    <div style="padding:10px;">${p.text}</div>
+                `;
                 postFeed.prepend(card);
-                
-                if(p.uid === u.uid) {
-                    const item = document.createElement('div'); item.className = 'grid-item';
-                    item.style.backgroundImage = `url(${p.img})`;
-                    myPostsGrid.prepend(item);
-                }
             });
 
             document.getElementById('sendPost').onclick = () => {
                 const f = document.getElementById('postImg').files[0];
-                if(f) compress(f, b64 => {
-                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, text: document.getElementById('postText').value, img: b64 });
+                const t = document.getElementById('postText').value;
+                if(!f && !t) return alert("Write something or pick a photo!");
+                
+                const pushPost = (imgB64) => {
+                    push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, text: t, img: imgB64 });
                     document.getElementById('postText').value = "";
-                });
+                    document.getElementById('postImg').value = "";
+                };
+
+                if(f) compress(f, b64 => pushPost(b64));
+                else pushPost("");
             };
 
-            // --- MESSAGING ---
-            const chatBox = document.getElementById('chatBox');
+            // Global Chat
             onChildAdded(ref(db, 'global_messages'), snap => {
                 const m = snap.val();
                 const div = document.createElement('div');
                 div.className = `msg ${m.uid === u.uid ? 'me' : 'them'}`;
                 div.innerHTML = `<strong>${m.sender}</strong><br>${m.text}`;
-                chatBox.appendChild(div);
-                chatBox.scrollTop = chatBox.scrollHeight;
+                document.getElementById('chatBox').appendChild(div);
+                document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
             });
 
             document.getElementById('sendChat').onclick = () => {
@@ -237,17 +217,6 @@
                     push(ref(db, 'global_messages'), { uid: u.uid, sender: myData.name, text: inp.value });
                     inp.value = "";
                 }
-            };
-
-            // --- STORIES ---
-            onValue(ref(db, 'stories'), snap => {
-                const stories = snap.val() || {};
-                const list = document.getElementById('storyList');
-                list.innerHTML = `<div class="story"><div class="story-ring ring-none"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" onclick="document.getElementById('storyInput').click()">+</div></div></div><span>You</span></div>`;
-            });
-
-            document.getElementById('storyInput').onchange = e => {
-                if(e.target.files[0]) compress(e.target.files[0], b64 => set(ref(db, 'stories/'+u.uid), { img: b64, ts: Date.now() }));
             };
         }
     </script>
