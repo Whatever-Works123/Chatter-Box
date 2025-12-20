@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Fixed & Functional</title>
+    <title>Chatter Box | Camera & Uploads</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
@@ -40,6 +40,7 @@
         .btn-grey { background: #efefef; color: black; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
         #edit-form { display: none; margin-top: 10px; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; background: #fafafa; }
+        .pfp-upload-label { color: #0095f6; font-size: 14px; font-weight: bold; cursor: pointer; display: block; margin: 10px 0; }
     </style>
 </head>
 <body>
@@ -90,9 +91,11 @@
                         <div id="p-bio" style="font-size:14px; margin-bottom:10px;">Welcome!</div>
                         
                         <div id="edit-form">
+                            <label class="pfp-upload-label" for="pfp-input">Change Profile Photo</label>
+                            <input type="file" id="pfp-input" accept="image/*" style="display:none;">
+                            
                             <input type="text" id="edit-name-in" placeholder="Username">
                             <textarea id="edit-bio-in" placeholder="Bio"></textarea>
-                            <input type="text" id="edit-pfp-in" placeholder="PFP URL">
                             <button class="btn-blue" onclick="saveProfile()">Save</button>
                             <button class="btn-grey" onclick="toggleEdit(false)">Cancel</button>
                         </div>
@@ -174,7 +177,6 @@
                     btnArea.innerHTML = `<button class="btn-grey" onclick="toggleEdit(true)">Edit Profile</button>`;
                     document.getElementById('edit-name-in').value = d.name;
                     document.getElementById('edit-bio-in').value = d.bio || "";
-                    document.getElementById('edit-pfp-in').value = d.pfp;
                 } else {
                     btnArea.innerHTML = `<button class="btn-blue">Follow</button>`;
                 }
@@ -199,12 +201,25 @@
             document.getElementById('p-bio').style.display = s ? 'none' : 'block';
         };
 
+        // SAVE PROFILE WITH PHOTO UPLOAD
         window.saveProfile = () => {
-            update(ref(db, 'users/' + auth.currentUser.uid), {
-                name: document.getElementById('edit-name-in').value,
-                bio: document.getElementById('edit-bio-in').value,
-                pfp: document.getElementById('edit-pfp-in').value
-            }).then(() => toggleEdit(false));
+            const file = document.getElementById('pfp-input').files[0];
+            const name = document.getElementById('edit-name-in').value;
+            const bio = document.getElementById('edit-bio-in').value;
+
+            const performUpdate = (pfpData = null) => {
+                const data = { name, bio };
+                if(pfpData) data.pfp = pfpData;
+                update(ref(db, 'users/' + auth.currentUser.uid), data).then(() => toggleEdit(false));
+            };
+
+            if(file) {
+                const r = new FileReader();
+                r.onload = () => performUpdate(r.result);
+                r.readAsDataURL(file);
+            } else {
+                performUpdate();
+            }
         };
 
         function startApp() {
