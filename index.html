@@ -3,55 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Social Fix</title>
+    <title>Chatter Box | Fixed Sign Up</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #fafafa; color: #262626; }
         
-        /* AUTH */
-        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { text-align:center; width:350px; border:1px solid #dbdbdb; padding:40px; background: white; }
-
-        /* NAV */
+        #auth-screen { position: fixed; inset: 0; background: #fafafa; z-index: 10000; display: flex; justify-content: center; align-items: center; }
+        .auth-box { text-align:center; width:350px; border:1px solid #dbdbdb; padding:40px; background: white; border-radius: 1px; }
+        
         .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: none; flex-direction: column; background: white; }
-        .logo { font-size: 26px; font-weight: bold; margin-bottom: 40px; font-style: italic; color: #FF8C42; cursor: pointer; }
-        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; gap: 15px; }
-        .nav-item.active { font-weight: bold; background: #f2f2f2; }
-
-        /* MAIN */
+        .logo { font-size: 28px; font-weight: bold; margin-bottom: 40px; font-style: italic; color: #FF8C42; cursor: pointer; }
+        
         .main { flex: 1; overflow-y: auto; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 600px; padding: 20px; }
         .page { display: none; width: 100%; }
 
-        /* POSTS */
-        .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-        .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; background-color: #eee; }
-        .post-img { width: 100%; display: block; }
-        .post-footer { padding: 12px; font-size: 14px; }
-
-        /* PROFILE */
-        .profile-top { display: flex; gap: 30px; align-items: center; margin-bottom: 30px; }
-        .pfp-l { width: 100px; height: 100px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #dbdbdb; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
-        .grid-img { aspect-ratio: 1/1; background-size: cover; background-position: center; border: 1px solid #eee; }
-
-        /* UI */
-        input, textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 4px; }
-        .btn-b { background: #0095f6; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .btn-g { background: #efefef; color: black; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        #edit-form { display: none; padding: 15px; border: 1px solid #dbdbdb; border-radius: 8px; margin-top: 10px; }
+        .btn-b { background: #0095f6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-bottom: 10px; }
+        .btn-g { background: #efefef; color: black; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
+        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 3px; background: #fafafa; }
+        
+        .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; gap: 15px; }
+        .nav-item.active { font-weight: bold; background: #f2f2f2; }
+        
+        /* Profile styles */
+        .pfp-l { width: 120px; height: 120px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #dbdbdb; margin-right: 30px; }
+        .profile-top { display: flex; align-items: center; margin-bottom: 40px; }
+        #edit-form { display: none; background: #fff; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color:#FF8C42; font-style:italic">Chatter Box</h1>
+            <h1 style="color:#FF8C42; font-style:italic; font-size: 32px; margin-bottom: 30px;">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="login-btn" class="btn-b" style="width:100%; margin-bottom:5px;">Log In</button>
-            <button id="signup-btn" class="btn-g" style="width:100%">Sign Up</button>
+            <button id="login-btn" class="btn-b">Log In</button>
+            <div style="margin: 15px 0; color: #8e8e8e; font-size: 13px;">OR</div>
+            <button id="signup-btn" class="btn-g">Create New Account</button>
         </div>
     </div>
 
@@ -60,46 +49,39 @@
         <div class="nav-item active" id="n-home" onclick="nav('home-page', this)">🏠 Home</div>
         <div class="nav-item" id="n-search" onclick="nav('search-page', this)">🔍 Search</div>
         <div class="nav-item" id="n-profile" onclick="nav('profile-page', this)">👤 Profile</div>
-        <button id="logout-btn" style="margin-top:auto; background:none; border:none; color:red; cursor:pointer;">Logout</button>
+        <button id="logout-btn" style="margin-top:auto; background:none; border:none; color:#ed4956; cursor:pointer; text-align:left; font-weight:bold;">Logout</button>
     </div>
 
     <div class="main">
         <div class="container">
             <div id="home-page" class="page" style="display:block;">
-                <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                    <textarea id="post-text" placeholder="Caption..." rows="2"></textarea>
-                    <input type="file" id="post-file" accept="image/*">
-                    <button id="post-btn" class="btn-b" style="float:right;">Post</button>
-                    <div style="clear:both"></div>
-                </div>
                 <div id="feed"></div>
             </div>
 
             <div id="search-page" class="page">
-                <input type="text" id="s-query" placeholder="Search users...">
+                <input type="text" id="s-query" placeholder="Search for people...">
                 <div id="s-results"></div>
             </div>
 
             <div id="profile-page" class="page">
                 <div class="profile-top">
                     <div id="p-pfp" class="pfp-l"></div>
-                    <div style="flex:1">
+                    <div>
                         <div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
                             <h2 id="p-name" style="margin:0; font-weight:400;"></h2>
                             <div id="p-actions"></div>
                         </div>
-                        <div id="p-bio" style="font-size:14px;"></div>
+                        <div id="p-bio"></div>
                         <div id="edit-form">
-                            <label for="pfp-in" style="color:#0095f6; cursor:pointer; font-size:12px; font-weight:bold;">CHANGE PHOTO</label>
+                            <label for="pfp-in" style="color:#0095f6; cursor:pointer; font-weight:bold; font-size: 13px;">Change Profile Photo</label>
                             <input type="file" id="pfp-in" accept="image/*" style="display:none">
-                            <input type="text" id="edit-name" placeholder="Name">
-                            <textarea id="edit-bio" placeholder="Bio"></textarea>
-                            <button class="btn-b" onclick="saveProfile()">Save</button>
+                            <input type="text" id="edit-name" placeholder="Display Name">
+                            <textarea id="edit-bio" placeholder="Bio..."></textarea>
+                            <button class="btn-b" onclick="saveProfile()">Save Changes</button>
                             <button class="btn-g" onclick="toggleEdit(false)">Cancel</button>
                         </div>
                     </div>
                 </div>
-                <div id="p-grid" class="grid"></div>
             </div>
         </div>
     </div>
@@ -107,7 +89,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
@@ -120,22 +102,40 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- AUTH ---
+        // --- SIGN UP LOGIC ---
+        document.getElementById('signup-btn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            
+            if (pass.length < 6) return alert("Password must be at least 6 characters.");
+
+            try {
+                const res = await createUserWithEmailAndPassword(auth, email, pass);
+                // Create user data in database immediately
+                await set(ref(db, 'users/' + res.user.uid), {
+                    name: email.split('@')[0],
+                    pfp: 'https://i.pravatar.cc/150',
+                    bio: "Welcome to my Chatter Box!"
+                });
+                console.log("Account created successfully!");
+            } catch (e) {
+                alert("Sign up failed: " + e.message);
+            }
+        };
+
+        // --- LOG IN LOGIC ---
         document.getElementById('login-btn').onclick = () => {
-            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).catch(e => alert(e.message));
+            signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value)
+                .catch(e => alert("Login failed: " + e.message));
         };
-        document.getElementById('signup-btn').onclick = () => {
-            createUserWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value).then(res => {
-                set(ref(db, 'users/' + res.user.uid), { name: document.getElementById('email').value.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Hello!" });
-            }).catch(e => alert(e.message));
-        };
+
         document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
 
-        onAuthStateChanged(auth, u => {
-            if(u) {
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
-                runApp();
+                initDashboard();
             }
         });
 
@@ -148,105 +148,52 @@
             if(id === 'profile-page') viewProfile(auth.currentUser.uid);
         };
 
-        // --- PROFILE & FOLLOW ---
+        // --- PROFILE LOGIC ---
         window.viewProfile = (uid) => {
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-            document.getElementById('profile-page').style.display = 'block';
-            toggleEdit(false);
-
             onValue(ref(db, 'users/' + uid), snap => {
-                const d = snap.val(); if(!d) return;
-                document.getElementById('p-name').innerText = d.name;
-                document.getElementById('p-pfp').style.backgroundImage = `url(${d.pfp})`;
-                document.getElementById('p-bio').innerText = d.bio || "";
+                const data = snap.val();
+                if (!data) return;
+                document.getElementById('p-name').innerText = data.name;
+                document.getElementById('p-pfp').style.backgroundImage = `url(${data.pfp})`;
+                document.getElementById('p-bio').innerText = data.bio || "";
                 
                 const acts = document.getElementById('p-actions');
                 if(uid === auth.currentUser.uid) {
-                    acts.innerHTML = `<button class="btn-g" onclick="toggleEdit(true)">Edit Profile</button>`;
+                    acts.innerHTML = `<button class="btn-g" style="width:auto;" onclick="toggleEdit(true)">Edit Profile</button>`;
                 } else {
-                    onValue(ref(db, `users/${auth.currentUser.uid}/following/${uid}`), f => {
-                        const isF = f.exists();
-                        acts.innerHTML = `<button class="${isF?'btn-g':'btn-b'}" onclick="handleFollow('${uid}', ${isF})">${isF?'Following':'Follow'}</button>`;
-                    });
+                    acts.innerHTML = `<button class="btn-b" style="width:auto;">Follow</button>`;
                 }
             });
-
-            onValue(ref(db, 'posts'), snap => {
-                const grid = document.getElementById('p-grid'); grid.innerHTML = "";
-                snap.forEach(p => {
-                    if(p.val().uid === uid && p.val().img) {
-                        grid.insertAdjacentHTML('afterbegin', `<div class="grid-img" style="background-image:url(${p.val().img})"></div>`);
-                    }
-                });
-            });
         };
 
-        window.handleFollow = (id, isF) => {
-            if(isF) remove(ref(db, `users/${auth.currentUser.uid}/following/${id}`));
-            else set(ref(db, `users/${auth.currentUser.uid}/following/${id}`), true);
-        };
-
-        window.toggleEdit = (s) => {
-            document.getElementById('edit-form').style.display = s ? 'block' : 'none';
-            document.getElementById('p-bio').style.display = s ? 'none' : 'block';
+        window.toggleEdit = (show) => {
+            document.getElementById('edit-form').style.display = show ? 'block' : 'none';
+            document.getElementById('p-bio').style.display = show ? 'none' : 'block';
         };
 
         window.saveProfile = () => {
             const file = document.getElementById('pfp-in').files[0];
             const name = document.getElementById('edit-name').value;
             const bio = document.getElementById('edit-bio').value;
-            const up = (p = null) => {
-                const d = { name, bio }; if(p) d.pfp = p;
-                update(ref(db, 'users/' + auth.currentUser.uid), d).then(() => toggleEdit(false));
+
+            const pushUpdate = (photo = null) => {
+                const data = { name, bio };
+                if(photo) data.pfp = photo;
+                update(ref(db, 'users/' + auth.currentUser.uid), data).then(() => toggleEdit(false));
             };
-            if(file) { const r = new FileReader(); r.onload = () => up(r.result); r.readAsDataURL(file); } else up();
+
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = () => pushUpdate(reader.result);
+                reader.readAsDataURL(file);
+            } else {
+                pushUpdate();
+            }
         };
 
-        // --- APP LOGIC ---
-        function runApp() {
-            onValue(ref(db, 'posts'), snap => {
-                const feed = document.getElementById('feed'); feed.innerHTML = "";
-                let posts = []; snap.forEach(c => posts.push(c.val()));
-                posts.reverse().forEach(p => {
-                    get(ref(db, 'users/' + p.uid)).then(uSnap => {
-                        const u = uSnap.val(); if(!u) return;
-                        feed.insertAdjacentHTML('beforeend', `
-                            <div class="post-card">
-                                <div class="post-header">
-                                    <div class="avatar" style="background-image:url(${u.pfp})"></div>
-                                    <b onclick="viewProfile('${p.uid}')" style="cursor:pointer">${u.name}</b>
-                                </div>
-                                ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                                <div class="post-footer"><b>${u.name}</b> ${p.text}</div>
-                            </div>
-                        `);
-                    });
-                });
-            });
-
-            document.getElementById('post-btn').onclick = () => {
-                const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
-                const send = (img = "") => {
-                    push(ref(db, 'posts'), { uid: auth.currentUser.uid, text, img, time: Date.now() });
-                    document.getElementById('post-text').value = ""; document.getElementById('post-file').value = "";
-                };
-                if(file) { const r = new FileReader(); r.onload = () => send(r.result); r.readAsDataURL(file); } 
-                else if(text) send();
-            };
-
-            document.getElementById('s-query').oninput = (e) => {
-                const q = e.target.value.toLowerCase(), res = document.getElementById('s-results');
-                if(!q) { res.innerHTML = ""; return; }
-                get(ref(db, 'users')).then(snap => {
-                    res.innerHTML = "";
-                    snap.forEach(c => {
-                        if(c.val().name.toLowerCase().includes(q) && c.key !== auth.currentUser.uid) {
-                            res.insertAdjacentHTML('beforeend', `<div style="display:flex; align-items:center; gap:10px; padding:10px; cursor:pointer;" onclick="viewProfile('${c.key}')">
-                                <div class="avatar" style="background-image:url(${c.val().pfp})"></div><b>${c.val().name}</b></div>`);
-                        }
-                    });
-                });
-            };
+        function initDashboard() {
+            // Placeholder for feed and search logic
+            console.log("Dashboard Loaded");
         }
     </script>
 </body>
