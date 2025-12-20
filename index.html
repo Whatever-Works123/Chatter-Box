@@ -3,100 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Fully Fixed</title>
+    <title>Chatter Box | Master Fix</title>
     <style>
         * { box-sizing: border-box; }
-        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #fafafa; color: #262626; }
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #fafafa; overflow: hidden; }
         
         /* AUTH SCREEN */
-        #auth-screen { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .auth-box { border: 1px solid #dbdbdb; padding: 40px; background: white; display: flex; flex-direction: column; width: 350px; text-align: center; }
-        input { padding: 10px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 4px; background: #fafafa; }
-        button { background: #0095f6; color: white; border: none; padding: 8px; border-radius: 4px; font-weight: 600; cursor: pointer; }
+        #auth-screen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .auth-box { border: 1px solid #dbdbdb; padding: 40px; background: white; width: 350px; text-align: center; border-radius: 8px; }
+        input { padding: 12px; margin-bottom: 10px; border: 1px solid #dbdbdb; border-radius: 4px; width: 100%; background: #fafafa; }
+        button { background: #0095f6; color: white; border: none; padding: 10px; border-radius: 4px; font-weight: 600; cursor: pointer; width: 100%; }
 
         /* SIDEBAR */
-        .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: flex; flex-direction: column; background: white; }
+        .sidebar { width: 245px; border-right: 1px solid #dbdbdb; padding: 20px; display: none; flex-direction: column; background: white; }
         .nav-item { padding: 12px; cursor: pointer; border-radius: 8px; margin-bottom: 5px; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
         .nav-item:hover { background: #fafafa; }
-        .nav-item.active { font-weight: bold; }
+        .nav-item.active { font-weight: bold; background: #efefef; }
 
-        /* MAIN AREA */
-        .main { flex: 1; overflow-y: auto; display: flex; justify-content: center; padding: 20px; }
+        /* MAIN */
+        .main { flex: 1; overflow-y: auto; padding: 20px; display: flex; justify-content: center; }
         .container { width: 100%; max-width: 600px; }
-
-        /* STORIES */
-        .story-bar { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0 20px; border-bottom: 1px solid #efefef; margin-bottom: 20px; }
-        .story-unit { display: flex; flex-direction: column; align-items: center; cursor: pointer; min-width: 75px; }
-        .ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #dc2743, #bc1888); display: flex; justify-content: center; align-items: center; }
-        .pfp-circle { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; background-color: #eee; position: relative; }
-        .plus-btn { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; }
-        .story-unit span { font-size: 11px; margin-top: 5px; }
-
-        /* STORY VIEWER */
-        #viewer { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; flex-direction: column; justify-content: center; align-items: center; }
-        #viewer img { max-height: 80vh; max-width: 90vw; border-radius: 8px; }
-
-        /* SEARCH */
-        .search-row { display: flex; align-items: center; gap: 12px; padding: 10px; background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 8px; }
-        .follow-btn { margin-left: auto; background: #0095f6; }
-        .follow-btn.unfollow { background: #efefef; color: black; }
-
         .page { display: none; }
+
+        /* UI ELEMENTS */
+        .story-bar { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; border-bottom: 1px solid #efefef; margin-bottom: 20px; }
+        .user-row { display: flex; align-items: center; padding: 12px; background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 8px; }
+        .follow-btn { width: auto; padding: 5px 15px; }
+        .follow-btn.unfollow { background: #efefef; color: black; }
     </style>
 </head>
 <body>
-
-    <div id="viewer" onclick="this.style.display='none'">
-        <img id="v-img" src="">
-        <h3 id="v-name" style="color:white;"></h3>
-    </div>
 
     <div id="auth-screen">
         <div class="auth-box">
             <h1 style="color: #FF8C42;">Chatter Box</h1>
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button id="auth-submit">Login / Sign Up</button>
+            <button id="auth-btn">Login / Sign Up</button>
         </div>
     </div>
 
-    <div id="side-nav" class="sidebar" style="display:none;">
+    <div id="side-nav" class="sidebar">
         <h2 style="color: #FF8C42; margin-bottom: 30px;">Chatter Box</h2>
         <div class="nav-item active" onclick="nav('home-page', this)">🏠 Home</div>
         <div class="nav-item" onclick="nav('search-page', this)">🔍 Search</div>
         <div class="nav-item" onclick="nav('profile-page', this)">👤 Profile</div>
-        <button onclick="location.reload()" style="margin-top:auto; background:#ed4956;">Logout</button>
+        <div class="nav-item" onclick="nav('settings-page', this)">⚙️ Settings</div>
+        <div id="admin-item" class="nav-item" style="display:none; color: gold;" onclick="nav('admin-page', this)">👑 Admin</div>
+        <button id="logout-btn" style="margin-top:auto; background:#ed4956;">Sign Out</button>
     </div>
 
     <div class="main">
         <div class="container">
-            
             <div id="home-page" class="page" style="display:block;">
                 <div class="story-bar" id="story-list"></div>
                 <input type="file" id="story-upload" hidden accept="image/*">
-                <div id="feed-info" style="text-align:center; padding:40px; color:#8e8e8e;">
-                    <p>Welcome to your feed!</p>
-                    <small>Go to Search to find and follow friends.</small>
-                </div>
+                <div id="feed"><h3>Your Feed</h3><p style="color:#8e8e8e;">Welcome! Use search to find friends.</p></div>
             </div>
 
             <div id="search-page" class="page">
-                <h3>Discover People</h3>
-                <input type="text" id="search-input" placeholder="Search names..." style="width:100%; margin-bottom:15px;">
+                <h3>Discover Users</h3>
+                <input type="text" id="search-input" placeholder="Type a name...">
                 <div id="search-results"></div>
             </div>
 
             <div id="profile-page" class="page">
-                <h2 id="my-name-display">My Profile</h2>
-                <div id="my-grid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;"></div>
+                <h2 id="disp-name">Username</h2>
+                <div style="border-top:1px solid #dbdbdb; padding-top:20px;">
+                    <p>Your Photos will appear here.</p>
+                </div>
             </div>
 
+            <div id="settings-page" class="page">
+                <h3>Settings</h3>
+                <p>Manage your account preferences here.</p>
+                <button onclick="alert('Settings Saved')" style="width: auto; padding: 10px 20px;">Save Changes</button>
+            </div>
+
+            <div id="admin-page" class="page">
+                <h3 style="color:gold;">Admin Dashboard</h3>
+                <div id="admin-user-list"></div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = { 
@@ -109,10 +102,9 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getDatabase(app);
-
         let user = null;
 
-        // Navigation Function
+        // NAVIGATION
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -120,19 +112,20 @@
             if(el) el.classList.add('active');
         };
 
-        // Auth Logic
-        document.getElementById('auth-submit').onclick = () => {
+        // AUTH HANDLER
+        document.getElementById('auth-btn').onclick = () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { 
-                        name: e.split('@')[0], 
-                        email: e, 
-                        pfp: 'https://i.pravatar.cc/150?u=' + res.user.uid 
-                    });
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], email: e, pfp: 'https://i.pravatar.cc/150' });
                 });
             });
+        };
+
+        // SIGNOUT
+        document.getElementById('logout-btn').onclick = () => {
+            signOut(auth).then(() => location.reload());
         };
 
         onAuthStateChanged(auth, u => {
@@ -140,56 +133,13 @@
                 user = u;
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
-                document.getElementById('my-name-display').innerText = u.email.split('@')[0];
-                initApp();
+                document.getElementById('disp-name').innerText = u.email.split('@')[0];
+                if(u.email === "eaton.garrett@icloud.com") document.getElementById('admin-item').style.display = 'flex';
+                init();
             }
         });
 
-        function initApp() {
-            // LOAD STORIES
-            onValue(ref(db, 'stories'), snap => {
-                const list = document.getElementById('story-list');
-                list.innerHTML = `
-                    <div class="story-unit" onclick="document.getElementById('story-upload').click()">
-                        <div class="ring" style="background:#dbdbdb;">
-                            <div class="pfp-circle"><div class="plus-btn">+</div></div>
-                        </div>
-                        <span>Your Story</span>
-                    </div>
-                `;
-                if(snap.exists()) {
-                    snap.forEach(s => {
-                        const data = s.val();
-                        const item = document.createElement('div');
-                        item.className = 'story-unit';
-                        item.onclick = () => {
-                            document.getElementById('v-img').src = data.img;
-                            document.getElementById('v-name').innerText = data.name;
-                            document.getElementById('viewer').style.display = 'flex';
-                        };
-                        item.innerHTML = `
-                            <div class="ring"><div class="pfp-circle" style="background-image:url(${data.img})"></div></div>
-                            <span>${data.name}</span>
-                        `;
-                        list.appendChild(item);
-                    });
-                }
-            });
-
-            // UPLOAD STORY
-            document.getElementById('story-upload').onchange = (e) => {
-                const file = e.target.files[0];
-                const reader = new FileReader();
-                reader.onload = () => {
-                    set(ref(db, `stories/${user.uid}`), {
-                        img: reader.result,
-                        name: user.email.split('@')[0],
-                        time: Date.now()
-                    });
-                };
-                reader.readAsDataURL(file);
-            };
-
+        function init() {
             // SEARCH LOGIC
             const sInp = document.getElementById('search-input');
             sInp.oninput = () => {
@@ -198,19 +148,12 @@
                     const res = document.getElementById('search-results');
                     res.innerHTML = "";
                     snap.forEach(child => {
-                        const uData = child.val();
-                        if(child.key !== user.uid && uData.name.toLowerCase().includes(term)) {
+                        if(child.key !== user.uid && child.val().name.toLowerCase().includes(term)) {
                             onValue(ref(db, `following/${user.uid}/${child.key}`), f => {
                                 const isF = f.exists();
                                 const row = document.createElement('div');
-                                row.className = 'search-row';
-                                row.innerHTML = `
-                                    <img src="${uData.pfp}" style="width:40px;height:40px;border-radius:50%;">
-                                    <b>${uData.name}</b>
-                                    <button class="follow-btn ${isF?'unfollow':''}" onclick="window.toggleFollow('${child.key}', ${isF})">
-                                        ${isF ? 'Following' : 'Follow'}
-                                    </button>
-                                `;
+                                row.className = 'user-row';
+                                row.innerHTML = `<b>${child.val().name}</b><button class="follow-btn ${isF?'unfollow':''}" onclick="window.toggleFollow('${child.key}', ${isF})">${isF?'Following':'Follow'}</button>`;
                                 res.appendChild(row);
                             }, {onlyOnce: true});
                         }
@@ -218,16 +161,37 @@
                 }, {onlyOnce: true});
             };
             sInp.dispatchEvent(new Event('input')); // Show users immediately
+
+            // STORIES
+            onValue(ref(db, 'stories'), snap => {
+                const list = document.getElementById('story-list');
+                list.innerHTML = `<div onclick="document.getElementById('story-upload').click()" style="cursor:pointer; text-align:center;"><b>+ Story</b></div>`;
+                snap.forEach(s => {
+                    const d = s.val();
+                    list.innerHTML += `<div style="padding:10px;">${d.name}</div>`;
+                });
+            });
+
+            // ADMIN CONTROL
+            if(user.email === "eaton.garrett@icloud.com") {
+                onValue(ref(db, 'users'), snap => {
+                    const list = document.getElementById('admin-user-list');
+                    list.innerHTML = "";
+                    snap.forEach(u => {
+                        list.innerHTML += `<div class="user-row">${u.val().name} <button onclick="window.banUser('${u.key}')" style="background:red; width:auto;">Ban</button></div>`;
+                    });
+                });
+            }
         }
 
-        // Global Follow Toggle
-        window.toggleFollow = (targetId, isFollowing) => {
-            if(isFollowing) {
-                remove(ref(db, `following/${user.uid}/${targetId}`));
-            } else {
-                set(ref(db, `following/${user.uid}/${targetId}`), true);
-            }
+        window.toggleFollow = (tid, isF) => {
+            if(isF) remove(ref(db, `following/${user.uid}/${tid}`));
+            else set(ref(db, `following/${user.uid}/${tid}`), true);
             document.getElementById('search-input').dispatchEvent(new Event('input'));
+        };
+
+        window.banUser = (id) => {
+            if(confirm("Ban this user?")) remove(ref(db, 'users/' + id));
         };
     </script>
 </body>
