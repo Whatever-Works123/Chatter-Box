@@ -3,65 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Pro Features</title>
+    <title>Chatter Box | Professional Profile</title>
     <style>
         * { box-sizing: border-box; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FFF; color: #000; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         /* SIDEBAR */
         .sidebar { width: 245px; border-right: 1px solid #DBDBDB; padding: 25px 12px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
-        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 35px; padding-left: 12px; font-family: 'Arial', sans-serif; letter-spacing: -1px; }
-        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 4px; font-size: 16px; display: flex; align-items: center; gap: 16px; transition: 0.2s; }
-        .nav-item:hover { background: #FAFAFA; scale: 1.02; }
+        .logo { font-size: 1.5rem; font-weight: bold; margin-bottom: 35px; padding-left: 12px; }
+        .nav-item { cursor: pointer; padding: 12px; border-radius: 8px; margin-bottom: 4px; display: flex; align-items: center; gap: 16px; transition: 0.2s; }
+        .nav-item:hover { background: #FAFAFA; }
         .nav-item.active { font-weight: bold; }
 
         /* MAIN VIEW */
         .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; }
-        .center-container { width: 100%; max-width: 630px; padding-top: 20px; }
+        .center-container { width: 100%; max-width: 935px; padding: 30px 20px; }
 
-        /* STORY BAR */
-        .stories-container { display: flex; gap: 15px; padding: 10px 5px 20px 5px; overflow-x: auto; scrollbar-width: none; margin-bottom: 20px; border-bottom: 1px solid #efefef; }
-        .stories-container::-webkit-scrollbar { display: none; }
-        .story-item { display: flex; flex-direction: column; align-items: center; min-width: 74px; cursor: pointer; }
-        
-        /* THE CIRCLE RING (STORY STYLE) */
-        .insta-ring { 
-            width: 42px; height: 42px; 
-            border-radius: 50%; 
-            padding: 2px; 
-            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        /* PROFILE SECTION (FIXED) */
+        .profile-header { display: flex; align-items: center; gap: 80px; margin-bottom: 44px; padding: 0 20px; }
+        .profile-pfp-area { flex-shrink: 0; }
+        .profile-ring { 
+            width: 160px; height: 160px; border-radius: 50%; padding: 4px;
+            background: linear-gradient(45deg, #f09433, #dc2743, #bc1888);
             display: flex; justify-content: center; align-items: center;
         }
-        .story-ring-large { width: 66px; height: 66px; }
+        .profile-pfp { width: 150px; height: 150px; border-radius: 50%; border: 4px solid white; background-size: cover; background-position: center; background-color: #eee; }
         
-        .pfp-inner { width: 100%; height: 100%; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; background-color: #eee; position: relative; }
+        .profile-info { flex-grow: 1; }
+        .profile-username-row { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
+        .profile-username { font-size: 20px; font-weight: 300; }
+        .edit-btn { background: #efefef; color: black; border: none; padding: 5px 15px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; }
+        
+        .profile-stats { display: flex; gap: 40px; margin-bottom: 20px; list-style: none; padding: 0; }
+        .profile-stats li { font-size: 16px; }
+        .profile-stats b { font-weight: 600; }
+        
+        .profile-bio { font-size: 14px; line-height: 1.5; }
+        .profile-bio b { display: block; }
 
-        /* FEED */
-        .post-card { border-bottom: 1px solid #DBDBDB; margin-bottom: 30px; width: 100%; max-width: 470px; margin-inline: auto; }
-        .post-header { padding: 12px 4px; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 14px; }
-        .post-img { width: 100%; border-radius: 4px; border: 1px solid #efefef; }
-        .post-body { padding: 12px 0; font-size: 14px; }
+        /* GRID SECTION */
+        .profile-tabs { border-top: 1px solid #DBDBDB; display: flex; justify-content: center; gap: 60px; margin-top: 50px; }
+        .tab-item { padding: 15px 0; font-size: 12px; font-weight: 600; color: #8e8e8e; cursor: pointer; border-top: 1px solid transparent; margin-top: -1px; text-transform: uppercase; letter-spacing: 1px; }
+        .tab-item.active { color: #000; border-top: 1px solid #000; }
 
-        /* AUTH & SETTINGS */
-        #authPage { position: fixed; inset: 0; background: #FFF; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .auth-box { width: 350px; padding: 40px; border: 1px solid #DBDBDB; text-align: center; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #DBDBDB; border-radius: 3px; margin-bottom: 8px; background: #FAFAFA; font-size: 12px; }
-        button { background: #0095F6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 5px; }
+        .post-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+        .grid-item { aspect-ratio: 1 / 1; background-size: cover; background-position: center; background-color: #efefef; cursor: pointer; transition: opacity 0.2s; }
+        .grid-item:hover { opacity: 0.8; }
+
+        /* FEED POSTS (HOME) */
+        .insta-ring-small { width: 42px; height: 42px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #bc1888); display: flex; justify-content: center; align-items: center; }
+        .pfp-small { width: 34px; height: 34px; border-radius: 50%; border: 2px solid white; background-size: cover; }
+        .post-card { border-bottom: 1px solid #DBDBDB; margin-bottom: 30px; width: 470px; margin-inline: auto; }
+
+        /* SETTINGS & AUTH */
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #DBDBDB; border-radius: 3px; margin-bottom: 8px; background: #FAFAFA; }
+        button { background: #0095F6; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .page { display: none; width: 100%; }
-        
-        .settings-box { background: #fafafa; padding: 20px; border-radius: 10px; border: 1px solid #dbdbdb; }
+        #authPage { position: fixed; inset: 0; background: #FFF; display: flex; justify-content: center; align-items: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
     <div id="authPage">
-        <div class="auth-box">
-            <h1 class="logo">Chatter Box</h1>
+        <div class="auth-box" style="width: 350px; text-align: center; border: 1px solid #dbdbdb; padding: 40px;">
+            <h1 style="font-family: sans-serif; font-weight: bold;">Chatter Box</h1>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
             <input type="text" id="lName" placeholder="Full Name" style="display:none;">
-            <button id="authBtn">Log In</button>
-            <button id="switchBtn" style="background:none; color:#0095f6; font-size:12px; margin-top:15px;">Sign Up</button>
+            <button id="authBtn" style="width: 100%;">Log In</button>
+            <p id="switchBtn" style="color: #0095f6; font-size: 12px; cursor: pointer; margin-top: 20px;">Don't have an account? Sign Up</p>
         </div>
     </div>
 
@@ -79,38 +89,58 @@
         <div class="center-container">
             
             <div id="homePage" class="page">
-                <div class="stories-container" id="storyList"></div>
-                <input type="file" id="storyInput" accept="image/*" style="display:none;">
-                <div style="border-bottom: 1px solid #DBDBDB; padding-bottom: 20px; margin-bottom: 20px; max-width: 470px; margin-inline: auto;">
+                <div style="max-width: 470px; margin: 0 auto; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <textarea id="postText" placeholder="What's on your mind?"></textarea>
                     <input type="file" id="postImg">
-                    <button id="sendPost">Post</button>
+                    <button id="sendPost" style="width: 100%;">Share Post</button>
                 </div>
                 <div id="postFeed"></div>
             </div>
 
-            <div id="settingsPage" class="page" style="padding:40px;">
-                <h3>Edit Profile</h3>
-                <div class="settings-box">
-                    <div id="setPrevPfp" style="width:100px; height:100px; border-radius:50%; background-size:cover; margin-bottom:15px; border:1px solid #dbdbdb;"></div>
-                    <label style="font-size:12px; font-weight:bold;">Change Profile Photo</label>
-                    <input type="file" id="newPfpInput" accept="image/*">
-                    <label style="font-size:12px; font-weight:bold; margin-top:10px; display:block;">Display Name</label>
-                    <input type="text" id="updateNameInput">
-                    <button id="saveSettingsBtn">Save Settings</button>
+            <div id="profilePage" class="page">
+                <header class="profile-header">
+                    <div class="profile-pfp-area">
+                        <div class="profile-ring">
+                            <div id="profPfp" class="profile-pfp"></div>
+                        </div>
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-username-row">
+                            <h2 class="profile-username" id="profNameDisplay">username</h2>
+                            <button class="edit-btn" onclick="showPage('settingsPage')">Edit Profile</button>
+                        </div>
+                        <ul class="profile-stats">
+                            <li><b id="postCount">0</b> posts</li>
+                            <li><b>128</b> followers</li>
+                            <li><b>245</b> following</li>
+                        </ul>
+                        <div class="profile-bio">
+                            <b id="profRealName">User Full Name</b>
+                            <span>Digital Creator 📸<br>Built with Chatter Box AI.</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="profile-tabs">
+                    <div class="tab-item active">Posts</div>
+                    <div class="tab-item">Reels</div>
+                    <div class="tab-item">Tagged</div>
                 </div>
+
+                <div id="myPostsGrid" class="post-grid"></div>
             </div>
 
-            <div id="profilePage" class="page" style="padding:40px;">
-                <div style="display:flex; align-items:center; gap:20px; margin-bottom:30px;">
-                    <div id="profPfp" style="width:150px; height:150px; border-radius:50%; background-size:cover; border:1px solid #dbdbdb;"></div>
-                    <h2 id="profName">User</h2>
-                </div>
-                <div id="myPostsGrid" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;"></div>
+            <div id="settingsPage" class="page" style="max-width: 600px; margin: 0 auto;">
+                <h3>Settings</h3>
+                <label>Change Profile Picture</label>
+                <input type="file" id="newPfpInput">
+                <label>Change Name</label>
+                <input type="text" id="updateNameInput">
+                <button id="saveSettingsBtn" style="width: 100%;">Save Changes</button>
             </div>
 
-            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3><input type="text" id="searchInput" placeholder="Search..."><div id="searchResults"></div></div>
-            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3><p>No new notifications.</p></div>
+            <div id="searchPage" class="page"><h3>Search</h3><input type="text" placeholder="Search..."></div>
+            <div id="notifPage" class="page"><h3>Notifications</h3><p>No new updates.</p></div>
 
         </div>
     </div>
@@ -132,6 +162,7 @@
         const db = getDatabase(app);
         
         let myData = { name: "User", pfp: "https://cdn-icons-png.flaticon.com/512/149/149071.png" };
+        let myPostCount = 0;
 
         window.showPage = (id, el) => { 
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
@@ -140,7 +171,7 @@
             if(el) el.classList.add('active');
         };
 
-        // Auth Logic
+        // AUTH
         document.getElementById('switchBtn').onclick = () => {
             const isLogin = document.getElementById('authBtn').innerText === 'Log In';
             document.getElementById('lName').style.display = isLogin ? 'block' : 'none';
@@ -161,6 +192,7 @@
             if(u) {
                 document.getElementById('authPage').style.display = 'none'; 
                 document.getElementById('sideBar').style.display = 'flex';
+                showPage('homePage', document.querySelector('.nav-item.active'));
                 init(u);
             } else {
                 document.getElementById('authPage').style.display = 'flex';
@@ -176,7 +208,7 @@
                 const img = new Image(); img.src = e.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    canvas.width = 400; canvas.height = (img.height/img.width)*400;
+                    canvas.width = 500; canvas.height = (img.height/img.width)*500;
                     canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
                     cb(canvas.toDataURL('image/jpeg', 0.7));
                 };
@@ -184,52 +216,67 @@
         }
 
         function init(u) {
+            // Load User Profile Data
             onValue(ref(db, 'users/'+u.uid), s => { 
                 if(s.exists()){ 
                     myData = s.val(); 
-                    document.getElementById('profName').innerText = myData.name;
+                    document.getElementById('profNameDisplay').innerText = myData.name.toLowerCase().replace(/\s+/g, '_');
+                    document.getElementById('profRealName').innerText = myData.name;
                     document.getElementById('profPfp').style.backgroundImage = `url(${myData.pfp})`;
-                    document.getElementById('setPrevPfp').style.backgroundImage = `url(${myData.pfp})`;
                     document.getElementById('updateNameInput').value = myData.name;
                 } 
             });
 
-            // Update Profile Settings
-            document.getElementById('saveSettingsBtn').onclick = () => {
-                const newName = document.getElementById('updateNameInput').value;
-                const pfpFile = document.getElementById('newPfpInput').files[0];
-                
-                const save = (pfpUrl = myData.pfp) => {
-                    update(ref(db, 'users/'+u.uid), { name: newName, pfp: pfpUrl }).then(() => alert("Profile Updated!"));
-                };
-
-                if(pfpFile) compress(pfpFile, b64 => save(b64)); else save();
-            };
-
-            // Feed with Story Ring
+            // Feed & Profile Grid
             const postFeed = document.getElementById('postFeed');
+            const myPostsGrid = document.getElementById('myPostsGrid');
             onChildAdded(ref(db, 'posts'), snap => {
                 const p = snap.val();
+                
+                // Add to Home Feed
                 const card = document.createElement('div'); card.className = 'post-card';
                 card.innerHTML = `
-                    <div class="post-header">
-                        <div class="insta-ring">
-                            <div class="pfp-inner" style="background-image:url(${p.senderPfp || myData.pfp})"></div>
-                        </div>
-                        ${p.sender}
+                    <div style="display:flex; align-items:center; gap:10px; padding:10px 0;">
+                        <div class="insta-ring-small"><div class="pfp-small" style="background-image:url(${p.senderPfp || myData.pfp})"></div></div>
+                        <span style="font-weight:600; font-size:14px;">${p.sender}</span>
                     </div>
-                    ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                    <div class="post-body"><b>${p.sender}</b> ${p.text}</div>
+                    ${p.img ? `<img src="${p.img}" style="width:100%; border:1px solid #efefef; border-radius:4px;">` : ''}
+                    <div style="padding:10px 0; font-size:14px;"><b>${p.sender}</b> ${p.text}</div>
                 `;
                 postFeed.prepend(card);
+
+                // Add to My Profile Grid (If mine)
+                if(p.uid === u.uid && p.img) {
+                    myPostCount++;
+                    document.getElementById('postCount').innerText = myPostCount;
+                    const gridImg = document.createElement('div');
+                    gridImg.className = 'grid-item';
+                    gridImg.style.backgroundImage = `url(${p.img})`;
+                    myPostsGrid.prepend(gridImg);
+                }
             });
 
+            // Create Post
             document.getElementById('sendPost').onclick = () => {
                 const text = document.getElementById('postText').value;
                 const file = document.getElementById('postImg').files[0];
+                const btn = document.getElementById('sendPost');
                 if(!text && !file) return;
-                const pushP = (i="") => push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, senderPfp: myData.pfp, text: text, img: i }).then(() => location.reload());
-                if(file) compress(file, b64 => pushP(b64)); else pushP();
+                btn.disabled = true;
+
+                const submit = (i="") => push(ref(db, 'posts'), { 
+                    uid: u.uid, sender: myData.name, senderPfp: myData.pfp, text: text, img: i 
+                }).then(() => location.reload());
+
+                if(file) compress(file, b64 => submit(b64)); else submit("");
+            };
+
+            // Save Settings
+            document.getElementById('saveSettingsBtn').onclick = () => {
+                const name = document.getElementById('updateNameInput').value;
+                const file = document.getElementById('newPfpInput').files[0];
+                const save = (p=myData.pfp) => update(ref(db, 'users/'+u.uid), { name, pfp: p }).then(() => alert("Updated!"));
+                if(file) compress(file, b64 => save(b64)); else save();
             };
         }
     </script>
