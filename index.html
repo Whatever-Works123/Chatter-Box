@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Native Uploads</title>
+    <title>Chatter Box | Full Fix</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: #ffffff; color: #262626; }
@@ -23,6 +23,7 @@
         /* POSTS */
         .post-card { background: white; border: 1px solid #dbdbdb; border-radius: 8px; margin: 0 auto 20px; max-width: 470px; overflow: hidden; }
         .post-header { padding: 12px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #efefef; }
+        .avatar-small { width: 32px; height: 32px; border-radius: 50%; background-size: cover; background-position: center; background-color: #eee; }
         .post-img { width: 100%; display: block; background: #fafafa; }
         .post-footer { padding: 12px; font-size: 14px; }
         .timestamp { color: #8e8e8e; font-size: 12px; margin-left: 8px; }
@@ -40,7 +41,7 @@
         .btn-grey { background: #efefef; color: black; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
         #edit-form { display: none; margin-top: 10px; border: 1px solid #dbdbdb; padding: 15px; border-radius: 8px; background: #fafafa; }
-        .pfp-upload-label { color: #0095f6; font-size: 14px; font-weight: bold; cursor: pointer; display: block; margin: 10px 0; }
+        .pfp-upload-label { color: #0095f6; font-size: 14px; font-weight: bold; cursor: pointer; display: inline-block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -67,8 +68,8 @@
             
             <div id="home-page" class="page" style="display:block;">
                 <div style="max-width:470px; margin: 0 auto 30px; border:1px solid #dbdbdb; padding:15px; border-radius:8px;">
-                    <textarea id="post-text" placeholder="Caption..." rows="2"></textarea>
-                    <input type="file" id="post-file" accept="image/*">
+                    <textarea id="post-text" placeholder="What's on your mind?" rows="2"></textarea>
+                    <input type="file" id="post-file" accept="image/*" style="font-size: 12px; margin-bottom: 10px;">
                     <button id="post-btn" class="btn-blue" style="float:right;">Post</button>
                     <div style="clear:both;"></div>
                 </div>
@@ -76,8 +77,9 @@
             </div>
 
             <div id="search-page" class="page">
-                <input type="text" id="s-query" placeholder="Search...">
-                <div id="s-results"></div>
+                <h3>Search Users</h3>
+                <input type="text" id="s-query" placeholder="Type a username...">
+                <div id="s-results" style="margin-top: 20px;"></div>
             </div>
 
             <div id="profile-page" class="page">
@@ -88,15 +90,14 @@
                             <h2 id="p-username" style="font-weight:300; margin:0;">Username</h2>
                             <div id="p-btn-container"></div>
                         </div>
-                        <div id="p-bio" style="font-size:14px; margin-bottom:10px;">Welcome!</div>
+                        <div id="p-bio" style="font-size:14px; margin-bottom:10px;">Welcome to my profile!</div>
                         
                         <div id="edit-form">
-                            <label class="pfp-upload-label" for="pfp-input">Change Profile Photo</label>
+                            <label class="pfp-upload-label" for="pfp-input">📸 Change Profile Photo</label>
                             <input type="file" id="pfp-input" accept="image/*" style="display:none;">
-                            
                             <input type="text" id="edit-name-in" placeholder="Username">
-                            <textarea id="edit-bio-in" placeholder="Bio"></textarea>
-                            <button class="btn-blue" onclick="saveProfile()">Save</button>
+                            <textarea id="edit-bio-in" placeholder="Write a short bio..."></textarea>
+                            <button class="btn-blue" onclick="saveProfile()">Save Changes</button>
                             <button class="btn-grey" onclick="toggleEdit(false)">Cancel</button>
                         </div>
                     </div>
@@ -145,7 +146,11 @@
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: 'https://i.pravatar.cc/150', bio: "Hey there!" });
+                    set(ref(db, 'users/' + res.user.uid), { 
+                        name: e.split('@')[0], 
+                        pfp: 'https://i.pravatar.cc/150', 
+                        bio: "New to Chatter Box!" 
+                    });
                 });
             });
         };
@@ -156,7 +161,7 @@
             if(u) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-nav').style.display = 'flex';
-                startApp();
+                initApp();
             }
         });
 
@@ -206,51 +211,96 @@
             const name = document.getElementById('edit-name-in').value;
             const bio = document.getElementById('edit-bio-in').value;
 
-            const updateDB = (pfpBase64 = null) => {
+            const runUpdate = (pfpBase64 = null) => {
                 const updates = { name, bio };
                 if(pfpBase64) updates.pfp = pfpBase64;
-                update(ref(db, 'users/' + auth.currentUser.uid), updates).then(() => {
-                    toggleEdit(false);
-                });
+                update(ref(db, 'users/' + auth.currentUser.uid), updates).then(() => toggleEdit(false));
             };
 
             if(file) {
-                const reader = new FileReader();
-                reader.onload = () => updateDB(reader.result);
-                reader.readAsDataURL(file);
-            } else {
-                updateDB();
-            }
+                const r = new FileReader();
+                r.onload = () => runUpdate(r.result);
+                r.readAsDataURL(file);
+            } else { runUpdate(); }
         };
 
-        function startApp() {
+        function initApp() {
+            // Live Feed
             onValue(ref(db, 'posts'), snap => {
                 const feed = document.getElementById('feed');
                 feed.innerHTML = "";
                 let posts = [];
                 snap.forEach(c => posts.push(c.val()));
                 posts.reverse().forEach(p => {
-                    const card = document.createElement('div');
-                    card.className = 'post-card';
-                    card.innerHTML = `
-                        <div class="post-header"><b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b></div>
-                        ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
-                        <div class="post-footer"><b>${p.name}</b> ${p.text} <span class="timestamp">${timeAgo(p.time)}</span></div>
-                    `;
-                    feed.appendChild(card);
+                    // Fetch poster's PFP
+                    get(ref(db, 'users/' + p.uid)).then(userSnap => {
+                        const userData = userSnap.val();
+                        const card = document.createElement('div');
+                        card.className = 'post-card';
+                        card.innerHTML = `
+                            <div class="post-header">
+                                <div class="avatar-small" style="background-image:url(${userData.pfp})"></div>
+                                <b class="clickable-name" onclick="viewProfile('${p.uid}')">${p.name}</b>
+                            </div>
+                            ${p.img ? `<img src="${p.img}" class="post-img">` : ''}
+                            <div class="post-footer">
+                                <b>${p.name}</b> ${p.text}
+                                <span class="timestamp">${timeAgo(p.time)}</span>
+                            </div>
+                        `;
+                        feed.appendChild(card);
+                    });
                 });
             });
 
+            // Post Action
             document.getElementById('post-btn').onclick = () => {
-                const text = document.getElementById('post-text').value, file = document.getElementById('post-file').files[0];
+                const text = document.getElementById('post-text').value;
+                const file = document.getElementById('post-file').files[0];
+                if(!text && !file) return;
+
                 const upload = (imgStr = "") => {
                     get(ref(db, 'users/' + auth.currentUser.uid)).then(s => {
-                        push(ref(db, 'posts'), { uid: auth.currentUser.uid, name: s.val().name, text, img: imgStr, time: Date.now() });
+                        push(ref(db, 'posts'), {
+                            uid: auth.currentUser.uid,
+                            name: s.val().name,
+                            text: text,
+                            img: imgStr,
+                            time: Date.now()
+                        });
                         document.getElementById('post-text').value = "";
                         document.getElementById('post-file').value = "";
                     });
                 };
-                if(file) { const r = new FileReader(); r.onload = () => upload(r.result); r.readAsDataURL(file); } else if(text) upload();
+
+                if(file) {
+                    const r = new FileReader();
+                    r.onload = () => upload(r.result);
+                    r.readAsDataURL(file);
+                } else { upload(); }
+            };
+
+            // Search Action
+            document.getElementById('s-query').oninput = (e) => {
+                const q = e.target.value.toLowerCase();
+                const res = document.getElementById('s-results');
+                if(!q) { res.innerHTML = ""; return; }
+                
+                get(ref(db, 'users')).then(snap => {
+                    res.innerHTML = "";
+                    snap.forEach(c => {
+                        if(c.val().name.toLowerCase().includes(q)) {
+                            const div = document.createElement('div');
+                            div.style = "display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid #eee; cursor:pointer;";
+                            div.onclick = () => viewProfile(c.key);
+                            div.innerHTML = `
+                                <div class="avatar-small" style="background-image:url(${c.val().pfp})"></div>
+                                <b>${c.val().name}</b>
+                            `;
+                            res.appendChild(div);
+                        }
+                    });
+                });
             };
         }
     </script>
