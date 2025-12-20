@@ -3,220 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Story Fix</title>
+    <title>Chatter Box</title>
     <style>
-        * { box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #FAFAFA; color: #262626; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-
-        /* SIDEBAR */
-        .sidebar { width: 250px; border-right: 1px solid #DBDBDB; padding: 20px; display: flex; flex-direction: column; background: #FFF; flex-shrink: 0; }
-        .logo { font-size: 1.8rem; font-weight: bold; margin-bottom: 30px; color: #FF8C42; font-style: italic; }
-        .nav-item { cursor: pointer; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: 0.2s; }
-        .nav-item:hover { background: #f2f2f2; }
-        .nav-item.active { background: #FFF5EE; color: #FF8C42; }
-
-        /* MAIN VIEW */
-        .main-view { flex: 1; overflow-y: auto; display: flex; justify-content: center; background: #fff; }
-        .center-container { width: 100%; max-width: 600px; border-left: 1px solid #efefef; border-right: 1px solid #efefef; min-height: 100vh; }
-
-        /* STORIES */
-        .stories-wrapper { width: 100%; border-bottom: 1px solid #dbdbdb; padding: 15px 0; background: white; }
-        .stories-bar { display: flex; gap: 15px; padding: 0 15px; overflow-x: auto; scrollbar-width: none; }
-        .story { display: flex; flex-direction: column; align-items: center; width: 75px; cursor: pointer; flex-shrink: 0; }
+        body { font-family: sans-serif; background: #0f0c29; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .container { width: 95%; max-width: 420px; background: rgba(255,255,255,0.1); padding: 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.15); height: 85vh; display: flex; flex-direction: column; box-sizing: border-box; }
+        input { width: 100%; padding: 12px; margin: 8px 0; border-radius: 10px; border: none; box-sizing: border-box; background: white; color: black; }
+        button { padding: 12px; cursor: pointer; background: #2575fc; color: white; border: none; border-radius: 10px; font-weight: bold; width: 100%; margin-top: 10px; }
         
-        /* THE RING SYSTEM */
-        .story-ring { width: 66px; height: 66px; border-radius: 50%; padding: 2px; display: flex; justify-content: center; align-items: center; margin-bottom: 5px; }
-        .ring-unseen { background: linear-gradient(45deg, #f09433, #dc2743, #bc1888) !important; }
-        .ring-seen { background: #dbdbdb !important; }
-        .ring-none { background: transparent; border: 1px solid #efefef; }
+        /* Layout Sections */
+        .page { display: none; flex-direction: column; height: 100%; }
+        .scroll-area { flex: 1; overflow-y: auto; background: rgba(0,0,0,0.2); margin: 10px 0; padding: 15px; border-radius: 15px; }
         
-        .story-inner { width: 58px; height: 58px; border-radius: 50%; border: 2px solid white; background-size: cover; background-position: center; position: relative; background-color: #eee; }
-        .add-plus { position: absolute; bottom: 0; right: 0; background: #0095f6; color: white; border-radius: 50%; width: 18px; height: 18px; font-size: 14px; border: 2px solid white; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-
-        /* FEED & OVERLAYS */
-        .feed-content { padding: 20px; max-width: 470px; margin: 0 auto; }
-        .post-card { border: 1px solid #dbdbdb; border-radius: 8px; margin-bottom: 24px; background: white; overflow: hidden; }
-        .post-img { width: 100%; display: block; }
-        #storyOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 10000; display: none; justify-content: center; align-items: center; }
-        #storyImg { max-width: 95%; max-height: 90vh; border-radius: 10px; }
-
-        .page { display: none; width: 100%; }
-        #authPage { position: fixed; inset: 0; background: #fafafa; display: flex; justify-content: center; align-items: center; z-index: 9999; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid #dbdbdb; border-radius: 5px; margin-bottom: 10px; }
-        button { background: #FF8C42; color: white; border: none; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; }
+        /* Navigation */
+        .nav-bar { display: flex; justify-content: space-around; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); margin-top: auto; }
+        .nav-item { cursor: pointer; opacity: 0.5; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; padding: 10px; }
+        .nav-item.active { opacity: 1; color: #2575fc; border-bottom: 2px solid #2575fc; }
+        
+        .msg { margin-bottom: 12px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .friend-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.05); margin-bottom: 5px; border-radius: 10px; }
+        .danger { background: #ff4b2b; }
     </style>
 </head>
 <body>
 
-    <div id="storyOverlay" onclick="this.style.display='none'"><img id="storyImg" src=""></div>
-
-    <div id="authPage">
-        <div style="width: 320px; padding: 40px; background: white; border: 1px solid #dbdbdb; text-align: center;">
-            <h1 class="logo">Chatter Box</h1>
+    <div class="container">
+        <div id="authPage" class="page">
+            <h2 id="authTitle" style="text-align:center;">Chatter Box</h2>
+            <div id="regBox" style="display:none;">
+                <input type="text" id="rNick" placeholder="Choose a Nickname">
+            </div>
             <input type="email" id="lEmail" placeholder="Email">
             <input type="password" id="lPass" placeholder="Password">
-            <button id="authBtn">Log In</button>
+            <button id="authGo">Continue</button>
+            <p id="authSwitch" style="cursor:pointer; text-align:center; font-size: 0.8rem; color: #2575fc; margin-top: 15px;">New? Register</p>
         </div>
-    </div>
 
-    <div id="sideBar" class="sidebar" style="display:none;">
-        <div class="logo">Chatter Box</div>
-        <div class="nav-item active" onclick="showPage('homePage', this)">🏠 Home</div>
-        <div class="nav-item" onclick="showPage('notifPage', this)">🔔 Notifications</div>
-        <div class="nav-item" onclick="showPage('searchPage', this)">🔍 Search</div>
-        <div class="nav-item" onclick="showPage('profilePage', this)">👤 Profile</div>
-        <div class="nav-item" onclick="showPage('setPage', this)">⚙️ Settings</div>
-        <div id="adminPanel" class="nav-item" style="display:none; color:red;" onclick="clearFeed()">🔥 Admin Reset</div>
-        <div onclick="location.reload()" class="nav-item" style="margin-top:auto;">Logout</div>
-    </div>
+        <div id="friendsPage" class="page">
+            <h3 style="margin:0;">Friends</h3>
+            <div style="display:flex; gap:5px;"><input type="text" id="fSearch" placeholder="Friend Email" style="margin:0;"><button id="fAdd" style="width:auto; margin:0; padding:0 10px;">Add</button></div>
+            <div id="fList" class="scroll-area"></div>
+            <div class="nav-bar">
+                <div class="nav-item active">Friends</div>
+                <div class="nav-item" onclick="go('chatPage')">Chat</div>
+                <div class="nav-item" onclick="go('setPage')">Settings</div>
+            </div>
+        </div>
 
-    <div class="main-view">
-        <div class="center-container">
-            <div id="homePage" class="page">
-                <div class="stories-wrapper"><div id="storyList" class="stories-bar"></div></div>
-                <input type="file" id="storyInput" accept="image/*" style="display:none;">
-                <div class="feed-content">
-                    <div style="background:white; border:1px solid #dbdbdb; padding:15px; border-radius:8px; margin-bottom:20px;">
-                        <textarea id="postText" placeholder="Post to the feed..."></textarea>
-                        <input type="file" id="postImg" accept="image/*">
-                        <button id="sendPost" style="margin-top:10px;">Post</button>
-                    </div>
-                    <div id="postFeed"></div>
-                </div>
+        <div id="chatPage" class="page">
+            <h3 style="margin:0;">Global Chat</h3>
+            <div id="cWin" class="scroll-area"></div>
+            <div style="display:flex; gap:5px;"><input type="text" id="mIn" placeholder="Message..." style="margin:0;"><button id="mSend" style="width:auto; margin:0; padding:0 15px;">Send</button></div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="go('friendsPage')">Friends</div>
+                <div class="nav-item active">Chat</div>
+                <div class="nav-item" onclick="go('setPage')">Settings</div>
             </div>
-            
-            <div id="profilePage" class="page">
-                <div style="padding:40px; display: flex; align-items: center; gap: 20px;">
-                    <div id="profPfp" style="width:80px; height:80px; border-radius:50%; background-size:cover; border:1px solid #ddd;"></div>
-                    <h2 id="profName">User</h2>
-                </div>
-                <div id="myPostsGrid" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:3px; padding:3px;"></div>
+        </div>
+
+        <div id="setPage" class="page">
+            <h3 style="margin:0;">Settings</h3>
+            <div class="scroll-area">
+                <p style="font-size:0.8rem; opacity:0.7;">Change Nickname:</p>
+                <input type="text" id="sNick" placeholder="New Nickname">
+                <button id="sSave">Save Name</button>
+                <hr style="margin:20px 0; opacity:0.1;">
+                <button onclick="logOut()" class="danger">Sign Out</button>
             </div>
-            <div id="notifPage" class="page" style="padding:20px;"><h3>Notifications</h3></div>
-            <div id="searchPage" class="page" style="padding:20px;"><h3>Search</h3></div>
-            <div id="setPage" class="page" style="padding:20px;"><h3>Settings</h3></div>
+            <div class="nav-bar">
+                <div class="nav-item" onclick="go('friendsPage')">Friends</div>
+                <div class="nav-item" onclick="go('chatPage')">Chat</div>
+                <div class="nav-item active">Settings</div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, push, onChildAdded, onValue, set, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getDatabase, ref, push, onChildAdded, set, get, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const config = { apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", authDomain: "chatterbox-4b7dd.firebaseapp.com", databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", projectId: "chatterbox-4b7dd" };
-        const app = initializeApp(config); const auth = getAuth(app); const db = getDatabase(app);
-        
-        let myData = { name: "User", pfp: "" };
-        const ADMIN_EMAIL = "eaton.garrett@icloud.com";
-
-        window.showPage = (id, el) => { 
-            document.querySelectorAll('.page').forEach(p => p.style.display = 'none'); 
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.getElementById(id).style.display = 'block'; 
-            if(el) el.classList.add('active');
+        const config = {
+            apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
+            authDomain: "chatterbox-4b7dd.firebaseapp.com",
+            databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
+            projectId: "chatterbox-4b7dd",
+            storageBucket: "chatterbox-4b7dd.firebasestorage.app",
+            messagingSenderId: "509263602746",
+            appId: "1:509263602746:web:01051fc91ecb3bfa384103"
         };
 
-        document.getElementById('authBtn').onclick = () => signInWithEmailAndPassword(auth, lEmail.value, lPass.value);
+        const app = initializeApp(config);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        let isReg = false;
+
+        window.go = (id) => {
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        };
+
+        window.logOut = () => signOut(auth).then(() => location.reload());
+
+        // Toggle between Login and Register
+        document.getElementById('authSwitch').onclick = () => {
+            isReg = !isReg;
+            document.getElementById('authTitle').innerText = isReg ? 'Create Account' : 'Chatter Box';
+            document.getElementById('regBox').style.display = isReg ? 'block' : 'none';
+            document.getElementById('authSwitch').innerText = isReg ? 'Back to Login' : 'New? Register';
+        };
+
+        // Handle Registration and Login
+        document.getElementById('authGo').onclick = () => {
+            const e = document.getElementById('lEmail').value;
+            const p = document.getElementById('lPass').value;
+            const n = document.getElementById('rNick').value;
+
+            if (isReg) {
+                // REGISTRATION
+                if (!n) return alert("Please enter a nickname");
+                createUserWithEmailAndPassword(auth, e, p).then(res => {
+                    updateProfile(res.user, {displayName: n}).then(() => {
+                        set(ref(db, 'users/' + res.user.uid), {email: e.toLowerCase(), name: n});
+                    });
+                }).catch(err => alert(err.message));
+            } else {
+                // LOGIN
+                signInWithEmailAndPassword(auth, e, p).catch(err => alert(err.message));
+            }
+        };
 
         onAuthStateChanged(auth, (u) => {
-            if(u) {
-                if(u.email === ADMIN_EMAIL) adminPanel.style.display='flex';
-                authPage.style.display='none'; sideBar.style.display='flex';
-                showPage('homePage', document.querySelector('.nav-item.active'));
-                init(u);
-            }
+            if(u) { go('friendsPage'); start(u); } else { go('authPage'); }
         });
 
-        function compress(file, cb) {
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = (e) => {
-                const img = new Image(); img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = 600; canvas.height = (img.height/img.width)*600;
-                    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-                    cb(canvas.toDataURL('image/jpeg', 0.6));
-                };
-            };
-        }
-
-        function init(u) {
-            onValue(ref(db, 'users/'+u.uid), (s) => { if(s.exists()){ myData = s.val(); profName.innerText = myData.name; profPfp.style.backgroundImage = `url(${myData.pfp})`; } });
-
-            // STORY LISTENER
-            onValue(ref(db, 'stories'), (storySnap) => {
-                const allStories = storySnap.val() || {};
-                onValue(ref(db, 'users'), (userSnap) => {
-                    storyList.innerHTML = "";
-                    
-                    // ME
-                    const myStory = allStories[u.uid];
-                    const meDiv = document.createElement('div');
-                    meDiv.className = 'story';
-                    meDiv.innerHTML = `<div class="story-ring ${myStory ? 'ring-seen' : 'ring-none'}"><div class="story-inner" style="background-image:url(${myData.pfp})"><div class="add-plus" id="uploadPlus">+</div></div></div><span>You</span>`;
-                    meDiv.onclick = (e) => {
-                        if(e.target.id === 'uploadPlus' || !myStory) storyInput.click();
-                        else { storyImg.src = myStory.img; storyOverlay.style.display = 'flex'; }
-                    };
-                    storyList.appendChild(meDiv);
-
-                    // FRIENDS
-                    userSnap.forEach(snap => {
-                        const userId = snap.key;
-                        const user = snap.val();
-                        if(userId !== u.uid && allStories[userId]) {
-                            const sData = allStories[userId];
-                            const viewers = sData.viewers || {};
-                            
-                            // LOGIC: If my UID is in the viewers list, it is 'seen' (grey). Else 'unseen' (color).
-                            const hasSeen = viewers[u.uid] === true;
-                            const ringClass = hasSeen ? 'ring-seen' : 'ring-unseen';
-
-                            const friendDiv = document.createElement('div');
-                            friendDiv.className = 'story';
-                            friendDiv.innerHTML = `<div class="story-ring ${ringClass}"><div class="story-inner" style="background-image:url(${user.pfp})"></div></div><span>${user.name.split(' ')[0]}</span>`;
-                            friendDiv.onclick = () => {
-                                // Mark as seen
-                                update(ref(db, `stories/${userId}/viewers`), { [u.uid]: true });
-                                storyImg.src = sData.img;
-                                storyOverlay.style.display = 'flex';
-                            };
-                            storyList.appendChild(friendDiv);
-                        }
-                    });
-                });
-            });
-
-            // UPLOAD NEW STORY
-            storyInput.onchange = (e) => {
-                if(e.target.files[0]) compress(e.target.files[0], (b64) => {
-                    // This 'set' wipes the entire story folder for the user, 
-                    // which automatically clears the 'viewers' list.
-                    set(ref(db, 'stories/'+u.uid), { 
-                        img: b64, 
-                        ts: Date.now(), 
-                        viewers: { [u.uid]: true } // You've seen your own
-                    }).then(() => {
-                        console.log("New Story Saved - Ring should be colorful for others.");
-                    });
+        function start(u) {
+            // Settings: Change Name
+            document.getElementById('sSave').onclick = () => {
+                const n = document.getElementById('sNick').value;
+                if(n) updateProfile(u, {displayName: n}).then(() => {
+                    update(ref(db, 'users/' + u.uid), {name: n});
+                    alert("Name Updated!");
                 });
             };
 
-            // FEED
-            onChildAdded(ref(db, 'posts'), (snap) => {
-                const p = snap.val();
-                const card = document.createElement('div'); card.className = 'post-card';
-                card.innerHTML = `<div style="padding:10px; font-weight:bold;">${p.sender}</div><img src="${p.img}" class="post-img"><div style="padding:10px;"><b>${p.sender}</b> ${p.text}</div>`;
-                postFeed.prepend(card);
+            // Friends: Add by Email
+            document.getElementById('fAdd').onclick = () => {
+                const s = document.getElementById('fSearch').value.toLowerCase().trim();
+                get(ref(db, 'users')).then(snap => {
+                    let fid = null;
+                    snap.forEach(c => { if(c.val().email === s) fid = c.key; });
+                    if(fid && fid !== u.uid) set(ref(db, `friends/${u.uid}/${fid}`), true).then(() => alert("Friend Added!"));
+                    else alert("User not found or you added yourself.");
+                });
+            };
+
+            // Friends: Display List
+            const list = document.getElementById('fList');
+            list.innerHTML = "";
+            onChildAdded(ref(db, `friends/${u.uid}`), (snap) => {
+                get(ref(db, `users/${snap.key}`)).then(s => {
+                    if (s.exists()) {
+                        const d = document.createElement('div');
+                        d.className = 'friend-item';
+                        d.innerHTML = `<span>${s.val().name}</span> <button style="width:auto; padding:5px;">Chat</button>`;
+                        list.appendChild(d);
+                    }
+                });
             });
 
-            sendPost.onclick = () => {
-                const f = postImg.files[0];
-                if(f) compress(f, (b64) => push(ref(db, 'posts'), { uid: u.uid, sender: myData.name, text: postText.value, img: b64 }));
+            // Global Chat: Send Message
+            const cRef = ref(db, 'messages');
+            document.getElementById('mSend').onclick = () => {
+                const t = document.getElementById('mIn').value;
+                if(t.trim()) {
+                    push(cRef, {sender: auth.currentUser.displayName || u.email, content: t});
+                    document.getElementById('mIn').value = "";
+                }
             };
-        }
 
-        window.clearFeed = () => { if(confirm("Wipe posts?")) remove(ref(db, 'posts')); };
+            // Global Chat: Receive Messages
+            const win = document.getElementById('cWin');
+            win.innerHTML = "";
+            onChildAdded(cRef, (snap) => {
+                const d = snap.val();
+                const v = document.createElement('div');
+                v.className = 'msg';
+                v.innerHTML = `<strong>${d.sender}:</strong> ${d.content}`;
+                win.appendChild(v);
+                win.scrollTop = win.scrollHeight;
+            });
+        }
     </script>
 </body>
 </html>
