@@ -83,7 +83,7 @@
         .msg-bubble { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
         .msg-time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
 
-        /* --- 6. Auth Screen (UPDATED) --- */
+        /* --- 6. Auth Screen --- */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         .auth-box { background: var(--card); padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; }
         
@@ -108,7 +108,7 @@
             .main-viewport { padding: 0; padding-bottom: 70px; margin-left: 0; }
             .content-container { border-radius: 0; box-shadow: none; min-height: 100vh; }
             #chat-window { max-width: 100%; }
-            #mobile-logout-btn { display: block !important; margin-top: 20px; background: #ff3b30; color: white; }
+            #mobile-logout-btn { display: block !important; margin-top: 40px; background: #ff3b30; color: white; }
         }
         #mobile-logout-btn { display: none; }
     </style>
@@ -171,7 +171,6 @@
                     <div id="p-pfp" class="avatar" style="width:120px; height:120px; margin: 0 auto; font-size:40px;"></div>
                     <h2 id="p-name" style="margin-bottom:5px;"></h2>
                     <p id="p-bio" style="color:var(--subtext);"></p>
-                    <button class="btn" id="mobile-logout-btn" onclick="document.getElementById('logout-btn').click()">Logout</button>
                 </div>
             </div>
 
@@ -188,6 +187,8 @@
                     <label style="font-weight:600; font-size:13px; margin-left:5px;">Bio</label>
                     <input type="text" id="settings-bio-input">
                     <button class="btn" id="save-profile-btn" style="margin-top:10px;">Save Changes</button>
+                    
+                    <button class="btn" id="mobile-logout-btn" onclick="document.getElementById('logout-btn').click()">Logout</button>
                 </div>
             </div>
         </div>
@@ -222,7 +223,7 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
 
-        // --- AUTH & TOGGLE LOGIC (NEW) ---
+        // --- AUTH LOGIC ---
         let isSignup = false;
         
         document.getElementById('toggle-auth-btn').onclick = () => {
@@ -258,7 +259,6 @@
             if(isSignup && !n) { errBox.innerText = "Please enter your name"; errBox.style.display = 'block'; return; }
 
             if(isSignup) {
-                // SIGN UP
                 createUserWithEmailAndPassword(auth, e, p).then(res => {
                     set(ref(db, 'users/' + res.user.uid), { 
                         name: n, 
@@ -270,7 +270,6 @@
                     errBox.innerText = err.message; errBox.style.display = 'block';
                 });
             } else {
-                // LOG IN
                 signInWithEmailAndPassword(auth, e, p).catch(err => {
                     errBox.innerText = "Invalid Login: " + err.message; 
                     errBox.style.display = 'block';
