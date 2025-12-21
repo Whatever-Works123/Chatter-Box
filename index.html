@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box v3.0 | Maximum Authority</title>
+    <title>Chatter Box | Internalized Authority Build</title>
     <style>
         /* =========================================
-           1. CSS ARCHITECTURE (Lines 1-180)
-           ========================================= 
-        */
+           1. CORE STYLES & THEMING
+           ========================================= */
         :root {
             --bg: #f0f2f5; --card: #ffffff; --sidebar-w: 280px;
             --primary: #050505; --secondary: #65676b; --accent: #0084ff;
             --border: #e4e6eb; --me-bubble: #0084ff; --them-bubble: #e4e6eb;
             --online: #31a24c; --danger: #fa3e3e; --success: #42b72a;
-            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --modal-overlay: rgba(0, 0, 0, 0.6);
         }
 
         body.dark-mode {
@@ -22,10 +21,10 @@
             --secondary: #b0b3b8; --border: #3e4042; --them-bubble: #3a3b3c;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
         body { background: var(--bg); color: var(--primary); height: 100vh; display: flex; overflow: hidden; }
 
-        /* Sidebar Navigation */
+        /* Sidebar */
         .sidebar {
             width: var(--sidebar-w); background: var(--card); border-right: 1px solid var(--border);
             display: none; flex-direction: column; padding: 25px 15px; z-index: 100;
@@ -43,169 +42,135 @@
         .app-container {
             width: 100%; max-width: 1100px; margin: 0 auto; background: var(--card);
             border-radius: 24px; border: 1px solid var(--border); min-height: 88vh;
-            display: flex; flex-direction: column; box-shadow: var(--shadow); overflow: hidden;
+            display: flex; flex-direction: column; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden;
         }
-        .view-header { padding: 25px 35px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .view-content { padding: 30px; flex: 1; }
+        .v-header { padding: 25px 35px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .v-content { padding: 30px; flex: 1; }
         .page { display: none; height: 100%; }
-        .page.active { display: block; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; animation: fadeIn 0.3s ease; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Components */
         .item-card {
             display: flex; align-items: center; padding: 18px; border-bottom: 1px solid var(--border);
             cursor: pointer; border-radius: 15px; transition: 0.2s; margin-bottom: 5px;
         }
-        .item-card:hover { background: rgba(0,0,0,0.02); transform: translateX(5px); }
+        .item-card:hover { background: rgba(0,0,0,0.03); transform: translateX(4px); }
         
         .avatar {
             width: 52px; height: 52px; border-radius: 50%; background: #ddd;
             display: flex; align-items: center; justify-content: center; color: white;
             font-weight: 700; font-size: 20px; background-size: cover; background-position: center;
-            position: relative; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1);
+            position: relative; flex-shrink: 0;
         }
 
+        /* Custom Modal (Replaces alerts/prompts) */
+        #modal-manager {
+            position: fixed; inset: 0; background: var(--modal-overlay); z-index: 20000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .modal-box {
+            background: var(--card); width: 400px; padding: 30px; border-radius: 20px;
+            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .modal-box h3 { margin-bottom: 15px; }
+        .modal-box input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--primary); }
+
         /* Chat UI */
-        #chat-panel {
+        #chat-stage {
             position: fixed; top: 0; right: -100%; width: 100%; max-width: 500px; height: 100%;
             background: var(--card); border-left: 1px solid var(--border); z-index: 1000;
             transition: 0.5s cubic-bezier(0.165, 0.84, 0.44, 1); display: flex; flex-direction: column;
             box-shadow: -15px 0 40px rgba(0,0,0,0.1);
         }
-        #chat-panel.active { right: 0; }
-        .chat-feed { flex: 1; padding: 25px; background: var(--bg); overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .msg-bubble { padding: 12px 18px; border-radius: 20px; font-size: 15px; max-width: 75%; line-height: 1.4; position: relative; }
-        .msg-bubble.me { align-self: flex-end; background: var(--me-bubble); color: white; border-bottom-right-radius: 5px; }
-        .msg-bubble.them { align-self: flex-start; background: var(--them-bubble); color: var(--primary); border-bottom-left-radius: 5px; }
-
-        .chat-input-bar { padding: 20px; border-top: 1px solid var(--border); background: var(--card); display: flex; gap: 12px; }
-        input[type="text"], input[type="email"], input[type="password"] {
-            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--primary);
-        }
+        #chat-stage.active { right: 0; }
+        .chat-feed { flex: 1; padding: 25px; background: var(--bg); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { padding: 12px 18px; border-radius: 20px; font-size: 14px; max-width: 75%; line-height: 1.4; }
+        .bubble.me { align-self: flex-end; background: var(--me-bubble); color: white; border-bottom-right-radius: 4px; }
+        .bubble.them { align-self: flex-start; background: var(--them-bubble); color: var(--primary); border-bottom-left-radius: 4px; }
 
         .btn { padding: 12px 24px; border-radius: 10px; font-weight: 700; border: none; cursor: pointer; transition: 0.2s; }
         .btn-primary { background: var(--accent); color: white; }
         .btn-danger { background: var(--danger); color: white; }
 
-        /* Auth */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 10000; display: flex; align-items: center; justify-content: center; }
-        .auth-box { background: var(--card); width: 420px; padding: 50px; border-radius: 30px; box-shadow: var(--shadow); text-align: center; }
+        .auth-box { background: var(--card); width: 420px; padding: 50px; border-radius: 30px; text-align: center; }
     </style>
 </head>
 <body>
 
+    <div id="modal-manager">
+        <div class="modal-box" id="modal-box">
+            <h3 id="modal-title">Action Required</h3>
+            <p id="modal-desc" style="color:var(--secondary); font-size:14px; margin-bottom:15px"></p>
+            <input type="text" id="modal-input" placeholder="Type here...">
+            <div style="display:flex; gap:10px">
+                <button class="btn" style="flex:1; background:var(--border)" onclick="ui.closeModal()">Cancel</button>
+                <button class="btn btn-primary" style="flex:1" id="modal-confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color:var(--accent); font-style:italic; margin-bottom:10px; font-size:38px">Chatter Box</h1>
-            <p style="color:var(--secondary); margin-bottom:35px">Secure Authority Network</p>
-            
-            <div id="auth-login-ui">
-                <input type="email" id="in-email" placeholder="Email Address" style="margin-bottom:12px">
-                <input type="password" id="in-pass" placeholder="Password" style="margin-bottom:20px">
-                <button class="btn btn-primary" style="width:100%" onclick="app.processAuth('login')">Secure Login</button>
-                <p style="margin-top:25px; font-size:14px">New here? <span onclick="app.toggleAuth(false)" style="color:var(--accent); cursor:pointer; font-weight:700">Create Account</span></p>
+            <h1 style="color:var(--accent); font-style:italic; margin-bottom:40px; font-size:38px">Chatter Box</h1>
+            <div id="login-ui">
+                <input type="email" id="log-email" placeholder="Email Address" style="margin-bottom:10px; width:100%; padding:14px; border-radius:10px; border:1px solid var(--border)">
+                <input type="password" id="log-pass" placeholder="Password" style="margin-bottom:20px; width:100%; padding:14px; border-radius:10px; border:1px solid var(--border)">
+                <button class="btn btn-primary" style="width:100%" onclick="core.auth('login')">Login</button>
+                <p style="margin-top:25px; font-size:14px">New? <span onclick="core.toggleAuth(false)" style="color:var(--accent); cursor:pointer">Sign Up</span></p>
             </div>
-
-            <div id="auth-reg-ui" style="display:none">
-                <input type="text" id="reg-name" placeholder="Full Display Name" style="margin-bottom:12px">
-                <input type="email" id="reg-email" placeholder="Email Address" style="margin-bottom:12px">
-                <input type="password" id="reg-pass" placeholder="Create Password" style="margin-bottom:20px">
-                <button class="btn btn-primary" style="width:100%; background:var(--success)" onclick="app.processAuth('reg')">Register Now</button>
-                <p style="margin-top:25px; font-size:14px">Member? <span onclick="app.toggleAuth(true)" style="color:var(--accent); cursor:pointer; font-weight:700">Login Instead</span></p>
+            <div id="reg-ui" style="display:none">
+                <input type="text" id="reg-name" placeholder="Full Name" style="margin-bottom:10px; width:100%; padding:14px; border-radius:10px; border:1px solid var(--border)">
+                <input type="email" id="reg-email" placeholder="Email" style="margin-bottom:10px; width:100%; padding:14px; border-radius:10px; border:1px solid var(--border)">
+                <input type="password" id="reg-pass" placeholder="Password" style="margin-bottom:20px; width:100%; padding:14px; border-radius:10px; border:1px solid var(--border)">
+                <button class="btn btn-primary" style="width:100%" onclick="core.auth('reg')">Register</button>
+                <p style="margin-top:25px; font-size:14px">Have account? <span onclick="core.toggleAuth(true)" style="color:var(--accent); cursor:pointer">Login</span></p>
             </div>
-            <p id="auth-error" style="color:var(--danger); font-size:12px; margin-top:15px; font-weight:600"></p>
         </div>
     </div>
 
     <nav class="sidebar" id="sidebar">
         <div style="font-size:26px; font-weight:900; color:var(--accent); font-style:italic; margin-bottom:45px; padding-left:18px">CB</div>
-        <div class="nav-link active" onclick="app.go('inbox', this)">🏠 Inbox</div>
-        <div class="nav-link" onclick="app.go('groups', this)">👥 Groups</div>
-        <div class="nav-link" onclick="app.go('approvals', this)">🛡️ Approvals <span id="req-badge" class="badge" style="display:none">0</span></div>
-        <div class="nav-link" onclick="app.go('search', this)">🔍 Search</div>
-        <div class="nav-link" onclick="app.go('profile', this)">👤 My Profile</div>
-        <div class="nav-link" onclick="app.go('settings', this)">⚙️ Settings</div>
-        <button class="btn btn-danger" style="margin-top:auto" onclick="app.logout()">Logout</button>
+        <div class="nav-link active" onclick="ui.go('inbox', this)">🏠 Inbox</div>
+        <div class="nav-link" onclick="ui.go('groups', this)">👥 Groups</div>
+        <div class="nav-link" onclick="ui.go('approvals', this)">🛡️ Approvals <span id="badge-req" class="badge" style="display:none">0</span></div>
+        <div class="nav-link" onclick="ui.go('search', this)">🔍 Search</div>
+        <div class="nav-link" onclick="ui.go('profile', this)">👤 Profile</div>
+        <div class="nav-link" onclick="ui.go('settings', this)">⚙️ Settings</div>
+        <button class="btn btn-danger" style="margin-top:auto" onclick="core.logout()">Logout</button>
     </nav>
 
     <main class="viewport">
         <div class="app-container">
-            
-            <div id="p-inbox" class="page active">
-                <div class="view-header"><h2>Conversations</h2></div>
-                <div id="render-inbox" class="view-content"></div>
-            </div>
-
-            <div id="p-groups" class="page">
-                <div class="view-header">
-                    <h2>Groups</h2>
-                    <button class="btn btn-primary" style="padding:8px 20px" onclick="app.newGroup()">+ Create</button>
-                </div>
-                <div id="render-groups" class="view-content"></div>
-            </div>
-
-            <div id="p-approvals" class="page">
-                <div class="view-header"><h2>Permissions</h2></div>
-                <div id="render-approvals" class="view-content"></div>
-            </div>
-
-            <div id="p-search" class="page">
-                <div class="view-header">
-                    <input type="text" placeholder="Find people..." oninput="app.runSearch(this.value)" style="margin:0">
-                </div>
-                <div id="render-search" class="view-content"></div>
-            </div>
-
+            <div id="p-inbox" class="page active"><div class="v-header"><h2>Inbox</h2></div><div id="list-inbox" class="v-content"></div></div>
+            <div id="p-groups" class="page"><div class="v-header"><h2>Groups</h2><button class="btn btn-primary" onclick="ui.triggerGroupModal()">+ New</button></div><div id="list-groups" class="v-content"></div></div>
+            <div id="p-approvals" class="page"><div class="v-header"><h2>Approvals</h2></div><div id="list-approvals" class="v-content"></div></div>
+            <div id="p-search" class="page"><div class="v-header"><input type="text" placeholder="Find people..." oninput="core.search(this.value)" style="margin:0; width:100%; padding:12px; border-radius:10px"></div><div id="list-search" class="v-content"></div></div>
             <div id="p-profile" class="page">
-                <div class="view-header"><h2>My Identity</h2></div>
-                <div class="view-content" style="max-width:600px">
-                    <div style="display:flex; align-items:center; gap:25px; margin-bottom:40px">
-                        <div id="prof-avatar" class="avatar" style="width:100px; height:100px; font-size:35px"></div>
-                        <div>
-                            <h2 id="prof-display-name">Loading...</h2>
-                            <p id="prof-display-email" style="color:var(--secondary)"></p>
-                        </div>
-                    </div>
-                    <label style="font-weight:700; display:block; margin-bottom:8px">Avatar Image URL</label>
-                    <input type="text" id="prof-pfp-url" placeholder="Paste direct image link..." style="margin-bottom:20px">
-                    <button class="btn btn-primary" onclick="app.saveProfile()">Update Profile</button>
+                <div class="v-header"><h2>Profile</h2></div>
+                <div class="v-content">
+                    <div id="prof-av" class="avatar" style="width:80px; height:80px; font-size:30px; margin-bottom:20px"></div>
+                    <label>Avatar URL</label><input type="text" id="prof-url" style="width:100%; padding:12px; margin:10px 0 20px">
+                    <button class="btn btn-primary" onclick="core.saveProfile()">Update</button>
                 </div>
             </div>
-
-            <div id="p-settings" class="page">
-                <div class="view-header"><h2>System Settings</h2></div>
-                <div class="view-content">
-                    <div style="background:var(--bg); padding:20px; border-radius:15px; margin-bottom:20px">
-                        <h4 style="margin-bottom:15px">Appearance</h4>
-                        <button class="btn" style="background:var(--secondary); color:white" onclick="document.body.classList.toggle('dark-mode')">🌓 Toggle Dark Mode</button>
-                    </div>
-                    <div style="background:var(--bg); padding:20px; border-radius:15px">
-                        <h4 style="margin-bottom:15px; color:var(--danger)">Security</h4>
-                        <button class="btn btn-danger" onclick="app.logout()">Destroy Session (Logout)</button>
-                    </div>
-                </div>
-            </div>
-
+            <div id="p-settings" class="page"><div class="v-header"><h2>Settings</h2></div><div class="v-content"><button class="btn btn-primary" onclick="document.body.classList.toggle('dark-mode')">Toggle Dark Mode</button></div></div>
         </div>
     </main>
 
-    <div id="chat-panel">
-        <div class="view-header" style="padding:15px 25px">
-            <button onclick="app.closeChat()" style="background:none; border:none; font-size:22px; cursor:pointer">←</button>
-            <div id="c-target-av" class="avatar" style="width:42px; height:42px; font-size:16px; margin:0 15px"></div>
-            <div style="flex:1">
-                <b id="c-target-name">...</b><br>
-                <small id="c-target-type" style="font-size:10px; color:var(--secondary); text-transform:uppercase"></small>
-            </div>
-            <div id="c-target-tools">
-                <button class="btn" id="tool-invite" style="background:var(--success); color:white; font-size:11px; padding:6px 12px; display:none" onclick="app.openInvite()">Invite</button>
-            </div>
+    <div id="chat-stage">
+        <div class="v-header" style="padding:15px">
+            <button onclick="ui.closeChat()" style="background:none; border:none; font-size:24px">←</button>
+            <div id="c-av" class="avatar" style="width:40px; height:40px; font-size:16px; margin:0 12px"></div>
+            <div style="flex:1"><b id="c-name">...</b></div>
+            <button class="btn btn-primary" id="tool-invite" style="display:none; padding:6px 12px; font-size:12px" onclick="ui.triggerInviteModal()">Invite</button>
         </div>
         <div id="c-feed" class="chat-feed"></div>
-        <div class="chat-input-bar">
-            <input type="text" id="c-input" placeholder="Aa" style="border-radius:25px; height:45px">
-            <button class="btn btn-primary" style="width:50px; height:45px; border-radius:50%; padding:0" onclick="app.send()">➤</button>
+        <div style="padding:20px; border-top:1px solid var(--border); display:flex; gap:10px">
+            <input type="text" id="c-input" placeholder="Aa" style="border-radius:20px; flex:1; padding:12px">
+            <button class="btn btn-primary" style="width:45px; border-radius:50%; padding:0" onclick="core.send()">➤</button>
         </div>
     </div>
 
@@ -214,261 +179,166 @@
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect, off } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const config = { 
-            apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
-            authDomain: "chatterbox-4b7dd.firebaseapp.com", 
-            databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
-            projectId: "chatterbox-4b7dd" 
-        };
+        const config = { apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", authDomain: "chatterbox-4b7dd.firebaseapp.com", databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", projectId: "chatterbox-4b7dd" };
+        const fApp = initializeApp(config); const auth = getAuth(fApp); const db = getDatabase(fApp);
 
-        const fApp = initializeApp(config);
-        const auth = getAuth(fApp);
-        const db = getDatabase(fApp);
+        let me = null; let myData = null; let activeId = null; let activeType = null;
 
-        let me = null;
-        let myData = null;
-        let activeRoom = null;
-        let activeType = null;
-
-        const app = {
-            toggleAuth: (login) => {
-                document.getElementById('auth-login-ui').style.display = login ? 'block' : 'none';
-                document.getElementById('auth-reg-ui').style.display = login ? 'none' : 'block';
-            },
-
-            processAuth: async (mode) => {
-                const err = document.getElementById('auth-error');
-                err.innerText = "";
-                try {
-                    if (mode === 'reg') {
-                        const n = document.getElementById('reg-name').value;
-                        const e = document.getElementById('reg-email').value;
-                        const p = document.getElementById('reg-pass').value;
-                        const res = await createUserWithEmailAndPassword(auth, e, p);
-                        await set(ref(db, `users/${res.user.uid}`), { name: n, email: e, uid: res.user.uid, pfp: '', status: 'online' });
-                    } else {
-                        await signInWithEmailAndPassword(auth, document.getElementById('in-email').value, document.getElementById('in-pass').value);
-                    }
-                } catch (e) { err.innerText = e.message; }
-            },
-
-            logout: () => signOut(auth).then(() => location.reload()),
-
+        const ui = {
             go: (id, el) => {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById('p-' + id).classList.add('active');
+                document.getElementById('p-'+id).classList.add('active');
                 document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-                if (el) el.classList.add('active');
-                app.closeChat();
+                if(el) el.classList.add('active');
+                ui.closeChat();
             },
-
+            openModal: (title, desc, placeholder, onConfirm) => {
+                const manager = document.getElementById('modal-manager');
+                const input = document.getElementById('modal-input');
+                document.getElementById('modal-title').innerText = title;
+                document.getElementById('modal-desc').innerText = desc;
+                input.placeholder = placeholder;
+                input.value = "";
+                manager.style.display = 'flex';
+                document.getElementById('modal-confirm-btn').onclick = () => {
+                    onConfirm(input.value);
+                    ui.closeModal();
+                };
+            },
+            closeModal: () => document.getElementById('modal-manager').style.display = 'none',
+            triggerGroupModal: () => ui.openModal("New Group", "Enter the name for your private group.", "Group Name...", (val) => core.createGroup(val)),
+            triggerInviteModal: () => ui.openModal("Invite Member", "Enter the exact Full Name of the user.", "User Name...", (val) => core.invite(val)),
+            closeChat: () => { if(activeId) off(ref(db, `messages/${activeId}`)); document.getElementById('chat-stage').classList.remove('active'); activeId = null; },
             drawAv: (el, name, url) => {
                 if(!el) return;
                 el.innerText = url ? "" : (name ? name[0].toUpperCase() : "?");
                 el.style.backgroundImage = url ? `url(${url})` : "none";
-                el.style.backgroundColor = url ? "transparent" : app.hashColor(name || "User");
+                el.style.backgroundColor = url ? "transparent" : "#0084ff";
+            }
+        };
+
+        const core = {
+            toggleAuth: (login) => { document.getElementById('login-ui').style.display = login ? 'block' : 'none'; document.getElementById('reg-ui').style.display = login ? 'none' : 'block'; },
+            auth: async (mode) => {
+                try {
+                    if(mode === 'reg') {
+                        const n = document.getElementById('reg-name').value, e = document.getElementById('reg-email').value, p = document.getElementById('reg-pass').value;
+                        const res = await createUserWithEmailAndPassword(auth, e, p);
+                        await set(ref(db, `users/${res.user.uid}`), { name: n, uid: res.user.uid, pfp: '', status: 'online' });
+                    } else { await signInWithEmailAndPassword(auth, document.getElementById('log-email').value, document.getElementById('log-pass').value); }
+                } catch(e) { alert(e.message); }
             },
-
-            hashColor: (str) => {
-                const colors = ['#0084ff', '#44bec7', '#ffc300', '#fa3e3e', '#31a24c', '#af7ac5', '#eb984e'];
-                let hash = 0;
-                for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-                return colors[Math.abs(hash) % colors.length];
-            },
-
-            // INBOX: VERIFIED ATOMIC FETCH
-            syncInbox: () => {
-                onValue(ref(db, `users/${me.uid}/chats`), async snap => {
-                    const list = document.getElementById('render-inbox');
-                    list.innerHTML = "";
-                    if (!snap.exists()) {
-                        list.innerHTML = "<p style='text-align:center; color:gray; margin-top:50px'>Your inbox is currently empty.</p>";
-                        return;
-                    }
-                    const entries = [];
-                    snap.forEach(c => entries.push({ id: c.key, val: c.val() }));
-                    entries.sort((a, b) => b.val.time - a.val.time);
-
-                    for (let entry of entries) {
-                        const path = entry.val.type === 'group' ? `groups/${entry.id}` : `users/${entry.id}`;
-                        const detail = await get(ref(db, path));
-                        if (detail.exists()) {
-                            const d = detail.val();
-                            const row = document.createElement('div');
-                            row.className = "item-card";
-                            row.innerHTML = `<div class="avatar" id="av-in-${entry.id}"></div><div style="flex:1; margin-left:15px"><b>${d.name}</b><br><small style="color:var(--secondary)">${entry.val.last || ''}</small></div>`;
-                            row.onclick = () => app.openChat(entry.id, d.name, d.pfp, entry.val.type);
-                            list.appendChild(row);
-                            app.drawAv(document.getElementById(`av-in-${entry.id}`), d.name, d.pfp);
-                        }
-                    }
-                });
-            },
-
-            newGroup: async () => {
-                const n = prompt("Private Group Name:");
-                if (!n) return;
+            logout: () => signOut(auth).then(() => location.reload()),
+            createGroup: async (name) => {
+                if(!name) return;
                 const gRef = push(ref(db, 'groups'));
                 const gId = gRef.key;
-                await set(gRef, { id: gId, name: n, owner: me.uid, members: { [me.uid]: true } });
+                await set(gRef, { id: gId, name: name, owner: me.uid, members: { [me.uid]: true } });
                 update(ref(db, `users/${me.uid}/chats/${gId}`), { type: 'group', last: 'Group Created', time: Date.now() });
-                app.go('groups');
+                ui.go('groups');
             },
-
-            syncGroups: () => {
-                onValue(ref(db, 'groups'), snap => {
-                    const list = document.getElementById('render-groups');
-                    list.innerHTML = "";
-                    snap.forEach(g => {
-                        const d = g.val();
-                        if (d.members && d.members[me.uid]) {
-                            const row = document.createElement('div');
-                            row.className = "item-card";
-                            row.innerHTML = `<div class="avatar">${d.name[0]}</div><b style="margin-left:15px">${d.name}</b>`;
-                            row.onclick = () => app.openChat(g.key, d.name, '', 'group');
-                            list.appendChild(row);
-                        }
-                    });
+            syncInbox: () => {
+                onValue(ref(db, `users/${me.uid}/chats`), async snap => {
+                    const list = document.getElementById('list-inbox'); list.innerHTML = "";
+                    if(!snap.exists()) return;
+                    for(let c in snap.val()) {
+                        const m = snap.val()[c];
+                        const dSnap = await get(ref(db, m.type === 'group' ? `groups/${c}` : `users/${c}`));
+                        if(!dSnap.exists()) continue;
+                        const d = dSnap.val();
+                        const row = document.createElement('div');
+                        row.className = "item-card";
+                        row.innerHTML = `<div class="avatar" id="av-in-${c}"></div><div style="flex:1; margin-left:15px"><b>${d.name}</b><br><small>${m.last}</small></div>`;
+                        row.onclick = () => core.openChat(c, d.name, d.pfp, m.type);
+                        list.appendChild(row);
+                        ui.drawAv(document.getElementById(`av-in-${c}`), d.name, d.pfp);
+                    }
                 });
             },
-
-            openInvite: async () => {
-                const n = prompt("Enter Target Full Name:");
-                const snap = await get(ref(db, 'users'));
-                let tid = null;
-                snap.forEach(u => { if (u.val().name === n) tid = u.key; });
-                if (!tid) return alert("User not found.");
-
-                const gSnap = await get(ref(db, `groups/${activeRoom}`));
-                const g = gSnap.val();
-
-                if (g.owner === me.uid) {
-                    app.grantAccess(activeRoom, tid, g.name);
-                } else {
-                    push(ref(db, `requests/${g.owner}`), { gid: activeRoom, gname: g.name, tid: tid, tname: n, sender: myData.name });
-                    alert("Request sent to owner.");
-                }
-            },
-
-            grantAccess: (gid, uid, gname) => {
-                update(ref(db, `groups/${gid}/members/${uid}`), true);
-                update(ref(db, `users/${uid}/chats/${gid}`), { type: 'group', last: 'Added to group', time: Date.now() });
-                alert("Member added.");
-            },
-
-            syncReqs: () => {
-                onValue(ref(db, `requests/${me.uid}`), snap => {
-                    const list = document.getElementById('render-approvals');
-                    list.innerHTML = "";
-                    const badge = document.getElementById('req-badge');
-                    badge.innerText = snap.size || 0;
-                    badge.style.display = snap.exists() ? 'block' : 'none';
-                    snap.forEach(r => {
-                        const d = r.val();
-                        const div = document.createElement('div');
-                        div.className = "item-card";
-                        div.innerHTML = `<div><b>${d.sender}</b> wants to add <b>${d.tname}</b> to <b>${d.gname}</b><br>
-                        <button class="btn btn-primary" style="padding:5px 10px; margin-top:10px" onclick="app.decide('${r.key}', true, '${d.tid}', '${d.gid}', '${d.gname}')">Approve</button></div>`;
-                        list.appendChild(div);
-                    });
-                });
-            },
-
-            decide: (rid, ok, tid, gid, gname) => {
-                if (ok) app.grantAccess(gid, tid, gname);
-                remove(ref(db, `requests/${me.uid}/${rid}`));
-            },
-
             openChat: (id, name, pfp, type) => {
-                if(activeRoom) off(ref(db, `messages/${activeRoom}`));
-                activeRoom = id; activeType = type;
-                document.getElementById('chat-panel').classList.add('active');
-                document.getElementById('c-target-name').innerText = name;
-                document.getElementById('c-target-type').innerText = type;
-                app.drawAv(document.getElementById('c-target-av'), name, pfp);
+                if(activeId) off(ref(db, `messages/${activeId}`));
+                activeId = id; activeType = type;
+                document.getElementById('chat-stage').classList.add('active');
+                document.getElementById('c-name').innerText = name;
+                ui.drawAv(document.getElementById('c-av'), name, pfp);
                 document.getElementById('tool-invite').style.display = type === 'group' ? 'block' : 'none';
 
                 const path = type === 'group' ? id : [me.uid, id].sort().join('_');
                 onValue(ref(db, `messages/${path}`), snap => {
-                    const feed = document.getElementById('c-feed');
-                    feed.innerHTML = "";
+                    const feed = document.getElementById('c-feed'); feed.innerHTML = "";
                     snap.forEach(m => {
                         const d = m.val();
                         const b = document.createElement('div');
-                        b.className = `msg-bubble ${d.sid === me.uid ? 'me' : 'them'}`;
+                        b.className = `bubble ${d.sid === me.uid ? 'me' : 'them'}`;
                         b.innerText = d.txt;
                         feed.appendChild(b);
                     });
                     feed.scrollTop = feed.scrollHeight;
                 });
             },
-
             send: () => {
-                const inp = document.getElementById('c-input');
-                const val = inp.value.trim();
-                if (!val || !activeRoom) return;
-                const path = activeType === 'group' ? activeRoom : [me.uid, activeRoom].sort().join('_');
+                const inp = document.getElementById('c-input'); const val = inp.value; if(!val || !activeId) return;
+                const path = activeType === 'group' ? activeId : [me.uid, activeId].sort().join('_');
                 const now = Date.now();
                 push(ref(db, `messages/${path}`), { sid: me.uid, txt: val, time: now });
-
-                if (activeType === 'private') {
-                    update(ref(db, `users/${me.uid}/chats/${activeRoom}`), { type: 'private', last: val, time: now });
-                    update(ref(db, `users/${activeRoom}/chats/${me.uid}`), { type: 'private', last: val, time: now });
+                if(activeType === 'private') {
+                    update(ref(db, `users/${me.uid}/chats/${activeId}`), { type: 'private', last: val, time: now });
+                    update(ref(db, `users/${activeId}/chats/${me.uid}`), { type: 'private', last: val, time: now });
                 } else {
-                    get(ref(db, `groups/${activeRoom}/members`)).then(m => m.forEach(x => update(ref(db, `users/${x.key}/chats/${activeRoom}`), { type: 'group', last: val, time: now })));
+                    get(ref(db, `groups/${activeId}/members`)).then(mems => mems.forEach(m => update(ref(db, `users/${m.key}/chats/${activeId}`), { type: 'group', last: val, time: now })));
                 }
                 inp.value = "";
             },
-
-            runSearch: (q) => {
-                if (!q) return document.getElementById('render-search').innerHTML = "";
+            invite: async (name) => {
+                const users = await get(ref(db, 'users')); let tid = null;
+                users.forEach(u => { if(u.val().name === name) tid = u.key; });
+                if(!tid) return;
+                const gSnap = await get(ref(db, `groups/${activeId}`)); const g = gSnap.val();
+                if(g.owner === me.uid) { core.grant(activeId, tid, g.name); }
+                else { push(ref(db, `requests/${g.owner}`), { gid: activeId, gname: g.name, tid: tid, tname: name, sender: myData.name }); }
+            },
+            grant: (gid, uid, gname) => {
+                update(ref(db, `groups/${gid}/members/${uid}`), true);
+                update(ref(db, `users/${uid}/chats/${gid}`), { type: 'group', last: 'Joined group', time: Date.now() });
+            },
+            search: (q) => {
+                const render = document.getElementById('list-search'); if(!q) { render.innerHTML = ""; return; }
                 get(ref(db, 'users')).then(snap => {
-                    const list = document.getElementById('render-search');
-                    list.innerHTML = "";
+                    render.innerHTML = "";
                     snap.forEach(u => {
-                        if (u.val().name.toLowerCase().includes(q.toLowerCase()) && u.key !== me.uid) {
-                            const d = u.val();
-                            const div = document.createElement('div');
-                            div.className = "item-card";
-                            div.innerHTML = `<div class="avatar" id="s-${u.key}"></div><b style="margin-left:15px">${d.name}</b>`;
-                            div.onclick = () => app.openChat(u.key, d.name, d.pfp, 'private');
-                            list.appendChild(div);
-                            app.drawAv(document.getElementById(`s-${u.key}`), d.name, d.pfp);
+                        if(u.val().name.toLowerCase().includes(q.toLowerCase()) && u.key !== me.uid) {
+                            const d = u.val(); const div = document.createElement('div');
+                            div.className = "item-card"; div.innerHTML = `<div class="avatar" id="s-${u.key}"></div><b style="margin-left:15px">${d.name}</b>`;
+                            div.onclick = () => core.openChat(u.key, d.name, d.pfp, 'private');
+                            render.appendChild(div); ui.drawAv(document.getElementById(`s-${u.key}`), d.name, d.pfp);
                         }
                     });
                 });
             },
-
-            saveProfile: async () => {
-                const url = document.getElementById('prof-pfp-url').value;
-                await update(ref(db, `users/${me.uid}`), { pfp: url });
-                alert("Profile Security Identity Updated.");
-            },
-
-            closeChat: () => { 
-                if(activeRoom) off(ref(db, `messages/${activeRoom}`));
-                document.getElementById('chat-panel').classList.remove('active'); 
-                activeRoom = null; 
-            }
+            saveProfile: () => update(ref(db, `users/${me.uid}`), { pfp: document.getElementById('prof-url').value })
         };
 
         onAuthStateChanged(auth, u => {
-            if (u) {
-                me = u;
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('sidebar').style.display = 'flex';
+            if(u) {
+                me = u; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('sidebar').style.display = 'flex';
                 onValue(ref(db, `users/${u.uid}`), s => {
-                    myData = s.val();
-                    document.getElementById('prof-display-name').innerText = myData.name;
-                    document.getElementById('prof-display-email').innerText = myData.email;
-                    document.getElementById('prof-pfp-url').value = myData.pfp || "";
-                    app.drawAv(document.getElementById('prof-avatar'), myData.name, myData.pfp);
-                    app.syncInbox(); app.syncGroups(); app.syncReqs();
+                    myData = s.val(); ui.drawAv(document.getElementById('prof-av'), myData.name, myData.pfp);
+                    core.syncInbox(); core.syncGroups();
+                    onValue(ref(db, `requests/${u.uid}`), snap => {
+                        document.getElementById('badge-req').innerText = snap.size || 0;
+                        document.getElementById('badge-req').style.display = snap.exists() ? 'block' : 'none';
+                        const list = document.getElementById('list-approvals'); list.innerHTML = "";
+                        snap.forEach(r => {
+                            const d = r.val(); const div = document.createElement('div'); div.className = "item-card";
+                            div.innerHTML = `<div><b>${d.sender}</b> wants to add <b>${d.tname}</b><br><button class="btn btn-primary" style="margin-top:10px" onclick="core.grant('${d.gid}','${d.tid}','${d.gname}'); remove(ref(db,'requests/${me.uid}/${r.key}'))">Approve</button></div>`;
+                            list.appendChild(div);
+                        });
+                    });
                 });
             }
         });
 
-        window.app = app;
+        window.core = core; window.ui = ui;
     </script>
 </body>
 </html>
