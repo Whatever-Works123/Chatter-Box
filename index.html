@@ -3,57 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Full Production Source</title>
+    <title>Chatter Box | The Authority Build</title>
     <style>
-        /* --- CSS VARIABLES: THEME ENGINE --- */
+        /* =========================================
+           I. CSS RESET & VARIABLES
+           ========================================= */
         :root {
-            --bg-main: #f0f2f5;
-            --bg-card: #ffffff;
-            --sidebar-w: 300px;
-            --text-dark: #050505;
-            --text-gray: #65676b;
-            --accent: #0084ff;
-            --border-color: #e4e6eb;
-            --my-msg: #0084ff;
-            --their-msg: #e4e6eb;
-            --online-indicator: #31a24c;
-            --danger-zone: #ff4d4d;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --bg-color: #f0f2f5;
+            --card-color: #ffffff;
+            --sidebar-w: 280px;
+            --primary-text: #050505;
+            --secondary-text: #65676b;
+            --accent-blue: #0084ff;
+            --accent-orange: #FF8C42;
+            --border-ui: #e4e6eb;
+            --bubble-me: #0084ff;
+            --bubble-them: #e4e6eb;
+            --status-green: #31a24c;
+            --danger-red: #fa3e3e;
+            --success-green: #42b72a;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         body.dark-mode {
-            --bg-main: #18191a;
-            --bg-card: #242526;
-            --text-dark: #e4e6eb;
-            --text-gray: #b0b3b8;
-            --border-color: #3e4042;
-            --their-msg: #3a3b3c;
+            --bg-color: #18191a;
+            --card-color: #242526;
+            --primary-text: #e4e6eb;
+            --secondary-text: #b0b3b8;
+            --border-ui: #3e4042;
+            --bubble-them: #3a3b3c;
         }
 
-        /* --- GLOBAL RESET --- */
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: var(--font-main);
         }
 
         body {
-            background-color: var(--bg-main);
-            color: var(--text-dark);
+            background-color: var(--bg-color);
+            color: var(--primary-text);
             height: 100vh;
             display: flex;
             overflow: hidden;
         }
 
-        button { cursor: pointer; border: none; transition: var(--transition); }
-        input { border: 1px solid var(--border-color); outline: none; transition: var(--transition); }
+        button { cursor: pointer; border: none; outline: none; border-radius: 8px; font-weight: 600; transition: 0.2s; }
+        input { border: 1px solid var(--border-ui); outline: none; border-radius: 8px; }
 
-        /* --- AUTHENTICATION SCREEN --- */
+        /* =========================================
+           II. AUTHENTICATION SCREENS
+           ========================================= */
         #auth-overlay {
             position: fixed;
             inset: 0;
-            background: var(--bg-main);
+            background: var(--bg-color);
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -61,427 +66,669 @@
         }
 
         .auth-container {
-            background: var(--bg-card);
-            padding: 40px;
-            border-radius: 16px;
+            background: var(--card-color);
             width: 100%;
-            max-width: 420px;
+            max-width: 400px;
+            padding: 40px;
+            border-radius: 12px;
             box-shadow: 0 12px 28px rgba(0,0,0,0.1);
             text-align: center;
         }
 
-        .auth-logo {
-            font-size: 36px;
+        .brand-logo {
+            font-size: 34px;
             font-weight: 800;
-            color: #FF8C42;
+            color: var(--accent-orange);
             font-style: italic;
             margin-bottom: 30px;
+            letter-spacing: -1px;
         }
 
-        .auth-input {
+        .auth-field {
             width: 100%;
             padding: 14px;
-            border-radius: 8px;
             margin-bottom: 15px;
-            background: var(--bg-main);
-            color: var(--text-dark);
+            background: var(--bg-color);
+            color: var(--primary-text);
+            font-size: 15px;
         }
 
-        .auth-btn {
+        .btn-auth {
             width: 100%;
             padding: 14px;
-            background: var(--accent);
+            background: var(--accent-blue);
             color: white;
-            font-weight: bold;
-            border-radius: 8px;
             font-size: 16px;
         }
 
-        .auth-switch {
+        .auth-link {
             margin-top: 20px;
             font-size: 14px;
-            color: var(--accent);
+            color: var(--accent-blue);
             cursor: pointer;
         }
 
-        /* --- SIDEBAR NAVIGATION --- */
+        /* =========================================
+           III. SIDEBAR NAVIGATION
+           ========================================= */
         .sidebar {
             width: var(--sidebar-w);
-            background: var(--bg-card);
-            border-right: 1px solid var(--border-color);
-            display: none; /* Shown via JS */
+            background: var(--card-color);
+            border-right: 1px solid var(--border-ui);
+            display: none; /* Controlled by JS */
             flex-direction: column;
             padding: 20px;
         }
 
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 14px;
-            border-radius: 10px;
-            color: var(--text-gray);
-            font-weight: 600;
-            margin-bottom: 5px;
-            text-decoration: none;
+        .nav-list {
+            flex: 1;
+            margin-top: 20px;
         }
 
-        .nav-link:hover { background: rgba(0,0,0,0.05); }
-        .nav-link.active { background: rgba(0,132,255,0.1); color: var(--accent); }
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: var(--secondary-text);
+            font-weight: 600;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
 
-        /* --- MAIN CONTENT AREA --- */
+        .nav-button:hover { background: rgba(0,0,0,0.05); }
+        .nav-button.active { background: rgba(0, 132, 255, 0.1); color: var(--accent-blue); }
+
+        .notif-badge {
+            background: var(--danger-red);
+            color: white;
+            font-size: 10px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-left: auto;
+        }
+
+        /* =========================================
+           IV. CONTENT VIEWPORT
+           ========================================= */
         .viewport {
             flex: 1;
-            padding: 20px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
             overflow-y: auto;
         }
 
-        .app-card {
+        .main-card {
             width: 100%;
-            max-width: 800px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
+            max-width: 900px;
+            margin: 0 auto;
+            background: var(--card-color);
             border-radius: 20px;
+            border: 1px solid var(--border-ui);
             min-height: 90vh;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
         }
 
-        .page-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border-color);
+        .header-bar {
+            padding: 25px 35px;
+            border-bottom: 1px solid var(--border-ui);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .page-body {
-            flex: 1;
-            padding: 20px;
-        }
+        .page-content { display: none; padding: 25px; }
+        .page-content.active { display: block; animation: slideUp 0.3s ease-out; }
 
-        .content-page { display: none; }
-        .content-page.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* --- LIST COMPONENTS --- */
-        .user-row {
+        /* =========================================
+           V. DATA ROWS & AVATARS
+           ========================================= */
+        .data-row {
             display: flex;
             align-items: center;
             padding: 15px;
-            border-radius: 12px;
+            border-bottom: 1px solid var(--border-ui);
             cursor: pointer;
-            border-bottom: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 5px;
         }
 
-        .user-row:hover { background: rgba(0,0,0,0.03); }
+        .data-row:hover { background: rgba(0,0,0,0.03); }
 
-        .avatar {
+        .avatar-circle {
             width: 50px;
             height: 50px;
             border-radius: 50%;
-            background-color: #ddd;
-            background-size: cover;
-            background-position: center;
+            background: #cbd5e0;
+            margin-right: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
             color: white;
+            font-weight: 700;
+            background-size: cover;
             position: relative;
-            margin-right: 15px;
+            flex-shrink: 0;
         }
 
-        .avatar.online::after {
+        .avatar-circle.on::after {
             content: '';
             position: absolute;
             bottom: 2px;
             right: 2px;
-            width: 12px;
-            height: 12px;
-            background: var(--online-indicator);
-            border: 2px solid var(--bg-card);
+            width: 13px;
+            height: 13px;
+            background: var(--status-green);
+            border: 2px solid var(--card-color);
             border-radius: 50%;
         }
 
-        /* --- CHAT SLIDE-OUT PANEL --- */
-        #chat-panel {
+        .request-item {
+            background: var(--bg-color);
+            border: 1px solid var(--border-ui);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            font-size: 13px;
+            margin-right: 8px;
+        }
+
+        .btn-confirm { background: var(--success-green); color: white; }
+        .btn-deny { background: var(--danger-red); color: white; }
+
+        /* =========================================
+           VI. CHAT INTERFACE
+           ========================================= */
+        #chat-window {
             position: fixed;
             top: 0;
             right: -100%;
             width: 100%;
-            max-width: 480px;
+            max-width: 520px;
             height: 100%;
-            background: var(--bg-card);
-            border-left: 1px solid var(--border-color);
+            background: var(--card-color);
+            border-left: 1px solid var(--border-ui);
             z-index: 9000;
-            transition: var(--transition);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.05);
+            box-shadow: -15px 0 40px rgba(0,0,0,0.08);
         }
 
-        #chat-panel.active { right: 0; }
+        #chat-window.open { right: 0; }
 
-        .chat-header {
+        .chat-top-bar {
             padding: 15px 20px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-ui);
             display: flex;
             align-items: center;
             gap: 15px;
         }
 
-        .chat-messages {
+        .chat-scroller {
             flex: 1;
-            padding: 20px;
+            padding: 25px;
+            background: var(--bg-color);
             overflow-y: auto;
-            background: var(--bg-main);
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .chat-input-bar {
-            padding: 15px 20px;
-            border-top: 1px solid var(--border-color);
+        .chat-bottom-bar {
+            padding: 20px;
+            border-top: 1px solid var(--border-ui);
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
-        .bubble {
-            padding: 10px 16px;
-            border-radius: 18px;
+        .msg-bubble {
+            padding: 12px 18px;
+            border-radius: 20px;
             font-size: 15px;
             max-width: 80%;
             word-wrap: break-word;
+            line-height: 1.4;
         }
 
-        .bubble.me {
+        .msg-bubble.is-me {
             align-self: flex-end;
-            background: var(--my-msg);
+            background: var(--bubble-me);
             color: white;
             border-bottom-right-radius: 4px;
         }
 
-        .bubble.them {
+        .msg-bubble.is-them {
             align-self: flex-start;
-            background: var(--their-msg);
-            color: var(--text-dark);
+            background: var(--bubble-them);
+            color: var(--primary-text);
             border-bottom-left-radius: 4px;
         }
+
+        .msg-meta {
+            font-size: 10px;
+            color: var(--secondary-text);
+            margin-bottom: 3px;
+            display: block;
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
 
     <div id="auth-overlay">
         <div class="auth-container">
-            <div class="auth-logo">Chatter Box</div>
+            <div class="brand-logo">Chatter Box</div>
             
-            <div id="login-form">
-                <input type="email" id="l-email" class="auth-input" placeholder="Email">
-                <input type="password" id="l-pass" class="auth-input" placeholder="Password">
-                <button class="auth-btn" onclick="ctrl.login()">Log In</button>
-                <div class="auth-switch" onclick="ctrl.switchAuth(false)">New account? Sign Up</div>
+            <div id="auth-login-box">
+                <input type="email" id="auth-email" class="auth-field" placeholder="Email Address">
+                <input type="password" id="auth-pass" class="auth-field" placeholder="Password">
+                <button class="btn-auth" onclick="core.handleLogin()">Login to Account</button>
+                <div class="auth-link" onclick="core.toggleAuth(false)">New here? Create an account</div>
             </div>
 
-            <div id="signup-form" style="display:none">
-                <input type="text" id="r-name" class="auth-input" placeholder="Your Name">
-                <input type="email" id="r-email" class="auth-input" placeholder="Email">
-                <input type="password" id="r-pass" class="auth-input" placeholder="Create Password">
-                <button class="auth-btn" onclick="ctrl.register()">Create Profile</button>
-                <div class="auth-switch" onclick="ctrl.switchAuth(true)">Already a member? Log In</div>
+            <div id="auth-register-box" style="display:none">
+                <input type="text" id="reg-name" class="auth-field" placeholder="Full Name">
+                <input type="email" id="reg-email" class="auth-field" placeholder="Email Address">
+                <input type="password" id="reg-pass" class="auth-field" placeholder="Create Password">
+                <button class="btn-auth" onclick="core.handleRegister()">Create My Profile</button>
+                <div class="auth-link" onclick="core.toggleAuth(true)">Already a member? Sign in</div>
             </div>
-            
-            <p id="auth-error" style="color:red; font-size:12px; margin-top:10px"></p>
+
+            <p id="auth-error" style="color:var(--danger-red); font-size:12px; margin-top:20px"></p>
         </div>
     </div>
 
-    <nav class="sidebar" id="main-sidebar">
-        <div class="auth-logo" style="font-size:24px; margin-bottom:40px">Chatter Box</div>
-        <a href="#" class="nav-link active" onclick="ctrl.nav('inbox', this)">🏠 Inbox</a>
-        <a href="#" class="nav-link" onclick="ctrl.nav('search', this)">🔍 Search People</a>
-        <a href="#" class="nav-link" onclick="ctrl.nav('profile', this)">👤 My Profile</a>
-        <a href="#" class="nav-link" onclick="ctrl.nav('settings', this)">⚙️ Settings</a>
-        <button class="auth-btn" style="background:var(--danger-zone); margin-top:auto" onclick="ctrl.logout()">Log Out</button>
+    <nav class="sidebar" id="app-sidebar">
+        <div class="brand-logo" style="font-size:26px; margin-bottom:40px">Chatter Box</div>
+        
+        <div class="nav-list">
+            <div class="nav-button active" id="nav-inbox" onclick="core.setPage('inbox')">🏠 Inbox</div>
+            <div class="nav-button" id="nav-groups" onclick="core.setPage('groups')">👥 My Groups</div>
+            <div class="nav-button" id="nav-approvals" onclick="core.setPage('approvals')">
+                🛡️ Approvals <span id="badge-requests" class="notif-badge" style="display:none">0</span>
+            </div>
+            <div class="nav-button" id="nav-search" onclick="core.setPage('search')">🔍 Search Users</div>
+            <div class="nav-button" id="nav-settings" onclick="core.setPage('settings')">⚙️ Settings</div>
+        </div>
+
+        <button class="btn-auth" style="background:var(--danger-red); margin-top:auto" onclick="core.handleLogout()">Sign Out</button>
     </nav>
 
     <main class="viewport">
-        <div class="app-card">
+        <div class="main-card">
             
-            <div id="p-inbox" class="content-page active">
-                <div class="page-header"><h2>Messages</h2></div>
-                <div id="inbox-list" class="page-body"></div>
+            <div id="page-inbox" class="page-content active">
+                <div class="header-bar"><h2>Active Chats</h2></div>
+                <div id="list-inbox" class="view-body"></div>
             </div>
 
-            <div id="p-search" class="content-page">
-                <div class="page-header"><h2>Discover</h2></div>
-                <div class="page-body">
-                    <input type="text" class="auth-input" placeholder="Search by name..." oninput="ctrl.search(this.value)">
-                    <div id="search-list"></div>
+            <div id="page-groups" class="page-content">
+                <div class="header-bar">
+                    <h2>Private Groups</h2>
+                    <button class="btn-auth" style="width:auto; padding:10px 20px" onclick="core.initCreateGroup()">Create New Group</button>
+                </div>
+                <div id="list-groups" class="view-body"></div>
+            </div>
+
+            <div id="page-approvals" class="page-content">
+                <div class="header-bar"><h2>Member Requests</h2></div>
+                <div id="list-approvals" class="view-body">
+                    <p style="color:var(--secondary-text); margin-bottom:25px; font-size:14px">
+                        Security: As a group owner, you must approve all new members requested by other group participants.
+                    </p>
+                    <div id="container-requests"></div>
                 </div>
             </div>
 
-            <div id="p-profile" class="content-page">
-                <div class="page-header"><h2>My Profile</h2></div>
-                <div class="page-body" style="text-align:center">
-                    <div id="prof-avatar" class="avatar" style="width:120px; height:120px; margin:0 auto 20px; font-size:40px"></div>
-                    <h3 id="prof-name">User Name</h3>
-                    <p id="prof-email" style="color:var(--text-gray); margin-bottom:20px"></p>
-                    <input type="file" id="file-hidden" hidden onchange="ctrl.upload(this)">
-                    <button class="auth-btn" style="width:auto; padding:10px 20px" onclick="document.getElementById('file-hidden').click()">Change Photo</button>
+            <div id="page-search" class="page-content">
+                <div class="header-bar"><h2>Find Users</h2></div>
+                <div class="view-body">
+                    <input type="text" class="auth-field" placeholder="Type a name to search..." oninput="core.executeSearch(this.value)">
+                    <div id="list-search-results"></div>
                 </div>
             </div>
 
-            <div id="p-settings" class="content-page">
-                <div class="page-header"><h2>Settings</h2></div>
-                <div class="page-body">
-                    <button class="auth-btn" onclick="document.body.classList.toggle('dark-mode')">🌓 Toggle Dark Mode</button>
+            <div id="page-settings" class="page-content">
+                <div class="header-bar"><h2>User Settings</h2></div>
+                <div class="view-body">
+                    <button class="btn-auth" style="width:auto; padding:10px 25px" onclick="document.body.classList.toggle('dark-mode')">🌓 Toggle Dark Mode</button>
                 </div>
             </div>
 
         </div>
     </main>
 
-    <div id="chat-panel">
-        <div class="chat-header">
-            <button onclick="ctrl.closeChat()" style="background:none; font-size:24px">←</button>
-            <div id="chat-pfp" class="avatar" style="width:40px; height:40px"></div>
-            <b id="chat-username">User</b>
+    <div id="chat-window">
+        <div class="chat-top-bar">
+            <button onclick="core.closeChat()" style="background:none; font-size:26px; font-weight:bold">←</button>
+            <div id="target-avatar" class="avatar-circle"></div>
+            <div style="flex:1">
+                <b id="target-name">Chatting...</b><br>
+                <small id="target-type" style="color:var(--secondary-text); font-size:11px"></small>
+            </div>
+            <div id="group-controls" style="display:flex; gap:8px">
+                <button class="btn-action btn-confirm" id="btn-invite" style="display:none" onclick="core.initAddMember()">+ Invite</button>
+                <button class="btn-action btn-deny" id="btn-leave" style="display:none" onclick="core.handleLeaveGroup()">Leave</button>
+            </div>
         </div>
-        <div id="chat-feed" class="chat-messages"></div>
-        <div class="chat-input-bar">
-            <input type="text" id="chat-inp" class="auth-input" style="margin:0; border-radius:20px" placeholder="Aa">
-            <button class="auth-btn" style="width:80px; border-radius:20px" onclick="ctrl.send()">Send</button>
+        <div id="chat-feed" class="chat-scroller"></div>
+        <div class="chat-bottom-bar">
+            <input type="text" id="chat-input" class="auth-field" style="margin:0; border-radius:25px" placeholder="Write a message...">
+            <button class="btn-auth" style="width:100px; border-radius:25px" onclick="core.handleSend()">Send</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // CONFIG
-        const config = { 
+        // CONFIGURATION
+        const firebaseConfig = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
             authDomain: "chatterbox-4b7dd.firebaseapp.com", 
             databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
             projectId: "chatterbox-4b7dd" 
         };
 
-        const fApp = initializeApp(config);
-        const auth = getAuth(fApp);
-        const db = getDatabase(fApp);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
 
-        let currentUser = null;
-        let activeChatId = null;
+        // STATE
+        let me = null;
+        let myData = null;
+        let activeRoom = null;
+        let activeType = null; // 'private' or 'group'
 
-        window.ctrl = {
-            switchAuth: (isLogin) => {
-                document.getElementById('login-form').style.display = isLogin ? 'block' : 'none';
-                document.getElementById('signup-form').style.display = isLogin ? 'none' : 'block';
+        const core = {
+            toggleAuth: (isLogin) => {
+                document.getElementById('auth-login-box').style.display = isLogin ? 'block' : 'none';
+                document.getElementById('auth-register-box').style.display = isLogin ? 'none' : 'block';
             },
 
-            login: () => {
-                const e = document.getElementById('l-email').value;
-                const p = document.getElementById('l-pass').value;
-                signInWithEmailAndPassword(auth, e, p).catch(err => document.getElementById('auth-error').innerText = err.message);
+            handleLogin: () => {
+                const e = document.getElementById('auth-email').value;
+                const p = document.getElementById('auth-pass').value;
+                signInWithEmailAndPassword(auth, e, p).catch(err => {
+                    document.getElementById('auth-error').innerText = "Login Failed: " + err.message;
+                });
             },
 
-            register: () => {
-                const n = document.getElementById('r-name').value;
-                const e = document.getElementById('r-email').value;
-                const p = document.getElementById('r-pass').value;
-                if(!n) return alert("Name required");
+            handleRegister: () => {
+                const n = document.getElementById('reg-name').value;
+                const e = document.getElementById('reg-email').value;
+                const p = document.getElementById('reg-pass').value;
+                if(!n) return alert("Please enter your name.");
+                
                 createUserWithEmailAndPassword(auth, e, p).then(cred => {
-                    set(ref(db, `users/${cred.user.uid}`), { name: n, pfp: '', status: 'online', email: e });
-                }).catch(err => document.getElementById('auth-error').innerText = err.message);
+                    set(ref(db, `users/${cred.user.uid}`), {
+                        name: n, email: e, pfp: '', status: 'online', uid: cred.user.uid
+                    });
+                }).catch(err => {
+                    document.getElementById('auth-error').innerText = "Signup Failed: " + err.message;
+                });
             },
 
-            logout: () => signOut(auth).then(() => location.reload()),
-
-            nav: (p, el) => {
-                document.querySelectorAll('.content-page').forEach(page => page.classList.remove('active'));
-                document.getElementById(`p-${p}`).classList.add('active');
-                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-                el.classList.add('active');
+            handleLogout: () => {
+                if(me) update(ref(db, `users/${me.uid}`), { status: 'offline' });
+                signOut(auth).then(() => location.reload());
             },
 
-            // --- THE INBOX FIX: ENSURES EVERYONE SHOWS ---
-            loadInbox: () => {
-                const inboxDiv = document.getElementById('inbox-list');
-                onValue(ref(db, `users/${currentUser.uid}/chats`), async (snap) => {
-                    inboxDiv.innerHTML = "";
+            setPage: (id) => {
+                document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+                document.getElementById(`page-${id}`).classList.add('active');
+                
+                document.querySelectorAll('.nav-button').forEach(n => n.classList.remove('active'));
+                document.getElementById(`nav-${id}`).classList.add('active');
+                
+                core.closeChat();
+            },
+
+            // --- GROUP LOGIC & PERMISSION REOUESTS ---
+            initCreateGroup: async () => {
+                const name = prompt("Enter a Name for your Group:");
+                if(!name || name.trim().length < 2) return;
+
+                const gRef = push(ref(db, 'groups'));
+                const gId = gRef.key;
+
+                const gData = {
+                    id: gId,
+                    name: name,
+                    owner: me.uid,
+                    ownerName: myData.name,
+                    created: Date.now(),
+                    members: { [me.uid]: true }
+                };
+
+                await set(gRef, gData);
+                
+                // Owner's inbox entry
+                update(ref(db, `users/${me.uid}/chats/${gId}`), {
+                    type: 'group',
+                    lastMsg: 'Group created by you.',
+                    time: Date.now()
+                });
+
+                alert("Group Created Successfully!");
+                core.setPage('groups');
+            },
+
+            initAddMember: async () => {
+                const targetName = prompt("Search: Enter the Full Name of the person to invite:");
+                if(!targetName) return;
+
+                // 1. Locate user in DB
+                const usersSnap = await get(ref(db, 'users'));
+                let targetId = null;
+                let targetNameFull = "";
+
+                usersSnap.forEach(u => {
+                    if(u.val().name === targetName) {
+                        targetId = u.key;
+                        targetNameFull = u.val().name;
+                    }
+                });
+
+                if(!targetId) return alert("User not found. Ensure they have created an account first.");
+
+                // 2. Security Check (Is group private?)
+                const groupSnap = await get(ref(db, `groups/${activeRoom}`));
+                const g = groupSnap.val();
+
+                if(g.owner === me.uid) {
+                    // Direct Join if Owner
+                    core.joinMember(activeRoom, targetId, g.name);
+                } else {
+                    // Request to Owner if standard Member
+                    const reqRef = push(ref(db, `requests/${g.owner}`));
+                    set(reqRef, {
+                        groupId: activeRoom,
+                        groupName: g.name,
+                        targetId: targetId,
+                        targetName: targetNameFull,
+                        fromName: myData.name,
+                        fromId: me.uid,
+                        stamp: Date.now()
+                    });
+                    alert(`Invitation request sent to the Group Owner (${g.ownerName}).`);
+                }
+            },
+
+            joinMember: (gid, uid, gname) => {
+                update(ref(db, `groups/${gid}/members/${uid}`), true);
+                update(ref(db, `users/${uid}/chats/${gid}`), {
+                    type: 'group',
+                    lastMsg: 'You were added to this group.',
+                    time: Date.now()
+                });
+                alert("Member added to Group.");
+            },
+
+            handleLeaveGroup: async () => {
+                if(!confirm("Leave group? You will lose access to messages.")) return;
+                await remove(ref(db, `groups/${activeRoom}/members/${me.uid}`));
+                await remove(ref(db, `users/${me.uid}/chats/${activeRoom}`));
+                core.closeChat();
+                core.setPage('inbox');
+            },
+
+            observeApprovals: () => {
+                onValue(ref(db, `requests/${me.uid}`), snap => {
+                    const box = document.getElementById('container-requests');
+                    const badge = document.getElementById('badge-requests');
+                    box.innerHTML = "";
+                    let total = 0;
+
                     if(!snap.exists()) {
-                        inboxDiv.innerHTML = "<p style='text-align:center; color:gray; padding-top:40px'>No messages yet. Go to Search to find friends!</p>";
+                        box.innerHTML = "<p style='color:gray'>No pending approvals.</p>";
+                        badge.style.display = 'none';
                         return;
                     }
 
-                    // Iterate through every chat entry you have
                     snap.forEach(child => {
-                        const peerId = child.key;
-                        const meta = child.val();
+                        total++;
+                        const r = child.val();
+                        const rId = child.key;
 
-                        // Force fetch the specific User's Name and Pic from the 'users' node
-                        get(ref(db, `users/${peerId}`)).then(userSnap => {
-                            if(userSnap.exists()){
-                                const userData = userSnap.val();
-                                const row = document.createElement('div');
-                                row.className = "user-row";
-                                row.innerHTML = `
-                                    <div class="avatar ${userData.status === 'online' ? 'online' : ''}" style="${userData.pfp ? `background-image:url(${userData.pfp})` : ''}">
-                                        ${userData.pfp ? '' : userData.name[0]}
-                                    </div>
-                                    <div style="flex:1">
-                                        <b>${userData.name}</b><br>
-                                        <small style="color:var(--text-gray)">${meta.lastMsg || 'Sent a message'}</small>
-                                    </div>
-                                `;
-                                row.onclick = () => ctrl.openChat(peerId, userData.name, userData.pfp);
-                                inboxDiv.prepend(row); // Most recent near top
-                            }
-                        });
+                        const card = document.createElement('div');
+                        card.className = "request-item";
+                        card.innerHTML = `
+                            <p><b>${r.fromName}</b> wants to add <b>${r.targetName}</b> to the group <b>${r.groupName}</b>.</p>
+                            <div style="margin-top:15px">
+                                <button class="btn-action btn-confirm" onclick="core.processRequest('${rId}', true, '${r.targetId}', '${r.groupId}', '${r.groupName}')">Approve</button>
+                                <button class="btn-action btn-deny" onclick="core.processRequest('${rId}', false)">Decline</button>
+                            </div>
+                        `;
+                        box.appendChild(card);
+                    });
+
+                    badge.innerText = total;
+                    badge.style.display = 'block';
+                });
+            },
+
+            processRequest: (reqId, approved, targetId, groupId, groupName) => {
+                if(approved) core.joinMember(groupId, targetId, groupName);
+                remove(ref(db, `requests/${me.uid}/${reqId}`));
+            },
+
+            // --- INBOX ENGINE ---
+            syncInbox: () => {
+                const list = document.getElementById('list-inbox');
+                onValue(ref(db, `users/${me.uid}/chats`), async (snap) => {
+                    list.innerHTML = "";
+                    if(!snap.exists()) {
+                        list.innerHTML = "<p style='text-align:center; color:gray; padding-top:60px'>Inbox Empty.</p>";
+                        return;
+                    }
+
+                    const stack = [];
+                    snap.forEach(child => {
+                        const id = child.key;
+                        const meta = child.val();
+                        const path = meta.type === 'group' ? `groups/${id}` : `users/${id}`;
+                        stack.push(get(ref(db, path)).then(r => ({ id, meta, data: r.val() })));
+                    });
+
+                    const resolved = await Promise.all(stack);
+                    resolved.sort((a,b) => b.meta.time - a.meta.time).forEach(chat => {
+                        if(!chat.data) return;
+
+                        const row = document.createElement('div');
+                        row.className = "data-row";
+                        const online = chat.meta.type === 'private' && chat.data.status === 'online';
+                        
+                        row.innerHTML = `
+                            <div class="avatar-circle ${online ? 'on' : ''}" style="${chat.data.pfp ? `background-image:url(${chat.data.pfp})` : ''}">
+                                ${chat.data.pfp ? '' : chat.data.name[0]}
+                            </div>
+                            <div style="flex:1">
+                                <b>${chat.data.name}</b><br>
+                                <small style="color:var(--secondary-text)">${chat.meta.lastMsg.substring(0,35)}...</small>
+                            </div>
+                        `;
+                        row.onclick = () => core.openChat(chat.id, chat.data.name, chat.data.pfp, chat.meta.type);
+                        list.appendChild(row);
                     });
                 });
             },
 
-            search: (query) => {
-                if(!query) return document.getElementById('search-list').innerHTML = "";
-                get(ref(db, 'users')).then(snap => {
-                    const list = document.getElementById('search-list');
+            syncGroups: () => {
+                const list = document.getElementById('list-groups');
+                onValue(ref(db, 'groups'), snap => {
                     list.innerHTML = "";
-                    snap.forEach(u => {
-                        const d = u.val();
-                        if(d.name.toLowerCase().includes(query.toLowerCase()) && u.key !== currentUser.uid) {
-                            const div = document.createElement('div');
-                            div.className = "user-row";
-                            div.innerHTML = `<div class="avatar">${d.name[0]}</div><b>${d.name}</b>`;
-                            div.onclick = () => ctrl.openChat(u.key, d.name, d.pfp);
-                            list.appendChild(div);
+                    snap.forEach(g => {
+                        const d = g.val();
+                        if(d.members && d.members[me.uid]) {
+                            const row = document.createElement('div');
+                            row.className = "data-row";
+                            row.innerHTML = `<div class="avatar-circle">${d.name[0]}</div><b>${d.name}</b>`;
+                            row.onclick = () => core.openChat(g.key, d.name, '', 'group');
+                            list.appendChild(row);
                         }
                     });
                 });
             },
 
-            openChat: (id, name, pfp) => {
-                activeChatId = id;
-                document.getElementById('chat-panel').classList.add('active');
-                document.getElementById('chat-username').innerText = name;
-                const p = document.getElementById('chat-pfp');
-                p.style.backgroundImage = pfp ? `url(${pfp})` : 'none';
-                p.innerText = pfp ? '' : name[0];
+            executeSearch: (val) => {
+                const out = document.getElementById('list-search-results');
+                if(!val) { out.innerHTML = ""; return; }
 
-                // Clear unread flag for self
-                update(ref(db, `users/${currentUser.uid}/chats/${id}`), { unread: false });
+                get(ref(db, 'users')).then(snap => {
+                    out.innerHTML = "";
+                    snap.forEach(u => {
+                        const d = u.val();
+                        if(d.name.toLowerCase().includes(val.toLowerCase()) && u.key !== me.uid) {
+                            const div = document.createElement('div');
+                            div.className = "data-row";
+                            div.innerHTML = `<div class="avatar-circle">${d.name[0]}</div><b>${d.name}</b>`;
+                            div.onclick = () => core.openChat(u.key, d.name, d.pfp, 'private');
+                            out.appendChild(div);
+                        }
+                    });
+                });
+            },
 
-                const roomId = [currentUser.uid, id].sort().join('_');
-                onValue(ref(db, `messages/${roomId}`), (snap) => {
+            // --- REAL-TIME CHAT ENGINE ---
+            openChat: (id, name, pfp, type) => {
+                activeRoom = id;
+                activeType = type;
+
+                document.getElementById('chat-window').classList.add('open');
+                document.getElementById('target-name').innerText = name;
+                document.getElementById('target-type').innerText = type === 'group' ? 'Private Group Chat' : 'Direct Message';
+                
+                const av = document.getElementById('target-avatar');
+                av.style.backgroundImage = pfp ? `url(${pfp})` : 'none';
+                av.innerText = pfp ? '' : name[0];
+
+                document.getElementById('btn-invite').style.display = type === 'group' ? 'block' : 'none';
+                document.getElementById('btn-leave').style.display = type === 'group' ? 'block' : 'none';
+
+                const path = type === 'group' ? id : [me.uid, id].sort().join('_');
+                
+                onValue(ref(db, `messages/${path}`), snap => {
                     const feed = document.getElementById('chat-feed');
                     feed.innerHTML = "";
-                    snap.forEach(m => {
-                        const msg = m.val();
+                    snap.forEach(child => {
+                        const m = child.val();
                         const b = document.createElement('div');
-                        b.className = `bubble ${msg.sender === currentUser.uid ? 'me' : 'them'}`;
-                        b.innerText = msg.text;
+                        b.className = `msg-bubble ${m.sid === me.uid ? 'is-me' : 'is-them'}`;
+                        const label = (type === 'group' && m.sid !== me.uid) ? `<span class="msg-meta">${m.sname}</span>` : '';
+                        b.innerHTML = `${label}${m.txt}`;
                         feed.appendChild(b);
                     });
                     feed.scrollTop = feed.scrollHeight;
@@ -489,66 +736,53 @@
             },
 
             closeChat: () => {
-                document.getElementById('chat-panel').classList.remove('active');
-                activeChatId = null;
+                document.getElementById('chat-window').classList.remove('open');
+                activeRoom = null;
             },
 
-            send: () => {
-                const txt = document.getElementById('chat-inp').value.trim();
-                if(!txt || !activeChatId) return;
-                const roomId = [currentUser.uid, activeChatId].sort().join('_');
+            handleSend: () => {
+                const inp = document.getElementById('chat-input');
+                const val = inp.value.trim();
+                if(!val || !activeRoom) return;
+
+                const path = activeType === 'group' ? activeRoom : [me.uid, activeRoom].sort().join('_');
                 const now = Date.now();
 
-                // 1. Post to message history
-                push(ref(db, `messages/${roomId}`), { sender: currentUser.uid, text: txt, time: now });
+                push(ref(db, `messages/${path}`), { sid: me.uid, sname: myData.name, txt: val, time: now });
 
-                // 2. Update my inbox
-                update(ref(db, `users/${currentUser.uid}/chats/${activeChatId}`), { lastMsg: txt, time: now, unread: false });
-
-                // 3. Update their inbox
-                update(ref(db, `users/${activeChatId}/chats/${currentUser.uid}`), { lastMsg: txt, time: now, unread: true });
-
-                document.getElementById('chat-inp').value = "";
-            },
-
-            loadProfile: () => {
-                get(ref(db, `users/${currentUser.uid}`)).then(s => {
-                    const d = s.val();
-                    document.getElementById('prof-name').innerText = d.name;
-                    document.getElementById('prof-email').innerText = currentUser.email;
-                    const p = document.getElementById('prof-avatar');
-                    p.style.backgroundImage = d.pfp ? `url(${d.pfp})` : 'none';
-                    p.innerText = d.pfp ? '' : d.name[0];
-                });
-            },
-
-            upload: (inp) => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    update(ref(db, `users/${currentUser.uid}`), { pfp: e.target.result }).then(() => ctrl.loadProfile());
-                };
-                reader.readAsDataURL(inp.files[0]);
+                if(activeType === 'private') {
+                    update(ref(db, `users/${me.uid}/chats/${activeRoom}`), { type: 'private', lastMsg: val, time: now });
+                    update(ref(db, `users/${activeRoom}/chats/${me.uid}`), { type: 'private', lastMsg: val, time: now });
+                } else {
+                    get(ref(db, `groups/${activeRoom}/members`)).then(mems => {
+                        mems.forEach(m => {
+                            update(ref(db, `users/${m.key}/chats/${activeRoom}`), { type: 'group', lastMsg: `${myData.name}: ${val}`, time: now });
+                        });
+                    });
+                }
+                inp.value = "";
             }
         };
 
-        // --- SESSION LISTENER ---
-        onAuthStateChanged(auth, user => {
-            if(user) {
-                currentUser = user;
+        // LIFECYCLE
+        onAuthStateChanged(auth, u => {
+            if(u) {
+                me = u;
                 document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('main-sidebar').style.display = 'flex';
-                
-                // Status Sync
-                const statusRef = ref(db, `users/${user.uid}/status`);
-                set(statusRef, 'online');
-                onDisconnect(statusRef).set('offline');
-
-                ctrl.loadInbox();
-                ctrl.loadProfile();
+                document.getElementById('app-sidebar').style.display = 'flex';
+                onValue(ref(db, `users/${u.uid}`), snap => {
+                    myData = snap.val();
+                    core.syncInbox(); core.syncGroups(); core.observeApprovals();
+                });
+                const sRef = ref(db, `users/${u.uid}/status`);
+                set(sRef, 'online'); onDisconnect(sRef).set('offline');
             } else {
                 document.getElementById('auth-overlay').style.display = 'flex';
+                document.getElementById('app-sidebar').style.display = 'none';
             }
         });
+
+        window.core = core;
     </script>
 </body>
 </html>
