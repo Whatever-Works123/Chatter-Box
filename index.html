@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Free Version</title>
+    <title>Chatter Box | iOS Style</title>
     <style>
         * { box-sizing: border-box; outline: none; }
         :root { 
@@ -14,37 +14,45 @@
         }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* Sidebar & Layout */
+        /* Sidebar & Notification Dot */
         .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 20px; flex-shrink: 0; z-index: 10; }
         .app-title { font-size: 26px; font-weight: 800; color: #FF8C42; margin-bottom: 30px; font-style: italic; }
-        .menu-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; font-weight: 600; color: #65676b; transition: 0.2s; }
-        .menu-item.active { background: rgba(0, 132, 255, 0.1); color: var(--accent); }
-        .main-viewport { flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px; }
-        .content-container { width: 100%; max-width: 700px; background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); min-height: 90vh; }
         
-        /* Auth Screen */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 5000; display: flex; justify-content: center; align-items: center; }
-        .auth-box { background: white; padding: 40px; border-radius: 15px; text-align: center; width: 350px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-
-        /* Avatar System */
-        .avatar { 
-            width: 50px; height: 50px; border-radius: 50%; 
-            background-size: cover; background-position: center; 
-            background-color: #0084ff; display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: bold; font-size: 18px; border: 2px solid var(--border);
-            overflow: hidden;
+        .menu-item { 
+            display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; 
+            cursor: pointer; margin-bottom: 8px; font-weight: 600; color: #65676b; transition: 0.2s; position: relative; 
+        }
+        .menu-item.active { background: rgba(0, 132, 255, 0.1); color: var(--accent); }
+        
+        .notif-dot { 
+            display: none; width: 10px; height: 10px; background: var(--accent); 
+            border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
         }
 
-        /* Chat UI */
+        /* Inbox List with iOS Outlines */
+        .list-item { 
+            display: flex; align-items: center; padding: 15px; cursor: pointer; 
+            border: 2px solid transparent; margin: 5px 10px; border-radius: 14px; 
+            background: var(--card); transition: 0.2s;
+        }
+        .list-item.unread { 
+            border-color: var(--accent); 
+            background: rgba(0, 132, 255, 0.05); 
+        }
+        .list-item b { margin-left: 15px; flex: 1; }
+
+        /* Rest of UI */
+        .main-viewport { flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px; }
+        .content-container { width: 100%; max-width: 700px; background: var(--card); border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); min-height: 90vh; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; background-color: #ccc; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; overflow: hidden; flex-shrink: 0; }
+        
         #chat-window { position: fixed; top: 0; right: -450px; bottom: 0; width: 400px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s; z-index: 1000; display: flex; flex-direction: column; }
         #chat-window.open { right: 0; }
         .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg-bubble { padding: 10px 15px; border-radius: 18px; max-width: 80%; font-size: 14px; }
         
-        /* Inputs & Buttons */
         input, textarea { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; }
         .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; width: 100%; }
-        .list-item { display: flex; align-items: center; padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border); }
         .page { display: none; padding: 20px; }
     </style>
 </head>
@@ -56,13 +64,14 @@
             <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
             <button class="btn" id="login-btn">Log In / Sign Up</button>
-            <p id="auth-err" style="color:red; font-size:12px;"></p>
         </div>
     </div>
 
     <div id="side-menu" class="sidebar">
         <div class="app-title">Chatter Box</div>
-        <div class="menu-item active" onclick="nav('home-page', this)">🏠 Home</div>
+        <div class="menu-item active" onclick="nav('home-page', this)">
+            🏠 Home <div id="home-dot" class="notif-dot"></div>
+        </div>
         <div class="menu-item" onclick="nav('search-page', this)">🔍 Search</div>
         <div class="menu-item" onclick="nav('profile-page', this)">👤 Profile</div>
         <div class="menu-item" onclick="nav('settings-page', this)">⚙️ Settings</div>
@@ -75,44 +84,33 @@
                 <h2>Messages</h2>
                 <div id="inbox-list"></div>
             </div>
-
             <div id="search-page" class="page">
                 <h2>Search</h2>
                 <input type="text" id="s-query" placeholder="Search users...">
                 <div id="s-results"></div>
             </div>
-
             <div id="profile-page" class="page">
-                <div style="text-align:center;">
-                    <div id="p-pfp" class="avatar" style="width:120px; height:120px; margin:0 auto 15px; font-size:40px;"></div>
-                    <h2 id="p-name"></h2>
-                    <p id="p-bio"></p>
-                </div>
+                <div id="p-pfp" class="avatar" style="width:100px; height:100px; margin: 0 auto;"></div>
+                <h2 id="p-name" style="text-align:center;"></h2>
             </div>
-
             <div id="settings-page" class="page">
                 <h2>Settings</h2>
-                <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
-                    <div id="settings-pfp-preview" class="avatar" style="width:60px; height:60px;"></div>
-                    <input type="file" id="settings-pfp-input" style="display:none" accept="image/*">
-                    <button class="btn" style="width:auto; background:#eee; color:black;" onclick="document.getElementById('settings-pfp-input').click()">Change Photo</button>
-                </div>
+                <input type="file" id="settings-pfp-input" accept="image/*">
                 <input type="text" id="settings-name-input" placeholder="Display Name">
-                <textarea id="settings-bio-input" placeholder="Bio"></textarea>
-                <button class="btn" id="save-profile-btn">Save Changes</button>
+                <button class="btn" id="save-profile-btn">Save</button>
             </div>
         </div>
     </div>
 
     <div id="chat-window">
         <div style="padding:15px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px;">
-            <button onclick="closeChat()" style="background:none; border:none; font-size:20px; cursor:pointer;">&larr;</button>
+            <button onclick="closeChat()" style="background:none; border:none; font-size:20px;">&larr;</button>
             <div id="chat-pfp" class="avatar" style="width:35px; height:35px;"></div>
             <b id="chat-user-name">User</b>
         </div>
         <div id="chat-msgs" class="chat-msgs"></div>
         <div style="padding:15px; display:flex; gap:10px;">
-            <input type="text" id="chat-input" placeholder="Aa" style="margin:0;">
+            <input type="text" id="chat-input" placeholder="Aa">
             <button class="btn" id="send-btn" style="width:auto">Send</button>
         </div>
     </div>
@@ -132,86 +130,58 @@
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-
         let activePeer = null;
 
         function setAvatar(el, url, name) {
-            if(url && url.length > 50) { 
-                el.style.backgroundImage = `url(${url})`; 
-                el.innerText = ""; 
-            } else { 
-                el.style.backgroundImage = "none"; 
-                el.innerText = name ? name[0].toUpperCase() : "?";
-                const colors = ['#0084ff', '#FF8C42', '#44bec7', '#ff5252', '#7b52ab'];
-                el.style.backgroundColor = colors[(name ? name.charCodeAt(0) : 0) % colors.length];
-            }
+            if(url && url.length > 50) { el.style.backgroundImage = `url(${url})`; el.innerText = ""; }
+            else { el.style.backgroundImage = "none"; el.innerText = name ? name[0].toUpperCase() : "?"; }
         }
 
-        // Auth Logic
-        document.getElementById('login-btn').onclick = () => {
-            const e = document.getElementById('email').value, p = document.getElementById('password').value;
-            signInWithEmailAndPassword(auth, e, p).catch(() => {
-                createUserWithEmailAndPassword(auth, e, p).then(res => {
-                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: "", bio: "Hey there!" });
-                });
-            });
-        };
-
-        document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
-
         onAuthStateChanged(auth, u => { 
-            if(u) { 
-                document.getElementById('auth-screen').style.display = 'none'; 
-                document.getElementById('side-menu').style.display = 'flex'; 
-                initApp(); 
-            } 
+            if(u) { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('side-menu').style.display = 'flex'; initApp(); } 
         });
 
         function initApp() {
-            // Settings: PFP Upload (The FREE Way)
-            document.getElementById('settings-pfp-input').onchange = (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                if (file.size > 300000) return alert("Image too large! Keep it under 300KB.");
-
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    update(ref(db, `users/${auth.currentUser.uid}`), { pfp: reader.result });
-                };
-                reader.readAsDataURL(file);
-            };
-
-            onValue(ref(db, `users/${auth.currentUser.uid}`), snap => {
-                const u = snap.val();
-                if(!u) return;
-                document.getElementById('settings-name-input').value = u.name;
-                document.getElementById('settings-bio-input').value = u.bio || "";
-                setAvatar(document.getElementById('settings-pfp-preview'), u.pfp, u.name);
-            });
-
-            document.getElementById('save-profile-btn').onclick = () => {
-                update(ref(db, `users/${auth.currentUser.uid}`), { 
-                    name: document.getElementById('settings-name-input').value, 
-                    bio: document.getElementById('settings-bio-input').value 
-                });
-            };
-
-            // Inbox
+            // Inbox logic with sorting and notification dots
             onValue(ref(db, `users/${auth.currentUser.uid}/chats`), snap => {
                 const list = document.getElementById('inbox-list');
+                const homeDot = document.getElementById('home-dot');
                 list.innerHTML = "";
+                
+                let chats = [];
+                let globalUnread = false;
+
                 snap.forEach(c => {
-                    get(ref(db, 'users/' + c.key)).then(uSnap => {
+                    const data = c.val();
+                    chats.push({ uid: c.key, ...data });
+                    if(data.unread) globalUnread = true;
+                });
+
+                // SORT: Newest messages at the top
+                chats.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
+
+                homeDot.style.display = globalUnread ? "block" : "none";
+
+                chats.forEach(chat => {
+                    get(ref(db, 'users/' + chat.uid)).then(uSnap => {
                         const u = uSnap.val();
                         const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `<div class="avatar"></div><b style="margin-left:15px">${u.name}</b>`;
+                        item.className = `list-item ${chat.unread ? 'unread' : ''}`;
+                        item.innerHTML = `<div class="avatar"></div><b>${u.name}</b>`;
                         setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
-                        item.onclick = () => openChat(c.key, u.name, u.pfp);
+                        item.onclick = () => openChat(chat.uid, u.name, u.pfp);
                         list.appendChild(item);
                     });
                 });
             });
+
+            // Handle Profile Image Upload
+            document.getElementById('settings-pfp-input').onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onloadend = () => update(ref(db, `users/${auth.currentUser.uid}`), { pfp: reader.result });
+                reader.readAsDataURL(file);
+            };
         }
 
         window.openChat = (uid, name, pfp) => {
@@ -219,6 +189,10 @@
             document.getElementById('chat-window').classList.add('open');
             document.getElementById('chat-user-name').innerText = name;
             setAvatar(document.getElementById('chat-pfp'), pfp, name);
+            
+            // Mark as READ when opened
+            update(ref(db, `users/${auth.currentUser.uid}/chats/${uid}`), { unread: false });
+
             const chatId = [auth.currentUser.uid, uid].sort().join('_');
             onValue(ref(db, 'messages/' + chatId), snap => {
                 const box = document.getElementById('chat-msgs'); box.innerHTML = "";
@@ -235,9 +209,14 @@
             const txt = document.getElementById('chat-input').value;
             if(!txt || !activePeer) return;
             const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
+            const now = Date.now();
+            
             push(ref(db, 'messages/' + chatId), { sender: auth.currentUser.uid, text: txt, time: serverTimestamp() });
-            set(ref(db, `users/${auth.currentUser.uid}/chats/${activePeer}`), { last: Date.now() });
-            set(ref(db, `users/${activePeer}/chats/${auth.currentUser.uid}`), { last: Date.now() });
+            
+            // Update timestamps for sorting and set unread for the receiver
+            update(ref(db, `users/${auth.currentUser.uid}/chats/${activePeer}`), { lastTime: now });
+            update(ref(db, `users/${activePeer}/chats/${auth.currentUser.uid}`), { lastTime: now, unread: true });
+            
             document.getElementById('chat-input').value = "";
         };
 
@@ -247,30 +226,14 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
             el.classList.add('active');
-            if(id === 'profile-page') {
-                get(ref(db, 'users/' + auth.currentUser.uid)).then(s => {
-                    const u = s.val();
-                    document.getElementById('p-name').innerText = u.name;
-                    document.getElementById('p-bio').innerText = u.bio || "";
-                    setAvatar(document.getElementById('p-pfp'), u.pfp, u.name);
-                });
-            }
         };
 
-        document.getElementById('s-query').oninput = (e) => {
-            const q = e.target.value.toLowerCase();
-            if(!q) return document.getElementById('s-results').innerHTML = "";
-            get(ref(db, 'users')).then(snap => {
-                document.getElementById('s-results').innerHTML = "";
-                snap.forEach(u => {
-                    if(u.val().name.toLowerCase().includes(q) && u.key !== auth.currentUser.uid) {
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `<div class="avatar"></div><b style="margin-left:15px">${u.val().name}</b>`;
-                        setAvatar(item.querySelector('.avatar'), u.val().pfp, u.val().name);
-                        item.onclick = () => openChat(u.key, u.val().name, u.val().pfp);
-                        document.getElementById('s-results').appendChild(item);
-                    }
+        // Login Logic
+        document.getElementById('login-btn').onclick = () => {
+            const e = document.getElementById('email').value, p = document.getElementById('password').value;
+            signInWithEmailAndPassword(auth, e, p).catch(() => {
+                createUserWithEmailAndPassword(auth, e, p).then(res => {
+                    set(ref(db, 'users/' + res.user.uid), { name: e.split('@')[0], pfp: "", bio: "Hey!" });
                 });
             });
         };
