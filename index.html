@@ -81,9 +81,6 @@
             <div id="home-page" class="page" style="display:block;">
                 <h2>Messages</h2>
                 <div id="inbox-loading" style="text-align:center; color:#999; margin-top:50px;">Loading chats...</div>
-                <div id="inbox-error" style="display:none; text-align:center; color:red; margin:20px; padding:15px; background:#ffebeb; border-radius:10px;">
-                    <b>Access Denied</b><br>Please update your Firebase Rules in the Console.
-                </div>
                 <div id="inbox-list"></div>
                 <div id="empty-state" style="display:none; text-align:center; margin-top:50px;">
                     <p style="color:#666; margin-bottom:20px;">No chats yet!</p>
@@ -150,9 +147,6 @@
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // ======================================================
-        // YOUR CONFIG IS ALREADY INSERTED HERE
-        // ======================================================
         const config = {
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg",
             authDomain: "chatterbox-4b7dd.firebaseapp.com",
@@ -163,7 +157,6 @@
             appId: "1:509263602746:web:01051fc91ecb3bfa384103",
             measurementId: "G-N2NPMZG33J"
         };
-        // ======================================================
 
         const app = initializeApp(config);
         const auth = getAuth(app);
@@ -182,13 +175,25 @@
             }
         }
 
-        // --- Auth ---
+        // --- Auth & Data Loading ---
         onAuthStateChanged(auth, u => {
             if(u) {
                 document.getElementById('auth-screen').style.display = 'none';
                 document.getElementById('side-menu').style.display = 'flex';
-                loadUserData(u);
-                loadInbox(u);
+                
+                // AUTO-REPAIR PROFILE IF MISSING
+                get(ref(db, `users/${u.uid}`)).then(snap => {
+                    if(!snap.exists()) {
+                        set(ref(db, 'users/'+u.uid), { 
+                            name: u.email.split('@')[0], 
+                            bio: "New User", 
+                            pfp: "" 
+                        });
+                    }
+                    loadUserData(u);
+                    loadInbox(u);
+                });
+
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('side-menu').style.display = 'none';
@@ -212,7 +217,6 @@
         };
         document.getElementById('logout-btn').onclick = () => signOut(auth);
 
-        // --- Data Loading ---
         function loadUserData(user) {
             onValue(ref(db, `users/${user.uid}`), snap => {
                 currentUserData = snap.val();
@@ -224,10 +228,9 @@
             });
         }
 
-        // FIXED: Handles empty states and Permission Errors
+        // --- INBOX FIX: Handles Missing Profiles ---
         function loadInbox(user) {
             document.getElementById('inbox-loading').style.display = 'block';
-            document.getElementById('inbox-error').style.display = 'none';
             
             onValue(ref(db, `users/${user.uid}/chats`), (snap) => {
                 document.getElementById('inbox-loading').style.display = 'none';
@@ -246,8 +249,9 @@
 
                 chats.forEach(chat => {
                     get(ref(db, 'users/'+chat.uid)).then(uSnap => {
-                        const u = uSnap.val();
-                        if(!u) return;
+                        // FIX: Default to "Unknown User" if profile is missing
+                        const u = uSnap.val() || { name: "Unknown User", pfp: "", bio: "" };
+                        
                         const item = document.createElement('div');
                         item.className = `list-item ${chat.unread?'unread':''}`;
                         item.innerHTML = `<div class="avatar"></div><div style="margin-left:15px;"><b>${u.name}</b><br><span style="font-size:12px; color:#666;">Tap to chat</span></div>`;
@@ -256,11 +260,6 @@
                         list.appendChild(item);
                     });
                 });
-            }, (error) => {
-                // Catches Permission Denied Errors
-                console.error(error);
-                document.getElementById('inbox-loading').style.display = 'none';
-                document.getElementById('inbox-error').style.display = 'block';
             });
         }
 
@@ -284,8 +283,6 @@
                         res.appendChild(item);
                     }
                 });
-            }).catch(err => {
-                res.innerHTML = `<div style="color:red; text-align:center;">Failed to load. <br>Firebase Rules might be blocking access.</div>`;
             });
         });
 
@@ -316,8 +313,11 @@
             const cid = [auth.currentUser.uid, activePeer].sort().join('_');
             const now = Date.now();
             push(ref(db, 'messages/'+cid), { sender: auth.currentUser.uid, text: txt, time: serverTimestamp() });
+            
+            // These updates put the chat on the Home Page
             update(ref(db, `users/${auth.currentUser.uid}/chats/${activePeer}`), { lastTime: now, unread: false });
             update(ref(db, `users/${activePeer}/chats/${auth.currentUser.uid}`), { lastTime: now, unread: true });
+            
             document.getElementById('chat-input').value = "";
         }
 
@@ -328,13 +328,11 @@
             document.getElementById('view-name').innerText = "Loading...";
             
             get(ref(db, 'users/'+uid)).then(snap => {
-                if(snap.exists()) {
-                    const u = snap.val();
-                    document.getElementById('view-name').innerText = u.name;
-                    document.getElementById('view-bio').innerText = u.bio || "No bio.";
-                    setAvatar(document.getElementById('view-pfp'), u.pfp, u.name);
-                    document.getElementById('view-msg-btn').onclick = () => openChat(uid, u.name, u.pfp);
-                }
+                const u = snap.val() || { name: "Unknown", bio: "", pfp: "" };
+                document.getElementById('view-name').innerText = u.name;
+                document.getElementById('view-bio').innerText = u.bio || "No bio.";
+                setAvatar(document.getElementById('view-pfp'), u.pfp, u.name);
+                document.getElementById('view-msg-btn').onclick = () => openChat(uid, u.name, u.pfp);
             });
         };
 
