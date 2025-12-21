@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | iOS Style</title>
+    <title>Chatter Box | Final Version</title>
     <style>
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
         :root { 
             --bg: #f0f2f5; --side: #ffffff; --text: #1c1e21; --accent: #0084ff; --border: #e4e6eb; --card: #ffffff; --subtext: #65676b;
-        }
-        body.dark { 
-            --bg: #18191a; --side: #242526; --text: #e4e6eb; --accent: #2e89ff; --border: #3e4042; --card: #242526; --subtext: #b0b3b8;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
         
@@ -108,7 +105,7 @@
             <span style="font-size:20px">🔍</span> <span class="label">Search</span>
         </div>
         <div class="menu-item" onclick="nav('profile-page', this)">
-            <span style="font-size:20px">👤</span> <span class="label">Profile</span>
+            <span style="font-size:20px">👤</span> <span class="label">My Profile</span>
         </div>
         <div class="menu-item" onclick="nav('settings-page', this)">
             <span style="font-size:20px">⚙️</span> <span class="label">Settings</span>
@@ -130,6 +127,25 @@
                 <h2>Search Users</h2>
                 <input type="text" id="s-query" placeholder="Type a name...">
                 <div id="s-results" style="margin-top:20px;"></div>
+            </div>
+
+            <div id="view-user-page" class="page">
+                <div style="padding: 10px 0;">
+                    <button onclick="nav('home-page', document.querySelector('.menu-item'))" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer;">&larr; Back to Home</button>
+                </div>
+                
+                <div style="text-align:center; margin-top:20px;">
+                    <div id="view-pfp" class="avatar" style="width:120px; height:120px; margin: 0 auto; font-size:40px;"></div>
+                    <h2 id="view-name" style="margin-bottom:5px; margin-top:15px;"></h2>
+                    <div style="background: rgba(0,0,0,0.03); display:inline-block; padding:5px 15px; border-radius:15px; margin-bottom:15px;">
+                        <span id="view-status" style="color:var(--subtext); font-size:14px;">User</span>
+                    </div>
+                    <p id="view-bio" style="color:var(--text); max-width:80%; margin:0 auto; line-height:1.5;"></p>
+                </div>
+
+                <div style="margin-top:40px; padding:0 20px;">
+                    <button id="view-msg-btn" class="btn" style="border-radius:25px;">💬 Send Message</button>
+                </div>
             </div>
 
             <div id="profile-page" class="page">
@@ -162,9 +178,12 @@
     <div id="chat-window">
         <div class="chat-header">
             <button onclick="closeChat()" style="background:none; border:none; font-size:24px; color:var(--accent); padding:0; cursor:pointer;">&larr;</button>
-            <div id="chat-pfp" class="avatar" style="width:35px; height:35px;"></div>
-            <b id="chat-user-name">User</b>
+            <div onclick="if(activePeer) viewUserProfile(activePeer); closeChat();" style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+                <div id="chat-pfp" class="avatar" style="width:35px; height:35px;"></div>
+                <b id="chat-user-name">User</b>
+            </div>
         </div>
+
         <div id="chat-msgs" class="chat-msgs"></div>
         <div style="padding:15px; display:flex; gap:10px; background:var(--card); border-top:1px solid var(--border);">
             <input type="text" id="chat-input" placeholder="Message..." style="margin:0; border-radius:20px;">
@@ -190,78 +209,36 @@
         const auth = getAuth(app);
         const db = getDatabase(app);
         
-        let activePeer = null;
-        let currentUserData = null;
+        let activePeer = null; // The ID of the person we are chatting with
+        let currentUserData = null; // Our own data
 
         // Helper: Set Avatar
         function setAvatar(el, url, name) {
             if(url && url.length > 50) { 
                 el.style.backgroundImage = `url(${url})`; 
-// Search Logic
-        const searchInput = document.getElementById('s-query');
-        
-        searchInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase().trim();
-            const resDiv = document.getElementById('s-results');
-            
-            if(q.length < 1) { 
-                resDiv.innerHTML = ""; 
-                return; 
+                el.innerText = ""; 
+            } else { 
+                el.style.backgroundImage = "none"; 
+                el.innerText = name ? name[0].toUpperCase() : "?"; 
+                el.style.backgroundColor = getHSL(name);
+                el.style.color = "#fff";
             }
+        }
 
-            // Visual feedback that search is happening
-            resDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:10px;">Searching...</div>';
+        // Helper: Generate consistent color from name
+        function getHSL(str) {
+            if(!str) return '#ccc';
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return `hsl(${hash % 360}, 60%, 50%)`;
+        }
 
-            get(ref(db, 'users'))
-            .then(snap => {
-                resDiv.innerHTML = ""; // Clear "Searching..."
-                
-                if (!snap.exists()) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center;">No users found in database.</div>';
-                    return;
-                }
-
-                let found = false;
-
-                snap.forEach(child => {
-                    const u = child.val();
-                    const uid = child.key;
-                    
-                    // Skip yourself
-                    if(uid === auth.currentUser.uid) return;
-
-                    // Check if name exists and matches query
-                    if(u.name && u.name.toLowerCase().includes(q)) {
-                        found = true;
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `
-                            <div class="avatar"></div>
-                            <div class="list-item-content">
-                                <b>${u.name}</b>
-                                <span>${u.bio || 'No bio'}</span>
-                            </div>`;
-                        
-                        setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
-                        
-                        item.onclick = () => {
-                            openChat(uid, u.name, u.pfp);
-                            searchInput.value = ""; 
-                            resDiv.innerHTML = ""; 
-                        };
-                        resDiv.appendChild(item);
-                    }
-                });
-
-                if(!found) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">No user found with that name.</div>';
-                }
-            })
-            .catch(error => {
-                console.error("Search failed:", error);
-                resDiv.innerHTML = `<div style="color:red; padding:10px; text-align:center;">Error: ${error.message}<br>Check Console</div>`;
-            });
-        });
+        // Auth Listener
+        onAuthStateChanged(auth, u => { 
+            if(u) { 
+                document.getElementById('auth-screen').style.display = 'none'; 
+                document.getElementById('side-menu').style.display = 'flex'; 
+                initApp(u); 
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('side-menu').style.display = 'none';
@@ -325,32 +302,62 @@
             });
         }
 
-        // Search Logic
-        document.getElementById('s-query').addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase();
+        // --- NEW SEARCH LOGIC ---
+        const searchInput = document.getElementById('s-query');
+        searchInput.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
             const resDiv = document.getElementById('s-results');
-            if(q.length < 2) { resDiv.innerHTML = ""; return; }
+            
+            if(q.length < 1) { 
+                resDiv.innerHTML = ""; 
+                return; 
+            }
 
-            // Note: In a real app, use database filtering. Here we fetch once for simplicity.
+            resDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:10px;">Searching...</div>';
+
             get(ref(db, 'users')).then(snap => {
-                resDiv.innerHTML = "";
+                resDiv.innerHTML = ""; 
+                if (!snap.exists()) {
+                    resDiv.innerHTML = '<div style="padding:10px; text-align:center;">No users found in database.</div>';
+                    return;
+                }
+
+                let found = false;
                 snap.forEach(child => {
                     const u = child.val();
                     const uid = child.key;
+                    
                     if(uid === auth.currentUser.uid) return; // Don't show self
 
-                    if(u.name.toLowerCase().includes(q)) {
+                    if(u.name && u.name.toLowerCase().includes(q)) {
+                        found = true;
                         const item = document.createElement('div');
                         item.className = 'list-item';
-                        item.innerHTML = `<div class="avatar"></div><div class="list-item-content"><b>${u.name}</b><span>${u.bio || ''}</span></div>`;
+                        item.innerHTML = `
+                            <div class="avatar"></div>
+                            <div class="list-item-content">
+                                <b>${u.name}</b>
+                                <span>${u.bio || 'No bio'}</span>
+                            </div>`;
+                        
                         setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
+                        
                         item.onclick = () => {
-                            openChat(uid, u.name, u.pfp);
-                            document.getElementById('s-query').value = ""; // Clear search
+                            // CLICKING A SEARCH RESULT NOW OPENS PROFILE
+                            viewUserProfile(uid);
+                            searchInput.value = ""; 
+                            resDiv.innerHTML = ""; 
                         };
                         resDiv.appendChild(item);
                     }
                 });
+
+                if(!found) {
+                    resDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">No user found with that name.</div>';
+                }
+            }).catch(error => {
+                console.error("Search failed:", error);
+                resDiv.innerHTML = `<div style="color:red; padding:10px; text-align:center;">Error: ${error.message}<br>Check Console</div>`;
             });
         });
 
@@ -367,8 +374,6 @@
             const chatId = [auth.currentUser.uid, uid].sort().join('_');
             const msgsRef = ref(db, 'messages/' + chatId);
             
-            // Limit to last 50 messages for performance
-            // In real apps, implement pagination
             onValue(msgsRef, snap => {
                 const box = document.getElementById('chat-msgs'); 
                 box.innerHTML = "";
@@ -420,6 +425,33 @@
         };
 
         window.closeChat = () => document.getElementById('chat-window').classList.remove('open');
+
+        // --- NEW VIEW USER PROFILE LOGIC ---
+        window.viewUserProfile = (uid) => {
+            // Switch UI
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.getElementById('view-user-page').style.display = 'block';
+
+            // Reset UI (Loading state)
+            document.getElementById('view-name').innerText = "Loading...";
+            document.getElementById('view-bio').innerText = "";
+            document.getElementById('view-pfp').style.backgroundImage = "none";
+
+            // Fetch Data
+            get(ref(db, 'users/' + uid)).then(snap => {
+                if(snap.exists()) {
+                    const u = snap.val();
+                    document.getElementById('view-name').innerText = u.name;
+                    document.getElementById('view-bio').innerText = u.bio || "No bio available.";
+                    setAvatar(document.getElementById('view-pfp'), u.pfp, u.name);
+
+                    // Configure Message Button
+                    document.getElementById('view-msg-btn').onclick = () => {
+                        openChat(uid, u.name, u.pfp);
+                    };
+                }
+            });
+        };
 
         // Navigation Logic
         window.nav = (id, el) => {
