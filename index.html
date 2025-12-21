@@ -36,18 +36,18 @@
         /* AVATAR SYSTEM */
         .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; background-color: #ccd0d5; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-transform: uppercase; }
 
-        /* LIST ITEMS (iOS STYLE) */
+        /* LIST ITEMS */
         .list-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; margin: 5px 10px; border-radius: 12px; }
-        .list-item b { margin-left: 12px; font-size: 16px; } /* Added the 6px+ spacing you wanted */
+        .list-item b { margin-left: 18px; font-size: 16px; } 
         .list-item.unread { border: 2.5px solid var(--accent); background: rgba(0, 132, 255, 0.05); }
 
         /* CHAT WINDOW */
         #chat-window { position: fixed; top: 0; right: -450px; bottom: 0; width: 400px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
         #chat-window.open { right: 0; }
         .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth; }
         
-        /* MESSAGE BUBBLES & RECEIPTS */
+        /* MESSAGE BUBBLES */
         .msg-container { display: flex; flex-direction: column; max-width: 75%; }
         .msg-bubble { padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
         .receipt { font-size: 10px; color: #8e8e8e; align-self: flex-end; margin-top: 2px; font-weight: 600; margin-right: 5px; }
@@ -133,7 +133,6 @@
                 </div>
                 <div class="settings-section">
                     <div class="settings-row"><span>Dark Mode</span><label class="switch"><input type="checkbox" id="dark-toggle"><span class="slider"></span></label></div>
-                    <div class="settings-row"><span>Private Profile</span><label class="switch"><input type="checkbox" id="priv-toggle"><span class="slider"></span></label></div>
                 </div>
             </div>
         </div>
@@ -146,11 +145,9 @@
             <b id="chat-user-name" style="margin-left:10px;">User</b>
         </div>
         <div id="chat-msgs" class="chat-msgs"></div>
-        
         <div id="typing-ui" class="typing-indicator">
             <div class="dot"></div><div class="dot"></div><div class="dot"></div>
         </div>
-
         <div style="padding:15px; border-top:1px solid var(--border); display:flex; gap:10px;">
             <input type="text" id="chat-input" placeholder="Aa" style="margin:0; border-radius:20px;">
             <button class="btn" id="send-btn" style="width:auto">Send</button>
@@ -161,23 +158,37 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getStorage, ref as sRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const config = { 
             apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
             authDomain: "chatterbox-4b7dd.firebaseapp.com", 
             databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
-            projectId: "chatterbox-4b7dd" 
+            projectId: "chatterbox-4b7dd",
+            storageBucket: "chatterbox-4b7dd.appspot.com"
         };
 
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
+        const storage = getStorage(app);
+
         let activePeer = null;
         let typingTimeout;
 
         function setAvatar(el, url, name) {
-            if(url && url.length > 20) { el.style.backgroundImage = `url(${url})`; el.innerText = ""; }
-            else { el.style.backgroundImage = "none"; el.innerText = name ? name[0].toUpperCase() : "?"; }
+            if(url && url.startsWith('http')) { 
+                el.style.backgroundImage = `url(${url})`; 
+                el.innerText = ""; 
+            } else { 
+                el.style.backgroundImage = "none"; 
+                el.innerText = name ? name[0].toUpperCase() : "?"; 
+            }
+        }
+
+        function scrollToBottom() {
+            const box = document.getElementById('chat-msgs');
+            box.scrollTop = box.scrollHeight;
         }
 
         // --- AUTH LOGIC ---
@@ -189,15 +200,22 @@
                 }).catch(err => document.getElementById('auth-err').innerText = err.message);
             });
         };
+        
         document.getElementById('logout-btn').onclick = () => signOut(auth).then(() => location.reload());
-        onAuthStateChanged(auth, u => { if(u) { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('side-menu').style.display = 'flex'; initApp(); } });
+        
+        onAuthStateChanged(auth, u => { 
+            if(u) { 
+                document.getElementById('auth-screen').style.display = 'none'; 
+                document.getElementById('side-menu').style.display = 'flex'; 
+                initApp(); 
+            } 
+        });
 
         function initApp() {
             const darkT = document.getElementById('dark-toggle');
             if(localStorage.getItem('theme') === 'dark') { document.body.classList.add('dark'); darkT.checked = true; }
             darkT.onchange = () => { document.body.classList.toggle('dark'); localStorage.setItem('theme', darkT.checked ? 'dark' : 'light'); };
 
-            // Profile Data Listener
             onValue(ref(db, `users/${auth.currentUser.uid}`), snap => {
                 const u = snap.val(); if(!u) return;
                 document.getElementById('settings-name-input').value = u.name;
@@ -206,14 +224,23 @@
             });
 
             document.getElementById('save-profile-btn').onclick = () => {
-                update(ref(db, `users/${auth.currentUser.uid}`), { name: document.getElementById('settings-name-input').value, bio: document.getElementById('settings-bio-input').value }).then(() => alert("Saved!"));
+                update(ref(db, `users/${auth.currentUser.uid}`), { 
+                    name: document.getElementById('settings-name-input').value, 
+                    bio: document.getElementById('settings-bio-input').value 
+                }).then(() => alert("Saved!"));
             };
 
-            document.getElementById('settings-pfp-input').onchange = (e) => {
-                const r = new FileReader(); r.onload = () => update(ref(db, `users/${auth.currentUser.uid}`), { pfp: r.result }); r.readAsDataURL(e.target.files[0]);
+            // Improved Image Upload Logic
+            document.getElementById('settings-pfp-input').onchange = async (e) => {
+                const file = e.target.files[0];
+                if(!file) return;
+                const fileRef = sRef(storage, `profiles/${auth.currentUser.uid}`);
+                await uploadBytes(fileRef, file);
+                const url = await getDownloadURL(fileRef);
+                update(ref(db, `users/${auth.currentUser.uid}`), { pfp: url });
             };
 
-            // Inbox Listener (Sorting & Dot)
+            // Inbox Listener
             onValue(ref(db, `users/${auth.currentUser.uid}/chats`), snap => {
                 const list = document.getElementById('inbox-list');
                 const chats = []; let hasUnreadGlobal = false;
@@ -235,7 +262,7 @@
             });
         }
 
-        // --- MESSAGE LOGIC (WITH RECEIPTS & ENTER) ---
+        // --- MESSAGE LOGIC ---
         const handleSend = () => {
             const txt = document.getElementById('chat-input').value.trim();
             if(!txt || !activePeer) return;
@@ -250,15 +277,6 @@
 
         document.getElementById('send-btn').onclick = handleSend;
         document.getElementById('chat-input').onkeydown = (e) => { if(e.key === "Enter") handleSend(); };
-
-        // Typing logic
-        document.getElementById('chat-input').oninput = () => {
-            if(!activePeer) return;
-            const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
-            set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), true);
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), false), 2500);
-        };
 
         window.openChat = (uid, name, pfp) => {
             activePeer = uid;
@@ -285,14 +303,13 @@
                             ${receipt}
                         </div>`);
                 });
-                box.scrollTop = box.scrollHeight;
+                scrollToBottom();
             });
             onValue(ref(db, `typing/${chatId}/${uid}`), snap => { document.getElementById('typing-ui').style.display = snap.val() ? 'flex' : 'none'; });
         };
 
         window.closeChat = () => { document.getElementById('chat-window').classList.remove('open'); activePeer = null; };
         
-        // Navigation
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -313,8 +330,13 @@
             });
         }
 
-        document.getElementById('p-post-upload').onchange = (e) => {
-            const r = new FileReader(); r.onload = () => push(ref(db, 'galleries/' + auth.currentUser.uid), r.result); r.readAsDataURL(e.target.files[0]);
+        document.getElementById('p-post-upload').onchange = async (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const fileRef = sRef(storage, `gallery/${auth.currentUser.uid}/${Date.now()}`);
+            await uploadBytes(fileRef, file);
+            const url = await getDownloadURL(fileRef);
+            push(ref(db, 'galleries/' + auth.currentUser.uid), url);
         };
 
         // Search Logic
