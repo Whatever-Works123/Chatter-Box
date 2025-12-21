@@ -47,7 +47,7 @@
         /* LIST ITEMS (iOS STYLE) */
         .list-item { display: flex; align-items: center; padding: 15px 20px; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; margin: 5px 10px; border-radius: 12px; }
         .list-item b { margin-left: 12px; font-size: 16px; }
-        .list-item.unread { border: 2px solid var(--accent); background: rgba(0, 132, 255, 0.05); }
+        .list-item.unread { border: 2.5px solid var(--accent); background: rgba(0, 132, 255, 0.05); }
 
         /* CHAT WINDOW */
         #chat-window { position: fixed; top: 0; right: -450px; bottom: 0; width: 400px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.1); }
@@ -179,7 +179,6 @@
         let activePeer = null;
         let typingTimeout;
 
-        // --- AVATAR FIX (NO AI) ---
         function setAvatar(el, url, name) {
             if(url && url.length > 20) {
                 el.style.backgroundImage = `url(${url})`;
@@ -190,7 +189,6 @@
             }
         }
 
-        // --- AUTH ---
         document.getElementById('login-btn').onclick = () => {
             const e = document.getElementById('email').value, p = document.getElementById('password').value;
             signInWithEmailAndPassword(auth, e, p).catch(() => {
@@ -243,22 +241,16 @@
                 r.readAsDataURL(e.target.files[0]);
             };
 
-            privT.onchange = () => update(ref(db, `users/${auth.currentUser.uid}`), { private: privT.checked });
-
-            // SMART INBOX LISTENER
             onValue(ref(db, `users/${auth.currentUser.uid}/chats`), snap => {
                 const list = document.getElementById('inbox-list');
                 const chats = [];
                 let hasUnreadGlobal = false;
-
                 snap.forEach(c => {
                     chats.push({ uid: c.key, ...c.val() });
                     if(c.val().unread) hasUnreadGlobal = true;
                 });
-
                 chats.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
                 list.innerHTML = "";
-                
                 chats.forEach(chat => {
                     get(ref(db, 'users/' + chat.uid)).then(uSnap => {
                         const u = uSnap.val();
@@ -274,47 +266,9 @@
             });
         }
 
-        window.openChat = (uid, name, pfp) => {
-            activePeer = uid;
-            document.getElementById('chat-window').classList.add('open');
-            document.getElementById('chat-user-name').innerText = name;
-            setAvatar(document.getElementById('chat-pfp'), pfp, name);
-            
-            update(ref(db, `users/${auth.currentUser.uid}/chats/${uid}`), { unread: false });
-
-            const chatId = [auth.currentUser.uid, uid].sort().join('_');
-            
-            // Listen for Messages
-            onValue(ref(db, 'messages/' + chatId), snap => {
-                const box = document.getElementById('chat-msgs'); box.innerHTML = "";
-                snap.forEach(m => {
-                    const d = m.val();
-                    const side = d.sender === auth.currentUser.uid ? 'me' : 'them';
-                    box.insertAdjacentHTML('beforeend', `<div style="padding:10px 15px; border-radius:18px; max-width:75%; font-size:14px; background:${side=='me'?'#0084ff':'#e4e6eb'}; color:${side=='me'?'white':'black'}; align-self:${side=='me'?'flex-end':'flex-start'}">${d.text}</div>`);
-                });
-                box.scrollTop = box.scrollHeight;
-            });
-
-            // Listen for Typing
-            onValue(ref(db, `typing/${chatId}/${uid}`), snap => {
-                document.getElementById('typing-ui').style.display = snap.val() ? 'flex' : 'none';
-                document.getElementById('chat-msgs').scrollTop = document.getElementById('chat-msgs').scrollHeight;
-            });
-        };
-
-        // INPUT TYPING SIGNAL
-        document.getElementById('chat-input').addEventListener('input', () => {
-            if(!activePeer) return;
-            const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
-            set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), true);
-            clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), false);
-            }, 2500);
-        });
-
-        document.getElementById('send-btn').onclick = () => {
-            const txt = document.getElementById('chat-input').value;
+        // --- THE SEND LOGIC (WITH ENTER KEY) ---
+        const handleSend = () => {
+            const txt = document.getElementById('chat-input').value.trim();
             if(!txt || !activePeer) return;
             const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
             const now = Date.now();
@@ -327,11 +281,48 @@
             set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), false);
         };
 
-        window.closeChat = () => {
-            document.getElementById('chat-window').classList.remove('open');
-            activePeer = null;
+        document.getElementById('send-btn').onclick = handleSend;
+
+        document.getElementById('chat-input').addEventListener('keydown', (e) => {
+            if(e.key === "Enter") {
+                handleSend();
+            }
+        });
+
+        // INPUT TYPING SIGNAL
+        document.getElementById('chat-input').addEventListener('input', () => {
+            if(!activePeer) return;
+            const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
+            set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), true);
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                set(ref(db, `typing/${chatId}/${auth.currentUser.uid}`), false);
+            }, 2500);
+        });
+
+        window.openChat = (uid, name, pfp) => {
+            activePeer = uid;
+            document.getElementById('chat-window').classList.add('open');
+            document.getElementById('chat-user-name').innerText = name;
+            setAvatar(document.getElementById('chat-pfp'), pfp, name);
+            update(ref(db, `users/${auth.currentUser.uid}/chats/${uid}`), { unread: false });
+            const chatId = [auth.currentUser.uid, uid].sort().join('_');
+            onValue(ref(db, 'messages/' + chatId), snap => {
+                const box = document.getElementById('chat-msgs'); box.innerHTML = "";
+                snap.forEach(m => {
+                    const d = m.val();
+                    const side = d.sender === auth.currentUser.uid ? 'me' : 'them';
+                    box.insertAdjacentHTML('beforeend', `<div style="padding:10px 15px; border-radius:18px; max-width:75%; font-size:14px; background:${side=='me'?'#0084ff':'#e4e6eb'}; color:${side=='me'?'white':'black'}; align-self:${side=='me'?'flex-end':'flex-start'}">${d.text}</div>`);
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+            onValue(ref(db, `typing/${chatId}/${uid}`), snap => {
+                document.getElementById('typing-ui').style.display = snap.val() ? 'flex' : 'none';
+                document.getElementById('chat-msgs').scrollTop = document.getElementById('chat-msgs').scrollHeight;
+            });
         };
 
+        window.closeChat = () => { document.getElementById('chat-window').classList.remove('open'); activePeer = null; };
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
