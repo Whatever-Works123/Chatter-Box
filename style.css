@@ -1,3 +1,4 @@
+/* --- Cards & Layout --- */
 .post-card {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 15px;
@@ -5,12 +6,14 @@
     margin-bottom: 20px;
     border-left: 4px solid #2575fc;
 }
+
 .post-user {
     font-weight: bold;
     display: block;
     margin-bottom: 5px;
     color: #2575fc;
 }
+
 .post-content {
     font-size: 0.95rem;
     line-height: 1.4;
@@ -22,32 +25,58 @@
     display: flex; 
     justify-content: center; 
     overflow-y: auto;
-    min-height: 100vh; /* Add this line */
+    min-height: 100vh;
 }
 
+/* --- Search Results --- */
 .search-result-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 10px;
-        border-bottom: 1px solid #efefef;
-    }
-    .search-pfp {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        background-size: cover;
-        background-position: center;
-        border: 1px solid #dbdbdb;
-    }
-    .follow-btn {
-        margin-left: auto;
-        width: auto !important; /* Overrides the 100% width button rule */
-        padding: 5px 15px;
-        font-size: 13px;
-        background: #0095F6;
-    }
-    .follow-btn.following {
-        background: #efefef;
-        color: black;
-    }
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-bottom: 1px solid #efefef;
+    cursor: pointer;
+}
+
+/* --- THE FIXED AVATAR (Consolidated) --- */
+.avatar { 
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%; 
+    
+    /* Image sizing */
+    background-size: cover; 
+    background-position: center; 
+    background-color: #e4e6eb; /* Default gray if no image */
+    
+    /* Text centering (for initials) */
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #65676b; 
+    font-weight: bold; 
+    font-size: 20px;
+    
+    /* Layout */
+    flex-shrink: 0; 
+    border: 2px solid transparent; /* Keeps layout stable */
+    
+    /* --- CRITICAL FOR GREEN DOT --- */
+    position: relative;  /* Allows the dot to sit on top */
+    overflow: visible;   /* Allows the dot to stick out of the circle */
+}
+
+/* --- THE GREEN DOT --- */
+.online-dot {
+    width: 13px;
+    height: 13px;
+    background-color: #31a24c; /* Bright Green */
+    border: 2px solid white;   /* White ring makes it pop */
+    border-radius: 50%;
+    
+    /* Position */
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    z-index: 10;
+}
