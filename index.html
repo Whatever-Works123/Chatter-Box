@@ -197,71 +197,29 @@
         function setAvatar(el, url, name) {
             if(url && url.length > 50) { 
                 el.style.backgroundImage = `url(${url})`; 
-// Search Logic
-        const searchInput = document.getElementById('s-query');
-        
-        searchInput.addEventListener('input', (e) => {
-            const q = e.target.value.toLowerCase().trim();
-            const resDiv = document.getElementById('s-results');
-            
-            if(q.length < 1) { 
-                resDiv.innerHTML = ""; 
-                return; 
+                el.innerText = ""; 
+            } else { 
+                el.style.backgroundImage = "none"; 
+                el.innerText = name ? name[0].toUpperCase() : "?"; 
+                el.style.backgroundColor = getHSL(name);
+                el.style.color = "#fff";
             }
+        }
 
-            // Visual feedback that search is happening
-            resDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:10px;">Searching...</div>';
+        // Helper: Generate consistent color from name
+        function getHSL(str) {
+            if(!str) return '#ccc';
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return `hsl(${hash % 360}, 60%, 50%)`;
+        }
 
-            get(ref(db, 'users'))
-            .then(snap => {
-                resDiv.innerHTML = ""; // Clear "Searching..."
-                
-                if (!snap.exists()) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center;">No users found in database.</div>';
-                    return;
-                }
-
-                let found = false;
-
-                snap.forEach(child => {
-                    const u = child.val();
-                    const uid = child.key;
-                    
-                    // Skip yourself
-                    if(uid === auth.currentUser.uid) return;
-
-                    // Check if name exists and matches query
-                    if(u.name && u.name.toLowerCase().includes(q)) {
-                        found = true;
-                        const item = document.createElement('div');
-                        item.className = 'list-item';
-                        item.innerHTML = `
-                            <div class="avatar"></div>
-                            <div class="list-item-content">
-                                <b>${u.name}</b>
-                                <span>${u.bio || 'No bio'}</span>
-                            </div>`;
-                        
-                        setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
-                        
-                        item.onclick = () => {
-                            openChat(uid, u.name, u.pfp);
-                            searchInput.value = ""; 
-                            resDiv.innerHTML = ""; 
-                        };
-                        resDiv.appendChild(item);
-                    }
-                });
-
-                if(!found) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">No user found with that name.</div>';
-                }
-            })
-            .catch(error => {
-                console.error("Search failed:", error);
-                resDiv.innerHTML = `<div style="color:red; padding:10px; text-align:center;">Error: ${error.message}<br>Check Console</div>`;
-            });
-        });
+        // Auth Listener
+        onAuthStateChanged(auth, u => { 
+            if(u) { 
+                document.getElementById('auth-screen').style.display = 'none'; 
+                document.getElementById('side-menu').style.display = 'flex'; 
+                initApp(u); 
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('side-menu').style.display = 'none';
