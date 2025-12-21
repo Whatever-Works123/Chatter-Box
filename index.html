@@ -30,14 +30,14 @@
         input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); font-size: 16px; }
         
         /* Pages & Chat */
-        #chat-window { position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 450px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
+        .page { display: none; padding: 20px; flex:1; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #chat-window { position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 450px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s; z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
         #chat-window.open { right: 0; }
-        
-        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card); z-index: 2; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card); }
         .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
-        
-        .msg-bubble { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; }
-        .msg-time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+        .msg-bubble { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 15px; word-wrap: break-word; }
 
         /* Auth */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
