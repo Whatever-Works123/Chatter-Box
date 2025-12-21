@@ -59,3 +59,26 @@
 }
 /* Avatar */
 .avatar { width: 50px; height: 50px; ... }
+/* Avatar */
+.avatar { 
+    width: 50px; height: 50px; border-radius: 50%; 
+    background-size: cover; background-position: center; 
+    background-color: #e4e6eb; display: flex; 
+    align-items: center; justify-content: center; 
+    color: #65676b; font-weight: bold; flex-shrink: 0; 
+    font-size: 20px; 
+    position: relative; /* Added this */
+}
+
+/* New Code for Green Dot */
+.online-dot {
+    width: 13px;
+    height: 13px;
+    background-color: #31a24c; /* Green color */
+    border: 2px solid white;
+    border-radius: 50%;
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    z-index: 10;
+}
