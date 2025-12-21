@@ -46,8 +46,26 @@
         .main-viewport { flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px; position: relative; }
         .content-container { width: 100%; max-width: 600px; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-height: 90vh; overflow: hidden; }
         
-        /* Avatar */
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; background-color: #e4e6eb; display: flex; align-items: center; justify-content: center; color: #65676b; font-weight: bold; overflow: hidden; flex-shrink: 0; font-size: 20px; }
+        /* Avatar & Online Dot */
+        .avatar { 
+            width: 50px; height: 50px; border-radius: 50%; 
+            background-size: cover; background-position: center; 
+            background-color: #e4e6eb; display: flex; 
+            align-items: center; justify-content: center; 
+            color: #65676b; font-weight: bold; overflow: visible; /* Changed to visible for the dot */
+            flex-shrink: 0; font-size: 20px; 
+            position: relative; 
+        }
+
+        .online-dot {
+            width: 13px; height: 13px; 
+            background-color: #31a24c; 
+            border: 2px solid var(--card); 
+            border-radius: 50%; 
+            position: absolute; 
+            bottom: -2px; right: -2px; 
+            z-index: 10;
+        }
         
         /* Chat Window */
         #chat-window { position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 450px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
@@ -175,7 +193,8 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // Added onDisconnect to the imports below
+        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp, query, orderByChild, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // --- REPLACE THIS WITH YOUR OWN FIREBASE CONFIG ---
         const config = { 
@@ -227,6 +246,21 @@
         });
 
         function initApp(user) {
+            // --- NEW ONLINE STATUS LOGIC ---
+            // 1. Listen for connection state
+            const connectedRef = ref(db, ".info/connected");
+            const myStatusRef = ref(db, `users/${user.uid}/isOnline`);
+
+            onValue(connectedRef, (snap) => {
+                if (snap.val() === true) {
+                    // If we disconnect (close tab), set isOnline to false in DB
+                    onDisconnect(myStatusRef).set(false);
+                    // We are currently connected, set isOnline to true
+                    set(myStatusRef, true);
+                }
+            });
+            // -------------------------------
+
             // Load Current User Data
             const userRef = ref(db, `users/${user.uid}`);
             onValue(userRef, snap => {
@@ -267,8 +301,12 @@
                         
                         const item = document.createElement('div');
                         item.className = `list-item ${chat.unread ? 'unread' : ''}`;
+                        
+                        // UPDATED: Added online dot logic here
                         item.innerHTML = `
-                            <div class="avatar"></div>
+                            <div class="avatar" style="position:relative">
+                                ${u.isOnline ? '<div class="online-dot"></div>' : ''}
+                            </div>
                             <div class="list-item-content">
                                 <b>${u.name}</b>
                                 <span>Tap to chat</span>
@@ -300,7 +338,17 @@
                     if(u.name.toLowerCase().includes(q)) {
                         const item = document.createElement('div');
                         item.className = 'list-item';
-                        item.innerHTML = `<div class="avatar"></div><div class="list-item-content"><b>${u.name}</b><span>${u.bio || ''}</span></div>`;
+                        
+                        // UPDATED: Added online dot logic here
+                        item.innerHTML = `
+                            <div class="avatar" style="position:relative">
+                                ${u.isOnline ? '<div class="online-dot"></div>' : ''}
+                            </div>
+                            <div class="list-item-content">
+                                <b>${u.name}</b>
+                                <span>${u.bio || ''}</span>
+                            </div>`;
+                        
                         setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
                         item.onclick = () => {
                             openChat(uid, u.name, u.pfp);
@@ -326,7 +374,6 @@
             const msgsRef = ref(db, 'messages/' + chatId);
             
             // Limit to last 50 messages for performance
-            // In real apps, implement pagination
             onValue(msgsRef, snap => {
                 const box = document.getElementById('chat-msgs'); 
                 box.innerHTML = "";
@@ -426,7 +473,10 @@
 
         // Logout
         document.getElementById('logout-btn').onclick = () => {
-            signOut(auth).then(() => location.reload());
+            // Set offline before signing out explicitly
+            update(ref(db, `users/${auth.currentUser.uid}`), { isOnline: false })
+                .then(() => signOut(auth))
+                .then(() => location.reload());
         };
 
         // Auth: Login / Signup
@@ -447,7 +497,8 @@
                         set(ref(db, 'users/' + res.user.uid), { 
                             name: defaultName.charAt(0).toUpperCase() + defaultName.slice(1), 
                             pfp: "", 
-                            bio: "New to Chatter Box" 
+                            bio: "New to Chatter Box",
+                            isOnline: true // Set online on creation
                         });
                      }).catch(createErr => {
                         errBox.innerText = "Login Failed: " + createErr.message;
