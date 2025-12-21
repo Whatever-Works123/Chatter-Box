@@ -40,3 +40,20 @@
         background-position: center;
         border: 1px solid #dbdbdb;
     }
+.avatar { 
+    width: 50px; 
+    height: 50px; 
+    border-radius: 50%; 
+    background-size: cover; 
+    background-position: center; 
+    background-color: #0084ff; /* Default blue for initials */
+    flex-shrink: 0; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: white; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    font-size: 18px;
+    border: 2px solid var(--border);
+}
