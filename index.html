@@ -3,79 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chatter Box | Final Version</title>
+    <title>Chatter Box</title>
     <style>
         * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
-        :root { 
-            --bg: #f0f2f5; --side: #ffffff; --text: #1c1e21; --accent: #0084ff; --border: #e4e6eb; --card: #ffffff; --subtext: #65676b;
-        }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+        :root { --bg: #f0f2f5; --side: #ffffff; --text: #1c1e21; --accent: #0084ff; --border: #e4e6eb; --card: #ffffff; --subtext: #65676b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
         
-        /* Sidebar */
+        /* Layout */
         .sidebar { width: 280px; background: var(--side); border-right: 1px solid var(--border); display: none; flex-direction: column; padding: 20px; flex-shrink: 0; z-index: 10; }
-        .app-title { font-size: 26px; font-weight: 800; color: #FF8C42; margin-bottom: 30px; font-style: italic; letter-spacing: -1px; }
+        .main-viewport { flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px; position: relative; }
+        .content-container { width: 100%; max-width: 600px; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-height: 90vh; overflow: hidden; display:flex; flex-direction:column; }
         
-        .menu-item { 
-            display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; 
-            cursor: pointer; margin-bottom: 8px; font-weight: 600; color: var(--subtext); transition: 0.2s; position: relative; 
-        }
+        /* Components */
+        .menu-item { display: flex; align-items: center; gap: 15px; padding: 12px 15px; border-radius: 10px; cursor: pointer; margin-bottom: 8px; font-weight: 600; color: var(--subtext); transition: 0.2s; position: relative; }
         .menu-item:hover { background: rgba(0,0,0,0.05); }
         .menu-item.active { background: rgba(0, 132, 255, 0.1); color: var(--accent); }
+        .notif-dot { display: none; width: 10px; height: 10px; background: #ff3b30; border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); }
         
-        .notif-dot { 
-            display: none; width: 10px; height: 10px; background: #ff3b30; 
-            border-radius: 50%; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); 
-        }
-
-        /* Lists */
-        .list-item { 
-            display: flex; align-items: center; padding: 15px; cursor: pointer; 
-            border: 2px solid transparent; margin: 5px 10px; border-radius: 14px; 
-            background: var(--card); transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-        }
+        .list-item { display: flex; align-items: center; padding: 15px; cursor: pointer; border-radius: 14px; background: var(--card); margin: 5px 10px; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); border: 2px solid transparent; }
         .list-item:hover { transform: scale(1.01); }
         .list-item.unread { border-color: var(--accent); background: rgba(0, 132, 255, 0.05); }
-        .list-item-content { margin-left: 15px; flex: 1; display: flex; flex-direction: column; }
-        .list-item b { font-size: 16px; }
-        .list-item span { font-size: 13px; color: var(--subtext); margin-top: 2px; }
-
-        /* Main Area */
-        .main-viewport { flex: 1; display: flex; justify-content: center; overflow-y: auto; padding: 20px; position: relative; }
-        .content-container { width: 100%; max-width: 600px; background: var(--card); border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); min-height: 90vh; overflow: hidden; }
         
-        /* Avatar */
-        .avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; background-position: center; background-color: #e4e6eb; display: flex; align-items: center; justify-content: center; color: #65676b; font-weight: bold; overflow: hidden; flex-shrink: 0; font-size: 20px; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background-color: #e4e6eb; display: flex; align-items: center; justify-content: center; color: #65676b; font-weight: bold; background-size: cover; flex-shrink: 0; font-size: 20px; }
+        .btn { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; }
+        input { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); font-size: 16px; }
         
-        /* Chat Window */
-        #chat-window { position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 450px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
+        /* Pages & Chat */
+        .page { display: none; padding: 20px; flex:1; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        #chat-window { position: fixed; top: 0; right: -100%; bottom: 0; width: 100%; max-width: 450px; background: var(--card); border-left: 1px solid var(--border); transition: 0.3s; z-index: 1000; display: flex; flex-direction: column; box-shadow: -5px 0 20px rgba(0,0,0,0.1); }
         #chat-window.open { right: 0; }
-        
-        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card); z-index: 2; }
+        .chat-header { padding: 15px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card); }
         .chat-msgs { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: var(--bg); }
-        
-        .msg-bubble { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative; }
-        .msg-time { font-size: 10px; opacity: 0.7; margin-top: 4px; display: block; text-align: right; }
+        .msg-bubble { padding: 10px 16px; border-radius: 20px; max-width: 75%; font-size: 15px; word-wrap: break-word; }
 
-        /* Auth & Forms */
+        /* Auth */
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 2000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         .auth-box { background: var(--card); padding: 40px; border-radius: 20px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); text-align: center; }
-        
-        input, textarea { width: 100%; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--text); font-size: 16px; transition: 0.2s; }
-        input:focus { border-color: var(--accent); background: var(--card); }
-        
-        .btn { background: var(--accent); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer; width: 100%; font-size: 16px; transition: 0.2s; }
-        .btn:hover { opacity: 0.9; transform: scale(0.98); }
-        .btn:active { transform: scale(0.95); }
-
-        .page { display: none; padding: 20px; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Responsive */
         @media (max-width: 600px) {
-            .sidebar { position: fixed; bottom: 0; width: 100%; height: 70px; flex-direction: row; border-top: 1px solid var(--border); border-right: none; padding: 0; justify-content: space-around; }
+            .sidebar { position: fixed; bottom: 0; width: 100%; height: 70px; flex-direction: row; padding: 0; justify-content: space-around; border-top: 1px solid var(--border); }
             .app-title, #logout-btn { display: none; }
-            .menu-item { flex-direction: column; gap: 5px; font-size: 12px; padding: 10px; border-radius: 0; margin: 0; background: transparent !important; }
-            .menu-item.active { color: var(--accent); }
+            .menu-item { flex-direction: column; gap: 5px; font-size: 10px; background: transparent !important; padding: 10px; margin: 0; }
             .content-container { border-radius: 0; height: 100vh; padding-bottom: 80px; box-shadow: none; }
             .main-viewport { padding: 0; }
             #chat-window { width: 100%; max-width: 100%; }
@@ -86,169 +57,154 @@
 
     <div id="auth-screen">
         <div class="auth-box">
-            <h1 style="color:#FF8C42; font-style:italic; margin-top:0;">Chatter Box</h1>
-            <p style="color:var(--subtext); margin-bottom:20px;">Enter your email to start</p>
-            <input type="email" id="email" placeholder="Email Address">
+            <h1 style="color:#FF8C42; font-style:italic;">Chatter Box</h1>
+            <p>Enter email/password to login or sign up.</p>
+            <input type="email" id="email" placeholder="Email">
             <input type="password" id="password" placeholder="Password">
-            <button class="btn" id="login-btn">Log In / Sign Up</button>
-            <p id="auth-error" style="color:red; font-size:13px; margin-top:10px; display:none;"></p>
+            <button class="btn" id="login-btn">Start Chatting</button>
+            <p id="auth-error" style="color:red; margin-top:10px;"></p>
         </div>
     </div>
 
     <div id="side-menu" class="sidebar">
-        <div class="app-title">Chatter Box</div>
-        <div class="menu-item active" onclick="nav('home-page', this)">
-            <span style="font-size:20px">🏠</span> <span class="label">Home</span>
-            <div id="home-dot" class="notif-dot"></div>
-        </div>
-        <div class="menu-item" onclick="nav('search-page', this)">
-            <span style="font-size:20px">🔍</span> <span class="label">Search</span>
-        </div>
-        <div class="menu-item" onclick="nav('profile-page', this)">
-            <span style="font-size:20px">👤</span> <span class="label">My Profile</span>
-        </div>
-        <div class="menu-item" onclick="nav('settings-page', this)">
-            <span style="font-size:20px">⚙️</span> <span class="label">Settings</span>
-        </div>
-        <button class="btn" id="logout-btn" style="margin-top:auto; background:#ff3b30; color:white;">Logout</button>
+        <div class="app-title" style="font-size: 24px; font-weight: 800; color: #FF8C42; margin-bottom: 30px;">Chatter Box</div>
+        <div class="menu-item active" onclick="nav('home-page', this)"><span>🏠</span> Home <div id="home-dot" class="notif-dot"></div></div>
+        <div class="menu-item" onclick="nav('search-page', this)"><span>🔍</span> Search</div>
+        <div class="menu-item" onclick="nav('profile-page', this)"><span>👤</span> My Profile</div>
+        <div class="menu-item" onclick="nav('settings-page', this)"><span>⚙️</span> Settings</div>
+        <button class="btn" id="logout-btn" style="margin-top:auto; background:#ff3b30;">Logout</button>
     </div>
 
     <div class="main-viewport">
         <div class="content-container">
-            
             <div id="home-page" class="page" style="display:block;">
-                <h2 style="margin:10px 10px 20px;">Messages</h2>
-                <div id="inbox-list">
-                    <div style="text-align:center; padding:20px; color:#ccc;">Loading messages...</div>
-                </div>
+                <h2>Messages</h2>
+                <div id="inbox-list"></div>
             </div>
 
             <div id="search-page" class="page">
                 <h2>Search Users</h2>
-                <input type="text" id="s-query" placeholder="Type a name...">
+                <input type="text" id="s-query" placeholder="Type name...">
                 <div id="s-results" style="margin-top:20px;"></div>
             </div>
 
             <div id="view-user-page" class="page">
-                <div style="padding: 10px 0;">
-                    <button onclick="nav('home-page', document.querySelector('.menu-item'))" style="background:none; border:none; color:var(--accent); font-weight:600; cursor:pointer;">&larr; Back to Home</button>
-                </div>
-                
+                <button onclick="nav('home-page', document.querySelector('.menu-item'))" style="background:none; border:none; color:var(--accent); cursor:pointer;">&larr; Back</button>
                 <div style="text-align:center; margin-top:20px;">
-                    <div id="view-pfp" class="avatar" style="width:120px; height:120px; margin: 0 auto; font-size:40px;"></div>
-                    <h2 id="view-name" style="margin-bottom:5px; margin-top:15px;"></h2>
-                    <div style="background: rgba(0,0,0,0.03); display:inline-block; padding:5px 15px; border-radius:15px; margin-bottom:15px;">
-                        <span id="view-status" style="color:var(--subtext); font-size:14px;">User</span>
-                    </div>
-                    <p id="view-bio" style="color:var(--text); max-width:80%; margin:0 auto; line-height:1.5;"></p>
-                </div>
-
-                <div style="margin-top:40px; padding:0 20px;">
-                    <button id="view-msg-btn" class="btn" style="border-radius:25px;">💬 Send Message</button>
+                    <div id="view-pfp" class="avatar" style="width:100px; height:100px; margin:0 auto; font-size:40px;"></div>
+                    <h2 id="view-name" style="margin:10px 0;"></h2>
+                    <p id="view-bio" style="color:#666;"></p>
+                    <button id="view-msg-btn" class="btn" style="width:auto; padding:10px 30px; border-radius:20px; margin-top:20px;">💬 Message</button>
                 </div>
             </div>
 
             <div id="profile-page" class="page">
                 <div style="text-align:center; margin-top:40px;">
-                    <div id="p-pfp" class="avatar" style="width:120px; height:120px; margin: 0 auto; font-size:40px;"></div>
-                    <h2 id="p-name" style="margin-bottom:5px;"></h2>
-                    <p id="p-bio" style="color:var(--subtext);"></p>
-                    <p id="p-email" style="color:var(--subtext); font-size:12px;"></p>
+                    <div id="p-pfp" class="avatar" style="width:100px; height:100px; margin:0 auto; font-size:40px;"></div>
+                    <h2 id="p-name"></h2>
+                    <p id="p-bio" style="color:#666;"></p>
+                    <p id="p-email" style="font-size:12px; color:#999;"></p>
                 </div>
             </div>
 
             <div id="settings-page" class="page">
-                <h2>Edit Profile</h2>
+                <h2>Settings</h2>
                 <div style="text-align:center; margin-bottom:20px;">
-                    <div id="settings-pfp-preview" class="avatar" style="width:80px; height:80px; margin:0 auto 10px;"></div>
-                    <label for="settings-pfp-input" style="color:var(--accent); cursor:pointer; font-weight:600; font-size:14px;">Change Photo</label>
+                    <div id="settings-pfp-preview" class="avatar" style="width:80px; height:80px; margin:0 auto;"></div>
+                    <label for="settings-pfp-input" style="color:var(--accent); cursor:pointer; font-size:14px;">Change Photo</label>
                     <input type="file" id="settings-pfp-input" accept="image/*" style="display:none;">
                 </div>
-                <label style="font-weight:600; font-size:13px; margin-left:5px;">Display Name</label>
                 <input type="text" id="settings-name-input" placeholder="Display Name">
-                
-                <label style="font-weight:600; font-size:13px; margin-left:5px;">Bio</label>
-                <input type="text" id="settings-bio-input" placeholder="Short Bio">
-                
-                <button class="btn" id="save-profile-btn" style="margin-top:10px;">Save Changes</button>
+                <input type="text" id="settings-bio-input" placeholder="Bio">
+                <button class="btn" id="save-profile-btn">Save Changes</button>
             </div>
         </div>
     </div>
 
     <div id="chat-window">
         <div class="chat-header">
-            <button onclick="closeChat()" style="background:none; border:none; font-size:24px; color:var(--accent); padding:0; cursor:pointer;">&larr;</button>
-            <div onclick="if(activePeer) viewUserProfile(activePeer); closeChat();" style="display:flex; align-items:center; gap:10px; cursor:pointer; flex:1;">
+            <button onclick="closeChat()" style="background:none; border:none; font-size:24px; cursor:pointer;">&larr;</button>
+            <div onclick="if(activePeer) viewUserProfile(activePeer); closeChat();" style="flex:1; display:flex; align-items:center; gap:10px; cursor:pointer;">
                 <div id="chat-pfp" class="avatar" style="width:35px; height:35px;"></div>
                 <b id="chat-user-name">User</b>
             </div>
         </div>
-
         <div id="chat-msgs" class="chat-msgs"></div>
-        <div style="padding:15px; display:flex; gap:10px; background:var(--card); border-top:1px solid var(--border);">
+        <div style="padding:15px; border-top:1px solid #eee; display:flex; gap:10px;">
             <input type="text" id="chat-input" placeholder="Message..." style="margin:0; border-radius:20px;">
-            <button class="btn" id="send-btn" style="width:auto; border-radius:20px; padding:0 20px;">&uarr;</button>
+            <button class="btn" id="send-btn" style="width:auto; border-radius:20px;">&uarr;</button>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue, get, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // --- REPLACE THIS WITH YOUR OWN FIREBASE CONFIG ---
-        const config = { 
-            apiKey: "AIzaSyAF0IDQU21LWJ2Rggb7J0rY4F6UlvZaVZg", 
-            authDomain: "chatterbox-4b7dd.firebaseapp.com", 
-            databaseURL: "https://chatterbox-4b7dd-default-rtdb.firebaseio.com", 
-            projectId: "chatterbox-4b7dd"
+        // ======================================================
+        // ⚠️ REPLACE THIS WITH YOUR FIREBASE CONFIG
+        // ======================================================
+        const config = {
+            apiKey: "AIzaSy.....YOUR_KEY_HERE.....",
+            authDomain: "your-project.firebaseapp.com",
+            databaseURL: "https://your-project-default-rtdb.firebaseio.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456:web:abcdef"
         };
-        // ------------------------------------------------
+        // ======================================================
 
         const app = initializeApp(config);
         const auth = getAuth(app);
         const db = getDatabase(app);
-        
-        let activePeer = null; // The ID of the person we are chatting with
-        let currentUserData = null; // Our own data
+        let activePeer = null; 
+        let currentUserData = null;
 
-        // Helper: Set Avatar
+        // --- Helpers ---
         function setAvatar(el, url, name) {
             if(url && url.length > 50) { 
-                el.style.backgroundImage = `url(${url})`; 
-                el.innerText = ""; 
+                el.style.backgroundImage = `url(${url})`; el.innerText = ""; 
             } else { 
-                el.style.backgroundImage = "none"; 
-                el.innerText = name ? name[0].toUpperCase() : "?"; 
-                el.style.backgroundColor = getHSL(name);
-                el.style.color = "#fff";
+                el.style.backgroundImage = "none"; el.innerText = name ? name[0].toUpperCase() : "?"; 
+                let hash = 0; for(let i=0; i<(name||"").length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+                el.style.backgroundColor = `hsl(${hash % 360}, 60%, 50%)`; el.style.color="white";
             }
         }
 
-        // Helper: Generate consistent color from name
-        function getHSL(str) {
-            if(!str) return '#ccc';
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            return `hsl(${hash % 360}, 60%, 50%)`;
-        }
-
-        // Auth Listener
-        onAuthStateChanged(auth, u => { 
-            if(u) { 
-                document.getElementById('auth-screen').style.display = 'none'; 
-                document.getElementById('side-menu').style.display = 'flex'; 
-                initApp(u); 
+        // --- Auth ---
+        onAuthStateChanged(auth, u => {
+            if(u) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('side-menu').style.display = 'flex';
+                loadUserData(u);
+                loadInbox(u);
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
                 document.getElementById('side-menu').style.display = 'none';
             }
         });
 
-        function initApp(user) {
-            // Load Current User Data
-            const userRef = ref(db, `users/${user.uid}`);
-            onValue(userRef, snap => {
+        document.getElementById('login-btn').onclick = () => {
+            const e = document.getElementById('email').value, p = document.getElementById('password').value;
+            const err = document.getElementById('auth-error');
+            if(!e || !p) return err.innerText = "Fill all fields";
+            signInWithEmailAndPassword(auth, e, p).catch(error => {
+                if(error.code.includes('not-found') || error.code.includes('invalid-credential')) {
+                    createUserWithEmailAndPassword(auth, e, p).then(c => {
+                        const name = e.split('@')[0];
+                        set(ref(db, 'users/'+c.user.uid), { name: name, bio: "New User", pfp: "" });
+                    }).catch(e2 => err.innerText = e2.message);
+                } else {
+                    err.innerText = error.message;
+                }
+            });
+        };
+        document.getElementById('logout-btn').onclick = () => signOut(auth);
+
+        // --- Data Loading ---
+        function loadUserData(user) {
+            onValue(ref(db, `users/${user.uid}`), snap => {
                 currentUserData = snap.val();
                 if(currentUserData) {
                     setAvatar(document.getElementById('settings-pfp-preview'), currentUserData.pfp, currentUserData.name);
@@ -256,44 +212,24 @@
                     document.getElementById('settings-bio-input').value = currentUserData.bio || "";
                 }
             });
+        }
 
-            // Load Inbox
+        function loadInbox(user) {
             onValue(ref(db, `users/${user.uid}/chats`), snap => {
-                const list = document.getElementById('inbox-list');
-                const homeDot = document.getElementById('home-dot');
-                list.innerHTML = "";
+                const list = document.getElementById('inbox-list'); list.innerHTML = "";
+                if(!snap.exists()) { list.innerHTML = "<div style='text-align:center; padding:20px; color:#ccc;'>No messages yet.</div>"; return; }
                 
                 let chats = [];
-                let globalUnread = false;
-
-                snap.forEach(c => {
-                    chats.push({ uid: c.key, ...c.val() });
-                    if(c.val().unread) globalUnread = true;
-                });
-
-                if(chats.length === 0) {
-                    list.innerHTML = `<div style="text-align:center; padding:40px; color:#999;">No messages yet.<br>Go to Search to find people!</div>`;
-                    return;
-                }
-
-                chats.sort((a, b) => (b.lastTime || 0) - (a.lastTime || 0));
-                homeDot.style.display = globalUnread ? "block" : "none";
+                snap.forEach(c => chats.push({uid: c.key, ...c.val()}));
+                chats.sort((a,b) => (b.lastTime||0) - (a.lastTime||0));
 
                 chats.forEach(chat => {
-                    get(ref(db, 'users/' + chat.uid)).then(uSnap => {
+                    get(ref(db, 'users/'+chat.uid)).then(uSnap => {
                         const u = uSnap.val();
                         if(!u) return;
-                        
                         const item = document.createElement('div');
-                        item.className = `list-item ${chat.unread ? 'unread' : ''}`;
-                        item.innerHTML = `
-                            <div class="avatar"></div>
-                            <div class="list-item-content">
-                                <b>${u.name}</b>
-                                <span>Tap to chat</span>
-                            </div>
-                            ${chat.unread ? '<div style="width:8px; height:8px; background:#0084ff; border-radius:50%; margin-right:5px;"></div>' : ''}
-                        `;
+                        item.className = `list-item ${chat.unread?'unread':''}`;
+                        item.innerHTML = `<div class="avatar"></div><div style="margin-left:15px;"><b>${u.name}</b><br><span style="font-size:12px; color:#666;">Tap to chat</span></div>`;
                         setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
                         item.onclick = () => openChat(chat.uid, u.name, u.pfp);
                         list.appendChild(item);
@@ -302,236 +238,104 @@
             });
         }
 
-        // --- NEW SEARCH LOGIC ---
-        const searchInput = document.getElementById('s-query');
-        searchInput.addEventListener('input', (e) => {
+        // --- Search ---
+        document.getElementById('s-query').addEventListener('input', (e) => {
             const q = e.target.value.toLowerCase().trim();
-            const resDiv = document.getElementById('s-results');
+            const res = document.getElementById('s-results');
+            if(q.length < 1) { res.innerHTML = ""; return; }
             
-            if(q.length < 1) { 
-                resDiv.innerHTML = ""; 
-                return; 
-            }
-
-            resDiv.innerHTML = '<div style="text-align:center; color:#999; margin-top:10px;">Searching...</div>';
-
             get(ref(db, 'users')).then(snap => {
-                resDiv.innerHTML = ""; 
-                if (!snap.exists()) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center;">No users found in database.</div>';
-                    return;
-                }
-
-                let found = false;
-                snap.forEach(child => {
-                    const u = child.val();
-                    const uid = child.key;
-                    
-                    if(uid === auth.currentUser.uid) return; // Don't show self
-
-                    if(u.name && u.name.toLowerCase().includes(q)) {
-                        found = true;
+                res.innerHTML = "";
+                if(!snap.exists()) { res.innerHTML = "No users found."; return; }
+                snap.forEach(c => {
+                    const u = c.val();
+                    if(c.key !== auth.currentUser.uid && u.name && u.name.toLowerCase().includes(q)) {
                         const item = document.createElement('div');
                         item.className = 'list-item';
-                        item.innerHTML = `
-                            <div class="avatar"></div>
-                            <div class="list-item-content">
-                                <b>${u.name}</b>
-                                <span>${u.bio || 'No bio'}</span>
-                            </div>`;
-                        
+                        item.innerHTML = `<div class="avatar"></div><div style="margin-left:15px;"><b>${u.name}</b><br><span style="font-size:12px; color:#666;">${u.bio||'User'}</span></div>`;
                         setAvatar(item.querySelector('.avatar'), u.pfp, u.name);
-                        
-                        item.onclick = () => {
-                            // CLICKING A SEARCH RESULT NOW OPENS PROFILE
-                            viewUserProfile(uid);
-                            searchInput.value = ""; 
-                            resDiv.innerHTML = ""; 
-                        };
-                        resDiv.appendChild(item);
+                        item.onclick = () => viewUserProfile(c.key);
+                        res.appendChild(item);
                     }
                 });
-
-                if(!found) {
-                    resDiv.innerHTML = '<div style="padding:10px; text-align:center; color:#999;">No user found with that name.</div>';
-                }
-            }).catch(error => {
-                console.error("Search failed:", error);
-                resDiv.innerHTML = `<div style="color:red; padding:10px; text-align:center;">Error: ${error.message}<br>Check Console</div>`;
+            }).catch(err => {
+                res.innerHTML = `<div style="color:red; text-align:center;">Failed to load. <br>Did you update Firebase Rules?</div>`;
             });
         });
 
-        // Chat Logic
+        // --- Chat ---
         window.openChat = (uid, name, pfp) => {
             activePeer = uid;
             document.getElementById('chat-window').classList.add('open');
             document.getElementById('chat-user-name').innerText = name;
             setAvatar(document.getElementById('chat-pfp'), pfp, name);
-            
-            // Mark as read
             update(ref(db, `users/${auth.currentUser.uid}/chats/${uid}`), { unread: false });
-
-            const chatId = [auth.currentUser.uid, uid].sort().join('_');
-            const msgsRef = ref(db, 'messages/' + chatId);
             
-            onValue(msgsRef, snap => {
-                const box = document.getElementById('chat-msgs'); 
-                box.innerHTML = "";
+            const cid = [auth.currentUser.uid, uid].sort().join('_');
+            onValue(ref(db, 'messages/'+cid), snap => {
+                const box = document.getElementById('chat-msgs'); box.innerHTML = "";
                 snap.forEach(m => {
-                    const d = m.val();
-                    const isMe = d.sender === auth.currentUser.uid;
-                    const time = d.time ? new Date(d.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-                    
-                    const bubble = `
-                        <div style="align-self:${isMe?'flex-end':'flex-start'}; 
-                                    background:${isMe?'var(--accent)':'var(--card)'}; 
-                                    color:${isMe?'white':'var(--text)'};
-                                    border:${isMe?'none':'1px solid var(--border)'};" 
-                             class="msg-bubble">
-                             ${d.text}
-                             <span class="msg-time" style="color:${isMe?'rgba(255,255,255,0.7)':'var(--subtext)'}">${time}</span>
-                        </div>`;
-                    box.insertAdjacentHTML('beforeend', bubble);
+                    const d = m.val(), isMe = d.sender === auth.currentUser.uid;
+                    box.insertAdjacentHTML('beforeend', `<div class="msg-bubble" style="align-self:${isMe?'flex-end':'flex-start'}; background:${isMe?'#0084ff':'#fff'}; color:${isMe?'white':'#000'}; border:${isMe?'none':'1px solid #ddd'};">${d.text}</div>`);
                 });
                 box.scrollTop = box.scrollHeight;
             });
         };
-
-        // Send Message
-        document.getElementById('send-btn').onclick = sendMsg;
-        document.getElementById('chat-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') sendMsg(); });
-
-        function sendMsg() {
-            const input = document.getElementById('chat-input');
-            const txt = input.value.trim();
-            if(!txt || !activePeer) return;
-            
-            const chatId = [auth.currentUser.uid, activePeer].sort().join('_');
-            const now = Date.now();
-            
-            push(ref(db, 'messages/' + chatId), { 
-                sender: auth.currentUser.uid, 
-                text: txt, 
-                time: serverTimestamp() 
-            });
-            
-            // Update inbox info for both users
-            const updatePayload = { lastTime: now };
-            update(ref(db, `users/${auth.currentUser.uid}/chats/${activePeer}`), { ...updatePayload, unread: false });
-            update(ref(db, `users/${activePeer}/chats/${auth.currentUser.uid}`), { ...updatePayload, unread: true });
-            
-            input.value = "";
-            input.focus();
-        };
-
         window.closeChat = () => document.getElementById('chat-window').classList.remove('open');
+        
+        document.getElementById('send-btn').onclick = sendMsg;
+        function sendMsg() {
+            const txt = document.getElementById('chat-input').value.trim();
+            if(!txt || !activePeer) return;
+            const cid = [auth.currentUser.uid, activePeer].sort().join('_');
+            const now = Date.now();
+            push(ref(db, 'messages/'+cid), { sender: auth.currentUser.uid, text: txt, time: serverTimestamp() });
+            update(ref(db, `users/${auth.currentUser.uid}/chats/${activePeer}`), { lastTime: now, unread: false });
+            update(ref(db, `users/${activePeer}/chats/${auth.currentUser.uid}`), { lastTime: now, unread: true });
+            document.getElementById('chat-input').value = "";
+        }
 
-        // --- NEW VIEW USER PROFILE LOGIC ---
+        // --- View Profile ---
         window.viewUserProfile = (uid) => {
-            // Switch UI
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.getElementById('view-user-page').style.display = 'block';
-
-            // Reset UI (Loading state)
             document.getElementById('view-name').innerText = "Loading...";
-            document.getElementById('view-bio').innerText = "";
-            document.getElementById('view-pfp').style.backgroundImage = "none";
-
-            // Fetch Data
-            get(ref(db, 'users/' + uid)).then(snap => {
+            
+            get(ref(db, 'users/'+uid)).then(snap => {
                 if(snap.exists()) {
                     const u = snap.val();
                     document.getElementById('view-name').innerText = u.name;
-                    document.getElementById('view-bio').innerText = u.bio || "No bio available.";
+                    document.getElementById('view-bio').innerText = u.bio || "No bio.";
                     setAvatar(document.getElementById('view-pfp'), u.pfp, u.name);
-
-                    // Configure Message Button
-                    document.getElementById('view-msg-btn').onclick = () => {
-                        openChat(uid, u.name, u.pfp);
-                    };
+                    document.getElementById('view-msg-btn').onclick = () => openChat(uid, u.name, u.pfp);
                 }
             });
         };
 
-        // Navigation Logic
+        // --- Navigation & Settings ---
         window.nav = (id, el) => {
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
-            el.classList.add('active');
-
-            // If navigating to Profile, populate data
+            if(el) el.classList.add('active');
             if(id === 'profile-page' && currentUserData) {
                 document.getElementById('p-name').innerText = currentUserData.name;
-                document.getElementById('p-bio').innerText = currentUserData.bio || "No bio yet.";
+                document.getElementById('p-bio').innerText = currentUserData.bio || "No bio.";
                 document.getElementById('p-email').innerText = auth.currentUser.email;
                 setAvatar(document.getElementById('p-pfp'), currentUserData.pfp, currentUserData.name);
             }
         };
 
-        // Settings Logic: PFP Upload
+        // Settings PFP
         let pendingPfp = null;
         document.getElementById('settings-pfp-input').onchange = (e) => {
-            const file = e.target.files[0];
-            if(file) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    pendingPfp = reader.result;
-                    document.getElementById('settings-pfp-preview').style.backgroundImage = `url(${pendingPfp})`;
-                };
-                reader.readAsDataURL(file);
-            }
+            const f = e.target.files[0];
+            if(f) { const r = new FileReader(); r.onload = () => { pendingPfp = r.result; document.getElementById('settings-pfp-preview').style.backgroundImage = `url(${pendingPfp})`; }; r.readAsDataURL(f); }
         };
-
-        // Settings Logic: Save
         document.getElementById('save-profile-btn').onclick = () => {
-            const name = document.getElementById('settings-name-input').value;
-            const bio = document.getElementById('settings-bio-input').value;
-            const updates = { name: name, bio: bio };
-            
-            // Only update pfp if changed (Base64 strings are heavy)
-            if(pendingPfp) updates.pfp = pendingPfp;
-
-            update(ref(db, `users/${auth.currentUser.uid}`), updates).then(() => {
-                alert("Profile Saved!");
-                pendingPfp = null; // Reset pending
-            });
-        };
-
-        // Logout
-        document.getElementById('logout-btn').onclick = () => {
-            signOut(auth).then(() => location.reload());
-        };
-
-        // Auth: Login / Signup
-        document.getElementById('login-btn').onclick = () => {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('password').value;
-            const errBox = document.getElementById('auth-error');
-            
-            if(!e || !p) { errBox.innerText = "Please fill all fields"; errBox.style.display = 'block'; return; }
-            errBox.style.display = 'none';
-
-            signInWithEmailAndPassword(auth, e, p).catch(err => {
-                // If user not found, try to create one
-                if(err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                     // Try creating
-                     createUserWithEmailAndPassword(auth, e, p).then(res => {
-                        const defaultName = e.split('@')[0];
-                        set(ref(db, 'users/' + res.user.uid), { 
-                            name: defaultName.charAt(0).toUpperCase() + defaultName.slice(1), 
-                            pfp: "", 
-                            bio: "New to Chatter Box" 
-                        });
-                     }).catch(createErr => {
-                        errBox.innerText = "Login Failed: " + createErr.message;
-                        errBox.style.display = 'block';
-                     });
-                } else {
-                    errBox.innerText = err.message;
-                    errBox.style.display = 'block';
-                }
-            });
+            const u = { name: document.getElementById('settings-name-input').value, bio: document.getElementById('settings-bio-input').value };
+            if(pendingPfp) u.pfp = pendingPfp;
+            update(ref(db, `users/${auth.currentUser.uid}`), u).then(() => { alert("Saved!"); pendingPfp = null; });
         };
     </script>
 </body>
